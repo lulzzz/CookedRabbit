@@ -14,6 +14,9 @@ namespace CookedRabbit
     {
         public static long TotalMemoryInBytesAtStart = GC.GetTotalMemory(false);
 
+        // To Run, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally
+        // and running first. Use the HTTP API management from RabbitMQ to verify
+        // communication is occurring.
         public static async Task Main(string[] args)
         {
             //await RunBasicSendReceiveExampleAsync();
@@ -26,18 +29,16 @@ namespace CookedRabbit
 
             //await RunMemoryLeakFixAttempTwoAsync();
 
-            // To Run, have Erlang 20.3 and Server rabbit 3.7.5 installed locally
-            // and running first.
             // Focus on this method to see high performance in concurrent threads using
             // a dictionary that is also being cleaned up without deadlocks or
             // exceptions.
-            await RunMemoryLeakFixAttempThreeAsync();
+            //await RunMemoryLeakFixAttempThreeAsync();
 
             // Focus on this method to see high IO usage in concurrent threads using
             // a dictionary that is also being cleaned up without deadlocks or
             // exceptions. Real data payloads and send/receives simulate network
             // communication times.
-            //await RunMemoryLeakFixAttempTwoAsync();
+            await RunMemoryLeakFixAttempFourAsync();
             await Console.In.ReadLineAsync();
         }
 
@@ -596,7 +597,7 @@ namespace CookedRabbit
         public static async Task RunMemoryLeakFixAttempFourAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
-            var connection = await CreateConnection(connectionFactory, "SemaphoreTestConnection");
+            var connection = await CreateConnection(connectionFactory, "SemaphoreRealPayloadTestConnection");
             cleanupTask4 = CleanupDictionariesWithSemaphoreWithBytesAsync(new TimeSpan(0, 0, 20));
             maintenanceTask4 = MaintenanceWithSemaphoreWithBytesAsync(new TimeSpan(0, 1, 0));
 
@@ -666,14 +667,14 @@ namespace CookedRabbit
             int counter = 0;
             while (true)
             {
-                var receiveMessages1 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages2 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages3 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages4 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages5 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages6 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages7 = ReceiveMessagesSemaphoreAsync(connection, counter++);
-                var receiveMessages8 = ReceiveMessagesSemaphoreAsync(connection, counter++);
+                var receiveMessages1 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages2 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages3 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages4 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages5 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages6 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages7 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
+                var receiveMessages8 = ReceiveMessagesSemaphoreWithBytesAsync(connection, counter++);
 
                 await Task.WhenAll(new Task[] { receiveMessages1, receiveMessages2, receiveMessages3, receiveMessages4, receiveMessages5, receiveMessages6, receiveMessages7, receiveMessages8 });
             }
@@ -687,7 +688,7 @@ namespace CookedRabbit
             models4.Add(channel, counter);
             slimShady4.Release();
 
-            await Task.Delay(25); // Simulate network connectivity
+            await Task.Delay(rand.Next(10,100)); // Simulate network connectivity
             await SendMessageWithBytesAsync(channel, counter, bytes);
 
             channel.Dispose();
@@ -701,7 +702,7 @@ namespace CookedRabbit
             models4.Add(channel, counter);
             slimShady4.Release();
 
-            await Task.Delay(25); // Simulate network connectivity
+            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
             await ReceiveMessageAsync(channel);
 
             //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models3.Count}");
