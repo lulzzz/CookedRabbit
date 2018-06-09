@@ -26,7 +26,18 @@ namespace CookedRabbit
 
             //await RunMemoryLeakFixAttempTwoAsync();
 
+            // To Run, have Erlang 20.3 and Server rabbit 3.7.5 installed locally
+            // and running first.
+            // Focus on this method to see high performance in concurrent threads using
+            // a dictionary that is also being cleaned up without deadlocks or
+            // exceptions.
             await RunMemoryLeakFixAttempThreeAsync();
+
+            // Focus on this method to see high IO usage in concurrent threads using
+            // a dictionary that is also being cleaned up without deadlocks or
+            // exceptions. Real data payloads and send/receives simulate network
+            // communication times.
+            //await RunMemoryLeakFixAttempTwoAsync();
             await Console.In.ReadLineAsync();
         }
 
@@ -467,7 +478,7 @@ namespace CookedRabbit
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory, "SemaphorePerformanceTestConnection");
             cleanupTask3 = CleanupDictionariesWithSemaphoreAsync(new TimeSpan(0, 0, 20));
-            maintenanceTask3 = MaintenanceWithSemaphoreAsync(new TimeSpan(0, 1, 0));
+            //maintenanceTask3 = MaintenanceWithSemaphoreAsync(new TimeSpan(0, 1, 0));
 
             var send = SendMessagesForeverWithSemaphoreAsync(connection);
             var receive = ReceiveMessagesForeverWithSemaphoreAsync(connection);
