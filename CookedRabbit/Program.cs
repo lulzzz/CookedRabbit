@@ -685,7 +685,7 @@ namespace CookedRabbit
             var channel = await CreateChannel(connection);
 
             await slimShady4.WaitAsync();
-            models4.Add(channel, counter);
+            models4.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
             slimShady4.Release();
 
             await Task.Delay(rand.Next(10,100)); // Simulate network connectivity
@@ -699,7 +699,7 @@ namespace CookedRabbit
             var channel = await CreateChannel(connection);
 
             await slimShady4.WaitAsync();
-            models4.Add(channel, counter);
+            models4.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
             slimShady4.Release();
 
             await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
