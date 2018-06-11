@@ -625,10 +625,10 @@ namespace CookedRabbit
                 await Task.Delay(timeSpan);
 
                 var count = 0;
-                var listOfItemsToRemove = models4.Keys.Where(x => x.IsClosed).ToArray();
+                var listOfItemsToRemove = models4.Where(x => x.Key.IsClosed).ToArray();
                 foreach (var key in listOfItemsToRemove)
                 {
-                    models4.Remove(key);
+                    models4.Remove(key.Key);
                     count++;
                 }
                 await Console.Out.WriteLineAsync($"Dead channels removed: {count}");
