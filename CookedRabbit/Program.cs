@@ -14,43 +14,68 @@ namespace CookedRabbit
     {
         public static long TotalMemoryInBytesAtStart = GC.GetTotalMemory(false);
 
-        public static void Main(string[] args)
-        {
-            Console.WriteLine("Starting");
-            MainAsync(args).Wait();
-            Console.WriteLine("Finished. press enter to exit");
-            Console.ReadLine();
-        }
+        //// Needed if not C# (7.1+)
+        //public static void Main(string[] args)
+        //{   //Rename other Main to MainAsync
+        //    MainAsync(args).GetAwaiter().GetResult();
+        //}
 
         // To Run, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally
         // and running first. Use the HTTP API management from RabbitMQ to verify
         // communication is occurring.
-        public static async Task MainAsync(string[] args)
+        public static async Task Main(string[] args)
         {
-            //await RunBasicSendReceiveExampleAsync();
+            // Basic queue create, message send, message received.
+            await WarmupAsync();
 
             //await RunMemoryLeakAsync();
 
             //await RunMemoryLeakMadeWorseAsync();
 
-            //await RunMemoryLeakFixAttempOneAsync();
+            //await RunMemoryLeakFixAttemptOneAsync();
 
-            //await RunMemoryLeakFixAttempTwoAsync();
+            //await RunMemoryLeakFixAttemptTwoAsync();
 
             // Focus on this method to see high performance in concurrent threads using
             // a dictionary that is also being cleaned up without deadlocks or
             // exceptions.
-            //await RunMemoryLeakFixAttempThreeAsync();
+            //await RunMemoryLeakFixAttemptThreeAsync(); // Semaphore
+            //await RunMemoryLeakFixAttemptSixAsync(); // ConcurrentDictionary
 
             // Focus on this method to see high IO usage in concurrent threads using
             // a dictionary that is also being cleaned up without deadlocks or
             // exceptions. Real data payloads and send/receives simulate network
             // communication times.
-            await RunMemoryLeakFixAttempFourAsync();
+            //await RunMemoryLeakFixAttemptFourAsync(); // Semaphore
+            //await RunMemoryLeakFixAttemptFiveAsync(); // ConcurrentDictionary
+
+            // Same as RunMemoryLeakFixAttemptSixAsync with a single channel instead of disposables.
+            // Run Stress Test with Multi-Thread access to a Channel.
+            // Channels shared across threads is not recommended but when compared to Memory Leak Work #6,
+            // the performance is stellar.
+            await RunCrossThreadChannelsOneAsync();
+
             await Console.In.ReadLineAsync();
         }
 
-        public static async Task RunBasicSendReceiveExampleAsync()
+        #region Helpers
+
+        static private void ResetThreadName(Thread thread, string newName)
+        {
+            lock (thread)
+            {
+                var field = thread.GetType().GetField("m_Name", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (null != field)
+                {
+                    field.SetValue(thread, null);
+                    thread.Name = null;
+                }
+            }
+
+            thread.Name = newName;
+        }
+
+        public static async Task WarmupAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory);
@@ -61,10 +86,8 @@ namespace CookedRabbit
             await SendMessageAsync(channel);
 
             var result = await ReceiveMessageAsync(channel);
-            await Console.Out.WriteLineAsync(Encoding.UTF8.GetString(result.Body));
+            await Console.Out.WriteLineAsync("Program running.");
         }
-
-        #region Helpers
 
         public static Task<ConnectionFactory> CreateChannelFactoryAsync()
         {
@@ -112,7 +135,22 @@ namespace CookedRabbit
             });
         }
 
-        public static async Task SendMessageWithBytesAsync(IModel channel, int count, byte[] data)
+        public static async Task SendMessageAsync(IConnection connection, int counter)
+        {
+            ResetThreadName(Thread.CurrentThread, $"SendMessage #{counter}");
+            var channel = await CreateChannel(connection);
+
+            models.Add(channel, counter);
+
+            //await Task.Delay(250);
+            await SendMessageAsync(channel, counter);
+
+            //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models.Count}");
+
+            channel.Dispose();
+        }
+
+        public static async Task SendMessageWithBytesAsync(IModel channel, byte[] data)
         {
             await Task.Run(() =>
             {
@@ -123,9 +161,158 @@ namespace CookedRabbit
             });
         }
 
+        public static async Task SendMessageLocksAsync(IConnection connection, int counter)
+        {
+            //ResetThreadName(Thread.CurrentThread, $"SendMessage #{counter}");
+            var channel = await CreateChannel(connection);
+
+            lock (_modifyDictionary2)
+            { models2.Add(channel, counter); }
+
+            //await Task.Delay(250);
+            await SendMessageAsync(channel, counter);
+
+            //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models2.Count}");
+
+            channel.Dispose();
+        }
+
+        public static async Task SendMessageSemaphoreAsync(IConnection connection, int counter)
+        {
+            var channel = await CreateChannel(connection);
+
+            await slimShady3.WaitAsync();
+            models3.Add(channel, counter);
+            slimShady3.Release();
+
+            await SendMessageAsync(channel, counter);
+
+            channel.Dispose();
+        }
+
+        public static async Task SendMessageSemaphoreWithBytesAsync(IConnection connection, int counter, byte[] bytes)
+        {
+            var channel = await CreateChannel(connection);
+
+            await slimShady4.WaitAsync();
+            models4.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+            slimShady4.Release();
+
+            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
+            await SendMessageWithBytesAsync(channel, bytes);
+
+            channel.Dispose();
+        }
+
+        public static async Task SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(IConnection connection, int counter, byte[] bytes)
+        {
+            var channel = await CreateChannel(connection);
+
+            models5.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+
+            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
+            await SendMessageWithBytesAsync(channel, bytes);
+
+            channel.Dispose();
+        }
+
+        public static async Task SendMessagesForeverWithConcurrentDictionaryAsync(IConnection connection, int counter)
+        {
+            var channel = await CreateChannel(connection);
+
+            models6.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+
+            await SendMessageAsync(channel, counter);
+
+            channel.Dispose();
+        }
+
         public static async Task<BasicGetResult> ReceiveMessageAsync(IModel channel)
         {
             return await Task.Run(() => { return channel.BasicGet(queue: "001", autoAck: true); });
+        }
+
+        public static async Task<BasicGetResult> ReceiveMessageAsync(IConnection connection, int counter)
+        {
+            ResetThreadName(Thread.CurrentThread, $"ReceiveMessage #{counter}");
+            var channel = await CreateChannel(connection);
+
+            models.Add(channel, counter);
+
+            //await Task.Delay(100);
+
+            var result = await ReceiveMessageAsync(channel);
+
+            channel.Dispose();
+
+            return result;
+        }
+
+        public static async Task ReceiveMessageLocksAsync(IConnection connection, int counter)
+        {
+            //ResetThreadName(Thread.CurrentThread, $"ReceiveMessage #{counter}");
+            var channel = await CreateChannel(connection);
+
+            lock (_modifyDictionary2)
+            { models2.Add(channel, counter); }
+
+            //await Task.Delay(100);
+
+            var result = await ReceiveMessageAsync(channel);
+
+            channel.Dispose();
+        }
+
+        public static async Task ReceiveMessagesSemaphoreAsync(IConnection connection, int counter)
+        {
+            var channel = await CreateChannel(connection);
+
+            await slimShady3.WaitAsync();
+            models3.Add(channel, counter);
+            slimShady3.Release();
+
+            await ReceiveMessageAsync(channel);
+
+            channel.Dispose();
+        }
+
+        public static async Task ReceiveMessagesSemaphoreWithBytesAsync(IConnection connection, int counter)
+        {
+            var channel = await CreateChannel(connection);
+
+            await slimShady4.WaitAsync();
+            models4.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+            slimShady4.Release();
+
+            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
+            await ReceiveMessageAsync(channel);
+
+            //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models3.Count}");
+
+            channel.Dispose();
+        }
+
+        public static async Task ReceiveMessagesConcurrentDictionaryWithBytesAsync(IConnection connection, int counter)
+        {
+            var channel = await CreateChannel(connection);
+
+            models5.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+
+            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
+            await ReceiveMessageAsync(channel);
+
+            channel.Dispose();
+        }
+
+        public static async Task ReceiveMessagesConcurrentDictionaryAsync(IConnection connection, int counter)
+        {
+            var channel = await CreateChannel(connection);
+
+            models6.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+
+            await ReceiveMessageAsync(channel);
+
+            channel.Dispose();
         }
 
         #endregion
@@ -189,7 +376,6 @@ namespace CookedRabbit
                 await Console.Out.WriteLineAsync($"WTF AM I: {kvp.Key.GetType()} AND WHAT DO I HOLD: {kvp.Key}");
             }
         }
-
 
         public static async Task RunMemoryLeakMadeWorseAsync()
         {
@@ -257,7 +443,11 @@ namespace CookedRabbit
 
         #region Memory Leak Work #1
 
-        public static async Task RunMemoryLeakFixAttempOneAsync()
+        public static Task cleanupTask;
+        public static object _modifyDictionary = new object();
+        public static Dictionary<IModel, int> models = new Dictionary<IModel, int>();
+
+        public static async Task RunMemoryLeakFixAttemptOneAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory);
@@ -267,25 +457,6 @@ namespace CookedRabbit
             var receiveMessage = ReceiveMessageForeverAsync(connection);
 
             await Task.WhenAll(new Task[] { sendMessage, receiveMessage });
-        }
-
-        public static Task cleanupTask;
-        public static object _modifyDictionary = new object();
-        public static Dictionary<IModel, int> models = new Dictionary<IModel, int>();
-
-        static private void ResetThreadName(Thread thread, string newName)
-        {
-            lock (thread)
-            {
-                var field = thread.GetType().GetField("m_Name", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (null != field)
-                {
-                    field.SetValue(thread, null);
-                    thread.Name = null;
-                }
-            }
-
-            thread.Name = newName;
         }
 
         public static async Task CleanupDictionariesAsync(TimeSpan timeSpan)
@@ -320,21 +491,6 @@ namespace CookedRabbit
             }
         }
 
-        public static async Task SendMessageAsync(IConnection connection, int counter)
-        {
-            ResetThreadName(Thread.CurrentThread, $"SendMessage #{counter}");
-            var channel = await CreateChannel(connection);
-
-            models.Add(channel, counter);
-
-            //await Task.Delay(250);
-            await SendMessageAsync(channel, counter);
-
-            //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models.Count}");
-
-            channel.Dispose();
-        }
-
         public static async Task<BasicGetResult> ReceiveMessageForeverAsync(IConnection connection)
         {
             ResetThreadName(Thread.CurrentThread, "ReceiveMessageForever Thread");
@@ -350,27 +506,15 @@ namespace CookedRabbit
             }
         }
 
-        public static async Task<BasicGetResult> ReceiveMessageAsync(IConnection connection, int counter)
-        {
-            ResetThreadName(Thread.CurrentThread, $"ReceiveMessage #{counter}");
-            var channel = await CreateChannel(connection);
-
-            models.Add(channel, counter);
-
-            //await Task.Delay(100);
-
-            var result = await ReceiveMessageAsync(channel);
-
-            channel.Dispose();
-
-            return result;
-        }
-
         #endregion
 
         #region Memory Leak Work #2
 
-        public static async Task RunMemoryLeakFixAttempTwoAsync()
+        public static Task cleanupTask2;
+        public static object _modifyDictionary2 = new object();
+        public static Dictionary<IModel, int> models2 = new Dictionary<IModel, int>();
+
+        public static async Task RunMemoryLeakFixAttemptTwoAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory);
@@ -381,10 +525,6 @@ namespace CookedRabbit
 
             await Task.WhenAll(new Task[] { sendMessage, receiveMessage });
         }
-
-        public static Task cleanupTask2;
-        public static object _modifyDictionary2 = new object();
-        public static Dictionary<IModel, int> models2 = new Dictionary<IModel, int>();
 
         public static async Task CleanupDictionariesWithLocksAsync(TimeSpan timeSpan)
         {
@@ -423,22 +563,6 @@ namespace CookedRabbit
             }
         }
 
-        public static async Task SendMessageLocksAsync(IConnection connection, int counter)
-        {
-            //ResetThreadName(Thread.CurrentThread, $"SendMessage #{counter}");
-            var channel = await CreateChannel(connection);
-
-            lock (_modifyDictionary2)
-            { models2.Add(channel, counter); }
-
-            //await Task.Delay(250);
-            await SendMessageAsync(channel, counter);
-
-            //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models2.Count}");
-
-            channel.Dispose();
-        }
-
         public static async Task<BasicGetResult> ReceiveMessageForeverWithLocksAsync(IConnection connection)
         {
             //ResetThreadName(Thread.CurrentThread, "ReceiveMessageForever Thread");
@@ -458,31 +582,16 @@ namespace CookedRabbit
             }
         }
 
-        public static async Task ReceiveMessageLocksAsync(IConnection connection, int counter)
-        {
-            //ResetThreadName(Thread.CurrentThread, $"ReceiveMessage #{counter}");
-            var channel = await CreateChannel(connection);
-
-            lock (_modifyDictionary2)
-            { models2.Add(channel, counter); }
-
-            //await Task.Delay(100);
-
-            var result = await ReceiveMessageAsync(channel);
-
-            channel.Dispose();
-        }
-
         #endregion
 
-        #region Memory Leak Work #3
+        #region Memory Leak Work #3 - Stress Performance Test With SemaphoreSlim
 
         public static SemaphoreSlim slimShady3 = new SemaphoreSlim(1, 1);
         public static Task cleanupTask3;
         public static Task maintenanceTask3;
         public static Dictionary<IModel, int> models3 = new Dictionary<IModel, int>();
 
-        public static async Task RunMemoryLeakFixAttempThreeAsync()
+        public static async Task RunMemoryLeakFixAttemptThreeAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory, "SemaphorePerformanceTestConnection");
@@ -567,32 +676,6 @@ namespace CookedRabbit
             }
         }
 
-        public static async Task SendMessageSemaphoreAsync(IConnection connection, int counter)
-        {
-            var channel = await CreateChannel(connection);
-
-            await slimShady3.WaitAsync();
-            models3.Add(channel, counter);
-            slimShady3.Release();
-
-            await SendMessageAsync(channel, counter);
-
-            channel.Dispose();
-        }
-
-        public static async Task ReceiveMessagesSemaphoreAsync(IConnection connection, int counter)
-        {
-            var channel = await CreateChannel(connection);
-
-            await slimShady3.WaitAsync();
-            models3.Add(channel, counter);
-            slimShady3.Release();
-
-            await ReceiveMessageAsync(channel);
-
-            channel.Dispose();
-        }
-
         #endregion
 
         #region Memory Leak Work #4 - Regular Dictionary (w/ SemaphoreSlim)
@@ -602,8 +685,7 @@ namespace CookedRabbit
         public static Task maintenanceTask4;
         public static IDictionary<IModel, int> models4 = new ConcurrentDictionary<IModel, int>();
 
-
-        public static async Task RunMemoryLeakFixAttempFourAsync()
+        public static async Task RunMemoryLeakFixAttemptFourAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory, "SemaphoreRealPayloadTestConnection");
@@ -615,7 +697,6 @@ namespace CookedRabbit
 
             await Task.WhenAll(new Task[] { send, receive });
         }
-
 
         public static async Task CleanupDictionariesWithSemaphoreWithBytesAsync(TimeSpan timeSpan)
         {
@@ -690,37 +771,6 @@ namespace CookedRabbit
             }
         }
 
-
-        public static async Task SendMessageSemaphoreWithBytesAsync(IConnection connection, int counter, byte[] bytes)
-        {
-            var channel = await CreateChannel(connection);
-
-            await slimShady4.WaitAsync();
-            models4.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
-            slimShady4.Release();
-
-            await Task.Delay(rand.Next(10,100)); // Simulate network connectivity
-            await SendMessageWithBytesAsync(channel, counter, bytes);
-
-            channel.Dispose();
-        }
-
-        public static async Task ReceiveMessagesSemaphoreWithBytesAsync(IConnection connection, int counter)
-        {
-            var channel = await CreateChannel(connection);
-
-            await slimShady4.WaitAsync();
-            models4.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
-            slimShady4.Release();
-
-            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
-            await ReceiveMessageAsync(channel);
-
-            //await Console.Out.WriteLineAsync($"Iteration {counter} models Count: {models3.Count}");
-
-            channel.Dispose();
-        }
-
         #endregion
 
         #region Memory Leak Work #5 - Concurrent Dictionary (No SemaphoreSlim)
@@ -728,7 +778,7 @@ namespace CookedRabbit
         public static Task cleanupTask5;
         public static IDictionary<IModel, int> models5 = new ConcurrentDictionary<IModel, int>();
 
-        public static async Task RunMemoryLeakFixAttempFiveAsync()
+        public static async Task RunMemoryLeakFixAttemptFiveAsync()
         {
             var connectionFactory = await CreateChannelFactoryAsync();
             var connection = await CreateConnection(connectionFactory, "SemaphoreRealPayloadConcurrentTestConnection");
@@ -747,7 +797,7 @@ namespace CookedRabbit
                 await Task.Delay(timeSpan);
 
                 var count = 0;
-                var listOfItemsToRemove = models5.Where(x => x.Key.IsClosed).ToArray();
+                var listOfItemsToRemove = models6.Where(x => x.Key.IsClosed).ToArray();
                 foreach (var key in listOfItemsToRemove)
                 {
                     models5.Remove(key.Key);
@@ -790,30 +840,149 @@ namespace CookedRabbit
             }
         }
 
-        public static async Task SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(IConnection connection, int counter, byte[] bytes)
+        #endregion
+
+        #region Memory Leak Work #6 - Concurrent Dictionary (No SemaphoreSlim)
+
+        public static Task cleanupTask6;
+        public static IDictionary<IModel, int> models6 = new ConcurrentDictionary<IModel, int>();
+
+        public static async Task RunMemoryLeakFixAttemptSixAsync()
         {
+            var connectionFactory = await CreateChannelFactoryAsync();
+            var connection = await CreateConnection(connectionFactory, "SemaphoreRealPayloadConcurrentTestConnection");
+            cleanupTask6 = CleanupDictionariesWithConcurrentDictionaryAsync(new TimeSpan(0, 0, 20));
+
+            var send = SendMessagesForeverWithConcurrentDictionaryAsync(connection);
+            var receive = ReceiveMessagesForeverWithConcurrentDictionaryAsync(connection);
+
+            await Task.WhenAll(new Task[] { send, receive });
+        }
+
+        public static async Task CleanupDictionariesWithConcurrentDictionaryAsync(TimeSpan timeSpan)
+        {
+            while (true)
+            {
+                await Task.Delay(timeSpan);
+
+                var count = 0;
+                var listOfItemsToRemove = models6.Where(x => x.Key.IsClosed).ToArray();
+                foreach (var key in listOfItemsToRemove)
+                {
+                    models6.Remove(key.Key);
+                    count++;
+                }
+                await Console.Out.WriteLineAsync($"Dead channels removed: {count}");
+            }
+        }
+
+        public static async Task SendMessagesForeverWithConcurrentDictionaryAsync(IConnection connection)
+        {
+            int counter = 0;
+            while (true)
+            {
+                var sendMessages1 = SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages2 = SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages3 = SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages4 = SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages5 = SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+
+                await Task.WhenAll(new Task[] { sendMessages1, sendMessages2, sendMessages3, sendMessages4, sendMessages5 });
+            }
+        }
+
+        public static async Task ReceiveMessagesForeverWithConcurrentDictionaryAsync(IConnection connection)
+        {
+            int counter = 0;
+            while (true)
+            {
+                var receiveMessages1 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages2 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages3 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages4 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages5 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages6 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages7 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+                var receiveMessages8 = ReceiveMessagesConcurrentDictionaryAsync(connection, counter++);
+
+                await Task.WhenAll(new Task[] { receiveMessages1, receiveMessages2, receiveMessages3, receiveMessages4, receiveMessages5, receiveMessages6, receiveMessages7, receiveMessages8 });
+            }
+        }
+
+        #endregion
+
+        #region Cross Thread Channels #1 - Concurrent Dictionary (No SemaphoreSlim) Re-use Channel
+
+        public static Task cleanupTask7;
+        public static IDictionary<IModel, int> models7 = new ConcurrentDictionary<IModel, int>();
+
+        public static async Task RunCrossThreadChannelsOneAsync()
+        {
+            var connectionFactory = await CreateChannelFactoryAsync();
+            var connection = await CreateConnection(connectionFactory, "SemaphoreRealPayloadConcurrentTestConnection");
+            cleanupTask7 = CleanupDictionariesWithConcurrentDictionaryAndSingleChannelAsync(new TimeSpan(0, 0, 20));
+
+            var send = SendMessagesForeverWithConcurrentDictionaryAndSingleChannelAsync(connection);
+            var receive = ReceiveMessagesForeverWithConcurrentDictionaryAndSingleChannelAsync(connection);
+
+            await Task.WhenAll(new Task[] { send, receive });
+        }
+
+        public static async Task CleanupDictionariesWithConcurrentDictionaryAndSingleChannelAsync(TimeSpan timeSpan)
+        {
+            while (true)
+            {
+                await Task.Delay(timeSpan);
+
+                var count = 0;
+                var listOfItemsToRemove = models7.Where(x => x.Key.IsClosed).ToArray();
+                foreach (var key in listOfItemsToRemove)
+                {
+                    models7.Remove(key.Key);
+                    count++;
+                }
+                await Console.Out.WriteLineAsync($"Dead channels removed: {count}");
+            }
+        }
+
+        public static async Task SendMessagesForeverWithConcurrentDictionaryAndSingleChannelAsync(IConnection connection)
+        {
+            int counter = 0;
             var channel = await CreateChannel(connection);
+            models7.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+            while (true)
+            {
+                var sendMessages1 = SendMessageAsync(channel, counter++);
+                var sendMessages2 = SendMessageAsync(channel, counter++);
+                var sendMessages3 = SendMessageAsync(channel, counter++);
+                var sendMessages4 = SendMessageAsync(channel, counter++);
+                var sendMessages5 = SendMessageAsync(channel, counter++);
 
-            models5.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
-
-            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
-            await SendMessageWithBytesAsync(channel, counter, bytes);
-
+                await Task.WhenAll(new Task[] { sendMessages1, sendMessages2, sendMessages3, sendMessages4, sendMessages5 });
+            }
             channel.Dispose();
         }
 
-        public static async Task ReceiveMessagesConcurrentDictionaryWithBytesAsync(IConnection connection, int counter)
+        public static async Task ReceiveMessagesForeverWithConcurrentDictionaryAndSingleChannelAsync(IConnection connection)
         {
+            int counter = 0;
             var channel = await CreateChannel(connection);
+            models7.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
+            while (true)
+            {
+                var receiveMessages1 = ReceiveMessageAsync(channel);
+                var receiveMessages2 = ReceiveMessageAsync(channel);
+                var receiveMessages3 = ReceiveMessageAsync(channel);
+                var receiveMessages4 = ReceiveMessageAsync(channel);
+                var receiveMessages5 = ReceiveMessageAsync(channel);
+                var receiveMessages6 = ReceiveMessageAsync(channel);
+                var receiveMessages7 = ReceiveMessageAsync(channel);
+                var receiveMessages8 = ReceiveMessageAsync(channel);
 
-            models5.Add(channel, counter); // re-simulate memoryleak by switching just this to models3.
-
-            await Task.Delay(rand.Next(10, 100)); // Simulate network connectivity
-            await ReceiveMessageAsync(channel);
-
+                await Task.WhenAll(new Task[] { receiveMessages1, receiveMessages2, receiveMessages3, receiveMessages4, receiveMessages5, receiveMessages6, receiveMessages7, receiveMessages8 });
+            }
             channel.Dispose();
         }
-
 
         #endregion
 
