@@ -92,6 +92,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchSendExamples.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="MemoryLeakExamples.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
