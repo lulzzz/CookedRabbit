@@ -2,11 +2,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using static CookedRabbit.Helpers;
+using static CookedRabbit.DemoHelper;
 
 namespace CookedRabbit
 {
-    public class BatchSendExamples
+    public static class BatchSendExamples
     {
         #region Cross Thread Channels #1 - Concurrent Dictionary (No SemaphoreSlim) Re-use Channel
 
@@ -113,7 +113,7 @@ namespace CookedRabbit
 
             while (true)
             {
-                var messageCount = channel.MessageCount("001");
+                var messageCount = channel.MessageCount(queueName);
                 await Console.Out.WriteLineAsync($"Message count threshold reached: {messageCount}");
                 if (messageCount > 10)
                 {

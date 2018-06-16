@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static CookedRabbit.Helpers;
+using static CookedRabbit.DemoHelper;
 
 namespace CookedRabbit
 {
@@ -488,11 +488,11 @@ namespace CookedRabbit
             int counter = 0;
             while (true)
             {
-                var sendMessages1 = Helpers.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
-                var sendMessages2 = Helpers.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
-                var sendMessages3 = Helpers.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
-                var sendMessages4 = Helpers.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
-                var sendMessages5 = Helpers.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
+                var sendMessages1 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
+                var sendMessages2 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
+                var sendMessages3 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
+                var sendMessages4 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
+                var sendMessages5 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAndBytesAsync(connection, counter++, await GetRandomByteArray());
 
                 await Task.WhenAll(new Task[] { sendMessages1, sendMessages2, sendMessages3, sendMessages4, sendMessages5 });
             }
@@ -554,11 +554,11 @@ namespace CookedRabbit
             int counter = 0;
             while (true)
             {
-                var sendMessages1 = Helpers.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
-                var sendMessages2 = Helpers.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
-                var sendMessages3 = Helpers.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
-                var sendMessages4 = Helpers.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
-                var sendMessages5 = Helpers.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages1 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages2 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages3 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages4 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
+                var sendMessages5 = DemoHelper.SendMessagesForeverWithConcurrentDictionaryAsync(connection, counter++);
 
                 await Task.WhenAll(new Task[] { sendMessages1, sendMessages2, sendMessages3, sendMessages4, sendMessages5 });
             }

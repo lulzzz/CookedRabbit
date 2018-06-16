@@ -2,12 +2,16 @@
 using System.Threading.Tasks;
 using static CookedRabbit.BatchSendExamples;
 using static CookedRabbit.MemoryLeakExamples;
-using static CookedRabbit.Helpers;
+using static CookedRabbit.ChannelExamples;
+using static CookedRabbit.DemoHelper;
+using System.Diagnostics;
 
 namespace CookedRabbit
 {
     public class Program
     {
+        private static readonly string DefaultErrorMessage = "Unhandled Error Occurred. No details are shown because something went horribly wrong and this is a catch all.";
+
         //// Needed if not C# (7.1+)
         //public static void Main(string[] args)
         //{   //Rename other Main to MainAsync
@@ -19,6 +23,10 @@ namespace CookedRabbit
         // communication is occurring.
         public static async Task Main(string[] args)
         {
+            // Fun Error Handling
+            AppDomain.CurrentDomain.UnhandledException += GlobalExceptionHandler;
+            TaskScheduler.UnobservedTaskException += GlobalExceptionHandler;
+
             // Basic queue create, message send, message received.
             await WarmupAsync();
 
@@ -34,7 +42,7 @@ namespace CookedRabbit
             // a dictionary that is also being cleaned up without deadlocks or
             // exceptions.
             //await RunMemoryLeakFixAttemptThreeAsync(); // Semaphore
-            await RunMemoryLeakFixAttemptSixAsync(); // ConcurrentDictionary
+            //await RunMemoryLeakFixAttemptSixAsync(); // ConcurrentDictionary
 
             // Focus on this method to see high IO usage in concurrent threads using
             // a dictionary that is also being cleaned up without deadlocks or
@@ -54,7 +62,78 @@ namespace CookedRabbit
             // Send messages in batches over a single channel.
             //await RunNonCrossThreadChannelsAsync();
 
+            // Testing out various channel creation methods
+            //await RunManualTransientChannelTestAsync();
+            //await RunPoolChannelTestAsync();
+
+            //All Together
+            await RunRabbitServicePoolChannelTestAsync();
+
             await Console.In.ReadLineAsync();
+        }
+
+        private static async void GlobalExceptionHandler(object sender, EventArgs e)
+        {
+            switch (e)
+            {
+                case UnhandledExceptionEventArgs ueea: await HandleUnhandledException(sender, ueea); break;
+                case UnobservedTaskExceptionEventArgs uteea: await HandleUnobservedTaskExceptionHandler(sender, uteea); break;
+                default: await DefaultExceptionHandler(sender, e); break;
+            }
+        }
+
+        private static async Task DefaultExceptionHandler(object sender, EventArgs e)
+        {
+            var message = DefaultErrorMessage;
+
+            if (sender is Exception ex)
+            {
+                ex.Demystify();
+                message = "Congratulations, you have broken this program like no other user before you!"
+                    + $"\n\nException : {ex.Message}\n\nStack : {ex.StackTrace}";
+            }
+
+            await Console.Out.WriteAsync(message);
+        }
+
+        private static async Task HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var message = DefaultErrorMessage;
+
+            if (e.ExceptionObject is Exception uex)
+            {
+                uex.Demystify();
+                message = "Congratulations, you have broken this program like no other user before you!"
+                    + $"\n\nException : {uex.Message}\n\nStack : {uex.StackTrace}";
+            }
+            else if (sender is Exception ex)
+            {
+                ex.Demystify();
+                message = "Congratulations, you have broken this program like no other user before you!"
+                    + $"\n\nException : {ex.Message}\n\nStack : {ex.StackTrace}";
+            }
+
+            await Console.Out.WriteAsync(message);
+        }
+
+        private static async Task HandleUnobservedTaskExceptionHandler(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            var message = DefaultErrorMessage;
+
+            if (e.Exception is Exception tuex)
+            {
+                tuex.Demystify();
+                message = "Congratulations, you have broken this program like no other user before you!"
+                    + $"\n\nException : {tuex.Message}\n\nStack : {tuex.StackTrace}";
+            }
+            else if (sender is Exception ex)
+            {
+                ex.Demystify();
+                message = "Congratulations, you have broken this program like no other user before you!"
+                    + $"\n\nException : {ex.Message}\n\nStack : {ex.StackTrace}";
+            }
+
+            await Console.Out.WriteAsync(message);
         }
     }
 }

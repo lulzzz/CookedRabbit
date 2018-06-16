@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace CookedRabbit
 {
-    public static class Helpers
+    public static class DemoHelper
     {
         #region Example Variables
+
         public static long TotalMemoryInBytesAtStart = GC.GetTotalMemory(false);
 
         public static Task cleanupTask;
@@ -41,36 +42,12 @@ namespace CookedRabbit
         public static Task cleanupTask7;
         public static IDictionary<IModel, int> models7 = new ConcurrentDictionary<IModel, int>();
 
+        public readonly static string helloWorld = "Hello World! Count:";
+        public readonly static string happyShutdown = "Happy shutdown.";
+
+        public readonly static string queueName = "001";
+
         #endregion
-
-        public static void ResetThreadName(Thread thread, string newName)
-        {
-            lock (thread)
-            {
-                var field = thread.GetType().GetField("m_Name", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (null != field)
-                {
-                    field.SetValue(thread, null);
-                    thread.Name = null;
-                }
-            }
-
-            thread.Name = newName;
-        }
-
-        public static async Task WarmupAsync()
-        {
-            var connectionFactory = await CreateChannelFactoryAsync();
-            var connection = await CreateConnection(connectionFactory);
-            var channel = await CreateChannel(connection);
-
-
-            await DeclareQueueAsync(channel);
-            await SendMessageAsync(channel);
-
-            var result = await ReceiveMessageAsync(channel);
-            await Console.Out.WriteLineAsync("Program running.");
-        }
 
         #region Connection & Channels
 
@@ -98,7 +75,7 @@ namespace CookedRabbit
         {
             await Task.Run(() =>
             {
-                channel.QueueDeclare(queue: "001",
+                channel.QueueDeclare(queue: queueName,
                                  durable: false,
                                  exclusive: false,
                                  autoDelete: false,
@@ -118,10 +95,27 @@ namespace CookedRabbit
                 var body = Encoding.UTF8.GetBytes(message);
 
                 channel.BasicPublish(exchange: "",
-                                     routingKey: "001",
+                                     routingKey: queueName,
                                      basicProperties: null,
                                      body: body);
             });
+        }
+
+        public static async Task SendMessageAndDisposeAsync(IModel channel, int count = 0)
+        {
+            await Task.Run(() =>
+            {
+                string message = $"{helloWorld} {count}";
+                var body = Encoding.UTF8.GetBytes(message);
+
+                channel.BasicPublish(exchange: "",
+                                     routingKey: queueName,
+                                     basicProperties: null,
+                                     body: body);
+            });
+
+            channel.Close(200, happyShutdown);
+            channel.Dispose();
         }
 
         public static async Task SendMessagesAsync(List<byte[]> payloads, IModel channel)
@@ -131,7 +125,7 @@ namespace CookedRabbit
                 foreach (var payload in payloads)
                 {
                     channel.BasicPublish(exchange: "",
-                                         routingKey: "001",
+                                         routingKey: queueName,
                                          basicProperties: null,
                                          body: payload);
                 }
@@ -158,7 +152,7 @@ namespace CookedRabbit
             await Task.Run(() =>
             {
                 channel.BasicPublish(exchange: "",
-                                     routingKey: "001",
+                                     routingKey: queueName,
                                      basicProperties: null,
                                      body: data);
             });
@@ -236,7 +230,16 @@ namespace CookedRabbit
 
         public static async Task<BasicGetResult> ReceiveMessageAsync(IModel channel)
         {
-            return await Task.Run(() => { return channel.BasicGet(queue: "001", autoAck: true); });
+            return await Task.Run(() => { return channel.BasicGet(queue: queueName, autoAck: true); });
+        }
+
+        public static async Task<BasicGetResult> ReceiveMessageAndDisposeAsync(IModel channel)
+        {
+            var result = await Task.Run(() => { return channel.BasicGet(queue: queueName, autoAck: true); });
+
+            channel.Close(200, happyShutdown);
+            channel.Dispose();
+            return result;
         }
 
         public static async Task<BasicGetResult> ReceiveMessageAsync(IConnection connection, int counter)
@@ -324,6 +327,43 @@ namespace CookedRabbit
 
         #endregion
 
+        #region Miscellaneous
+
+        public static void ResetThreadName(Thread thread, string newName)
+        {
+            lock (thread)
+            {
+                var field = thread.GetType().GetField("m_Name", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (null != field)
+                {
+                    field.SetValue(thread, null);
+                    thread.Name = null;
+                }
+            }
+
+            thread.Name = newName;
+        }
+
+        public static async Task WarmupAsync()
+        {
+            var connectionFactory = await CreateChannelFactoryAsync();
+            var connection = await CreateConnection(connectionFactory);
+            var channel = await CreateChannel(connection);
+
+            await DeclareQueueAsync(channel);
+            await SendMessageAsync(channel);
+
+            var result = await ReceiveMessageAsync(channel);
+            await Console.Out.WriteLineAsync("Program running.");
+            channel.Close(200, happyShutdown);
+            channel.Dispose();
+
+            connection.Close(200, happyShutdown);
+            connection.Dispose();
+
+            connectionFactory = null;
+        }
+
         #region Random Data Generation
 
         public static async Task<List<byte[]>> CreatePayloadsAsync(int payloadCount)
@@ -372,6 +412,8 @@ namespace CookedRabbit
 
             return Task.CompletedTask;
         }
+
+        #endregion
 
         #endregion
     }
