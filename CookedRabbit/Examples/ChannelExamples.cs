@@ -1,6 +1,7 @@
 ﻿using CookedRabbit.Pools;
 using CookedRabbit.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace CookedRabbit
         // Using a Connection Pool
         public static async Task RunManualTransientChannelTestAsync()
         {
-            var rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync("localhost", "localhost");
+            var rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync("localhost", Environment.CurrentDirectory);
 
             var sendMessage = SendMessagesForeverAsync(rcp);
             var receiveMessage = ReceiveMessagesForeverAsync(rcp);
@@ -140,13 +141,13 @@ namespace CookedRabbit
             var count = 0;
             while (true)
             {
-                await Task.Delay(rand.Next(1, 2));
+                await Task.Delay(rand.Next(0, 2));
 
-                var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes($"{helloWorld} {count}"));
-                var task2 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes($"{helloWorld} {count}"));
+                var task1 = _rabbitService.PublishAsync(queueName, await GetRandomByteArray(4000));
+                var task2 = _rabbitService.PublishAsync(queueName, await GetRandomByteArray(4000));
 
                 await Task.WhenAll(new Task[] { task1, task2 });
-                //await Task.Delay(10);
+
                 count++;
             }
         }
@@ -156,11 +157,60 @@ namespace CookedRabbit
             ResetThreadName(Thread.CurrentThread, "RabbitService_Receive");
             while (true)
             {
-                await Task.Delay(rand.Next(1, 2));
+                await Task.Delay(rand.Next(0, 2));
 
                 var task1 = _rabbitService.GetManyAsync(queueName, 100);
 
                 await Task.WhenAll(new Task[] { task1 });
+            }
+        }
+
+        // Using RabbitService And Checking For Accuracy
+        public static async Task RunRabbitServiceAccuracyTestAsync()
+        {
+            _rabbitService = new RabbitService("localhost", Environment.MachineName);
+
+            await Task.WhenAll(new Task[] { RabbitService_ReceiveMessagesForeverWithAccuracyAsync(), RabbitService_SendMessagesForeverWithAccuracyAsync() });
+        }
+
+        private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
+
+        public static async Task RabbitService_SendMessagesForeverWithAccuracyAsync()
+        {
+            var count = 0;
+            while (true)
+            {
+                //await Task.Delay(rand.Next(0, 2));
+
+                var message = $"{helloWorld} {count}";
+                _accuracyCheck.TryAdd(message, false);
+
+                var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes(message));
+
+                await Task.WhenAll(new Task[] { task1 });
+
+                count++;
+            }
+        }
+
+        public static async Task RabbitService_ReceiveMessagesForeverWithAccuracyAsync()
+        {
+            while (true)
+            {
+                //await Task.Delay(rand.Next(0, 2));
+
+                var task1 = _rabbitService.GetManyAsync(queueName, 100);
+
+                await Task.WhenAll(new Task[] { task1 });
+
+                foreach(var result in task1.Result)
+                {
+                    var message = Encoding.UTF8.GetString(result.Body);
+                    if (_accuracyCheck.ContainsKey(message))
+                    {
+                        _accuracyCheck[message] = true;
+                    }
+                }
             }
         }
     }

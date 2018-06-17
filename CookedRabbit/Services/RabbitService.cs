@@ -2,6 +2,7 @@
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace CookedRabbit.Services
@@ -35,11 +36,11 @@ namespace CookedRabbit.Services
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
                 _rcp.FlagDeadChannel(ChannelId);
-                await Console.Out.WriteLineAsync(ace.Message);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
             }
             catch (Exception e)
             {
-                await Console.Out.WriteLineAsync(e.Message);
+                await Console.Out.WriteLineAsync(e.Demystify().Message);
             }
 
             return success;
@@ -77,7 +78,7 @@ namespace CookedRabbit.Services
             try
             { result = Channel.BasicGet(queue: queueName, autoAck: true); }
             catch (Exception e)
-            { await Console.Out.WriteLineAsync(e.Message); }
+            { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
             return result;
         }
@@ -90,7 +91,7 @@ namespace CookedRabbit.Services
 
             try { queueCount = Channel.MessageCount(queueName); }
             catch (Exception e)
-            { await Console.Out.WriteLineAsync(e.Message); }
+            { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
             int resultCount = 0;
             var results = new List<BasicGetResult>();
@@ -108,7 +109,7 @@ namespace CookedRabbit.Services
                         { break; }
                     }
                     catch (Exception e)
-                    { await Console.Out.WriteLineAsync(e.Message); }
+                    { await Console.Out.WriteLineAsync(e.Demystify().Message); }
                 }
             }
 

@@ -24,8 +24,8 @@ namespace CookedRabbit
         public static async Task Main(string[] args)
         {
             // Fun Error Handling
-            AppDomain.CurrentDomain.UnhandledException += GlobalExceptionHandler;
-            TaskScheduler.UnobservedTaskException += GlobalExceptionHandler;
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(HandleUnhandledException);
+            TaskScheduler.UnobservedTaskException += HandleUnobservedTaskExceptionHandler;
 
             // Basic queue create, message send, message received.
             await WarmupAsync();
@@ -66,37 +66,14 @@ namespace CookedRabbit
             //await RunManualTransientChannelTestAsync();
             //await RunPoolChannelTestAsync();
 
-            //All Together
-            await RunRabbitServicePoolChannelTestAsync();
+            // All Together
+            //await RunRabbitServicePoolChannelTestAsync();
+            await RunRabbitServiceAccuracyTestAsync();
 
             await Console.In.ReadLineAsync();
         }
 
-        private static async void GlobalExceptionHandler(object sender, EventArgs e)
-        {
-            switch (e)
-            {
-                case UnhandledExceptionEventArgs ueea: await HandleUnhandledException(sender, ueea); break;
-                case UnobservedTaskExceptionEventArgs uteea: await HandleUnobservedTaskExceptionHandler(sender, uteea); break;
-                default: await DefaultExceptionHandler(sender, e); break;
-            }
-        }
-
-        private static async Task DefaultExceptionHandler(object sender, EventArgs e)
-        {
-            var message = DefaultErrorMessage;
-
-            if (sender is Exception ex)
-            {
-                ex.Demystify();
-                message = "Congratulations, you have broken this program like no other user before you!"
-                    + $"\n\nException : {ex.Message}\n\nStack : {ex.StackTrace}";
-            }
-
-            await Console.Out.WriteAsync(message);
-        }
-
-        private static async Task HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static async void HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var message = DefaultErrorMessage;
 
@@ -116,7 +93,7 @@ namespace CookedRabbit
             await Console.Out.WriteAsync(message);
         }
 
-        private static async Task HandleUnobservedTaskExceptionHandler(object sender, UnobservedTaskExceptionEventArgs e)
+        private static async void HandleUnobservedTaskExceptionHandler(object sender, UnobservedTaskExceptionEventArgs e)
         {
             var message = DefaultErrorMessage;
 

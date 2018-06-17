@@ -384,15 +384,15 @@ namespace CookedRabbit
         private static uint z;
         private static uint w;
 
-        public static async Task<byte[]> GetRandomByteArray()
+        public static async Task<byte[]> GetRandomByteArray(int sizeInBytes = 10000)
         {
-            var bytes = new byte[10000];
+            var bytes = new byte[sizeInBytes];
 
             x = (uint)rand.Next(0, 1000);
             y = (uint)rand.Next(0, 1000);
             z = (uint)rand.Next(0, 1000);
             w = (uint)rand.Next(0, 1000);
-            await FillBuffer(bytes, 0, 10000);
+            await FillBuffer(bytes, 0, sizeInBytes);
 
             return bytes;
         }
