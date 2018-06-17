@@ -98,15 +98,16 @@ namespace CookedRabbit.Services
 
             if (queueCount != 0)
             {
-                while (queueCount > 0 && resultCount <= batchCount)
+                while (queueCount > 0 && resultCount < batchCount)
                 {
                     try
                     {
-                        results.Add(Channel.BasicGet(queue: queueName, autoAck: true));
-                        resultCount++;
-
-                        if (queueCount - resultCount <= 0)
+                        var result = Channel.BasicGet(queue: queueName, autoAck: true);
+                        if (result == null) //Empty Queue
                         { break; }
+
+                        results.Add(result);
+                        resultCount++;
                     }
                     catch (Exception e)
                     { await Console.Out.WriteLineAsync(e.Demystify().Message); }

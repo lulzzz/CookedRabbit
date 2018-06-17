@@ -60,27 +60,32 @@ namespace CookedRabbit.Pools
             return Task.FromResult(channel);
         }
 
-        public Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPair()
+        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPair()
         {
-            if (_channelPool.TryDequeue(out (ulong ChannelId, IModel Channel) channelPair))
+            var t = await Task.Run(() =>
             {
-                if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
+                if (_channelPool.TryDequeue(out (ulong ChannelId, IModel Channel) channelPair))
                 {
-                    channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
-                    _channelPool.Enqueue(channelPair);
+                    if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
+                    {
+                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                        _channelPool.Enqueue(channelPair);
 
-                    _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
+                        _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
+                    }
+                    else if (channelPair.Channel == null)
+                    {
+                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                        _channelPool.Enqueue(channelPair);
+                    }
+                    else
+                    { _channelPool.Enqueue(channelPair); }
                 }
-                else if (channelPair.Channel == null)
-                {
-                    channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
-                    _channelPool.Enqueue(channelPair);
-                }
-                else
-                { _channelPool.Enqueue(channelPair); }
-            }
+
+                return channelPair;
+            });
             
-            return Task.FromResult(channelPair);
+            return t;
         }
 
         public void FlagDeadChannel(ulong deadChannelId)

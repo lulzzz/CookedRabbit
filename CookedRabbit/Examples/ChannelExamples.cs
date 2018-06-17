@@ -201,10 +201,16 @@ namespace CookedRabbit
                 //await Task.Delay(rand.Next(0, 2));
 
                 var task1 = _rabbitService.GetManyAsync(queueName, 100);
+                var task2 = _rabbitService.GetManyAsync(queueName, 100);
+                var task3 = _rabbitService.GetManyAsync(queueName, 100);
 
-                await Task.WhenAll(new Task[] { task1 });
+                await Task.WhenAll(new Task[] { task1, task2, task3 });
 
-                foreach(var result in task1.Result)
+                var results = task1.Result;
+                results.AddRange(task2.Result);
+                results.AddRange(task3.Result);
+
+                foreach(var result in results)
                 {
                     var message = Encoding.UTF8.GetString(result.Body);
                     if (_accuracyCheck.ContainsKey(message))
