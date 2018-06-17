@@ -166,14 +166,15 @@ namespace CookedRabbit
         }
 
         // Using RabbitService And Checking For Accuracy
+
+        private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
+
         public static async Task RunRabbitServiceAccuracyTestAsync()
         {
             _rabbitService = new RabbitService("localhost", Environment.MachineName);
 
             await Task.WhenAll(new Task[] { RabbitService_ReceiveMessagesForeverWithAccuracyAsync(), RabbitService_SendMessagesForeverWithAccuracyAsync() });
         }
-
-        private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
 
         public static async Task RabbitService_SendMessagesForeverWithAccuracyAsync()
         {
