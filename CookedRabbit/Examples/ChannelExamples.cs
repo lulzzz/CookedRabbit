@@ -78,7 +78,7 @@ namespace CookedRabbit
             }
         }
 
-        // Using a Connection Pool
+        // Using a Channel Pool backed by a Connection Pool
         public static async Task RunPoolChannelTestAsync()
         {
             var rcp = await RabbitChannelPool.CreateRabbitChannelPoolAsync("localhost", "localhost");
@@ -123,7 +123,7 @@ namespace CookedRabbit
             }
         }
 
-        // Using RabbitService
+        // Using RabbitService backed by a Channel Pool
         public static RabbitService _rabbitService;
         public static Random rand = new Random();
 
@@ -166,7 +166,6 @@ namespace CookedRabbit
         }
 
         // Using RabbitService And Checking For Accuracy
-
         private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
 
         public static async Task RunRabbitServiceAccuracyTestAsync()
@@ -181,7 +180,7 @@ namespace CookedRabbit
             var count = 0;
             while (true)
             {
-                //await Task.Delay(rand.Next(0, 2));
+                //await Task.Delay(rand.Next(0, 2)); // Throttle Option
 
                 var message = $"{helloWorld} {count}";
                 _accuracyCheck.TryAdd(message, false);
@@ -198,7 +197,7 @@ namespace CookedRabbit
         {
             while (true)
             {
-                //await Task.Delay(rand.Next(0, 2));
+                //await Task.Delay(rand.Next(0, 2));  // Throttle Option
 
                 var task1 = _rabbitService.GetManyAsync(queueName, 100);
                 var task2 = _rabbitService.GetManyAsync(queueName, 100);
@@ -218,6 +217,59 @@ namespace CookedRabbit
                         _accuracyCheck[message] = true;
                     }
                 }
+            }
+        }
+
+        // Using RabbitService And Delaying Ack
+        public static async Task RunRabbitServiceDelayAckTestAsync()
+        {
+            _rabbitService = new RabbitService("localhost", Environment.MachineName);
+
+            await Task.WhenAll(new Task[] { RabbitService_SendMessagesForeverDelayAckAsync(), RabbitService_ReceiveMessagesForeverDelayAckAsync() });
+        }
+
+        public static async Task RabbitService_SendMessagesForeverDelayAckAsync()
+        {
+            var count = 0;
+            while (true)
+            {
+                //await Task.Delay(rand.Next(0, 2)); // Throttle Option
+
+                //var message = $"{helloWorld} {count}";
+                //_accuracyCheck.TryAdd(message, false);
+
+                //var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes(message));
+
+                //await Task.WhenAll(new Task[] { task1 });
+
+                //count++;
+            }
+        }
+
+        public static async Task RabbitService_ReceiveMessagesForeverDelayAckAsync()
+        {
+            while (true)
+            {
+                //await Task.Delay(rand.Next(0, 2));  // Throttle Option
+
+                //var task1 = _rabbitService.GetManyAsync(queueName, 100);
+                //var task2 = _rabbitService.GetManyAsync(queueName, 100);
+                //var task3 = _rabbitService.GetManyAsync(queueName, 100);
+
+                //await Task.WhenAll(new Task[] { task1, task2, task3 });
+
+                //var results = task1.Result;
+                //results.AddRange(task2.Result);
+                //results.AddRange(task3.Result);
+
+                //foreach (var result in results)
+                //{
+                //    var message = Encoding.UTF8.GetString(result.Body);
+                //    if (_accuracyCheck.ContainsKey(message))
+                //    {
+                //        _accuracyCheck[message] = true;
+                //    }
+                //}
             }
         }
     }
