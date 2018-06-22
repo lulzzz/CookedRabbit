@@ -66,9 +66,12 @@ namespace CookedRabbit
             //await RunManualTransientChannelTestAsync();
             //await RunPoolChannelTestAsync();
 
-            // All Together
+            // All Together Using RabbitService
             //await RunRabbitServicePoolChannelTestAsync();
-            await RunRabbitServiceAccuracyTestAsync();
+            //await RunRabbitServiceAccuracyTestAsync();
+
+            // Adding a Manual Ack Implementation
+            await RunRabbitServiceDelayAckTestAsync();
 
             await Console.In.ReadLineAsync();
         }
@@ -96,6 +99,7 @@ namespace CookedRabbit
         private static async void HandleUnobservedTaskExceptionHandler(object sender, UnobservedTaskExceptionEventArgs e)
         {
             var message = DefaultErrorMessage;
+            e?.SetObserved(); // Stops the process from terminating.
 
             if (e.Exception is Exception tuex)
             {

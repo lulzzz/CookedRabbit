@@ -121,18 +121,18 @@ namespace CookedRabbit.Services
 
         #region BasicGet With Manual Ack Section
 
-        public async Task<BasicGetResult> GetWithManualAckAsync(string queueName)
+        public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
             var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
 
             BasicGetResult result = null;
 
             try
-            { result = Channel.BasicGet(queue: queueName, autoAck: true); }
+            { result = Channel.BasicGet(queue: queueName, autoAck: false); }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
-            return result;
+            return (Channel, result);
         }
 
         public async Task<(IModel ChannelId, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
@@ -154,7 +154,7 @@ namespace CookedRabbit.Services
                 {
                     try
                     {
-                        var result = Channel.BasicGet(queue: queueName, autoAck: true);
+                        var result = Channel.BasicGet(queue: queueName, autoAck: false);
                         if (result == null) //Empty Queue
                         { break; }
 

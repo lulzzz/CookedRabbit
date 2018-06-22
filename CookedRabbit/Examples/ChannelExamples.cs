@@ -227,25 +227,7 @@ namespace CookedRabbit
         {
             _rabbitService = new RabbitService("localhost", Environment.MachineName);
 
-            await Task.WhenAll(new Task[] { RabbitService_SendMessagesForeverDelayAckAsync(), RabbitService_ReceiveMessagesForeverDelayAckAsync() });
-        }
-
-        public static async Task RabbitService_SendMessagesForeverDelayAckAsync()
-        {
-            var count = 0;
-            while (true)
-            {
-                //await Task.Delay(rand.Next(0, 2)); // Throttle Option
-
-                //var message = $"{helloWorld} {count}";
-                //_accuracyCheck.TryAdd(message, false);
-
-                //var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes(message));
-
-                //await Task.WhenAll(new Task[] { task1 });
-
-                //count++;
-            }
+            await Task.WhenAll(new Task[] { RabbitService_SendMessagesForeverWithAccuracyAsync(), RabbitService_ReceiveMessagesForeverDelayAckAsync() });
         }
 
         public static async Task RabbitService_ReceiveMessagesForeverDelayAckAsync()
