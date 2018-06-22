@@ -1,7 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CookedRabbit.Pools
@@ -47,7 +46,7 @@ namespace CookedRabbit.Pools
                     TopologyRecoveryEnabled = true,
                     NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
                     RequestedHeartbeat = 15,
-                    RequestedChannelMax = 50000
+                    RequestedChannelMax = 1000
                 };
             }
             catch { cf = null; }
