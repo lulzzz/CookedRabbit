@@ -13,7 +13,8 @@ namespace CookedRabbit
 {
     public static class ChannelExamples
     {
-        // Using a Connection Pool
+        #region Demonstrating a Connection Pool
+
         public static async Task RunManualTransientChannelTestAsync()
         {
             var rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync("localhost", Environment.CurrentDirectory);
@@ -80,7 +81,10 @@ namespace CookedRabbit
             }
         }
 
-        // Using a Channel Pool backed by a Connection Pool
+        #endregion
+
+        #region Demonstrating a ChannelPool backed by ConnectionPool
+
         public static async Task RunPoolChannelTestAsync()
         {
             var rcp = await RabbitChannelPool.CreateRabbitChannelPoolAsync("localhost", "localhost");
@@ -125,6 +129,10 @@ namespace CookedRabbit
             }
         }
 
+        #endregion
+
+        #region RabbitService is a RabbitMQ Wrapper
+
         // Using RabbitService backed by a Channel Pool
         public static RabbitService _rabbitService;
         public static Random rand = new Random();
@@ -167,7 +175,10 @@ namespace CookedRabbit
             }
         }
 
-        // Using RabbitService And Checking For Accuracy
+        #endregion
+
+        #region RabbitService Accuracy Test
+
         private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
 
         public static async Task RunRabbitServiceAccuracyTestAsync()
@@ -222,7 +233,10 @@ namespace CookedRabbit
             }
         }
 
-        // Using RabbitService And Delaying Ack
+        #endregion
+
+        #region RabbitService w/ Delay Acknowledge
+
         public static async Task RunRabbitServiceDelayAckTestAsync()
         {
             _rabbitService = new RabbitService("localhost", Environment.MachineName);
@@ -269,5 +283,7 @@ namespace CookedRabbit
 
             return Task.FromResult(success);
         }
+
+        #endregion
     }
 }
