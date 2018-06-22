@@ -11,7 +11,8 @@ namespace CookedRabbit.Pools
         private ulong _channelId = 0;
         private const short _channelsToMaintain = 100;
         private RabbitConnectionPool _rcp = null;
-        public ConcurrentQueue<(ulong, IModel)> _channelPool = new ConcurrentQueue<(ulong, IModel)>();
+        private ConcurrentQueue<(ulong, IModel)> _channelPool = new ConcurrentQueue<(ulong, IModel)>();
+        private ConcurrentQueue<(ulong, IModel)> _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
 
         #region Constructor & Setup
@@ -32,12 +33,13 @@ namespace CookedRabbit.Pools
                 _rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(rabbitHostName, localHostName);
 
                 await CreatePoolChannels();
+                await CreatePoolChannelsWithManualAck();
             }
         }
 
         private Task CreatePoolChannels()
         {
-            for(int i = 0; i < _channelsToMaintain; i++)
+            for (int i = 0; i < _channelsToMaintain; i++)
             {
                 _channelPool.Enqueue((_channelId++, _rcp.GetConnection().CreateModel()));
             }
@@ -45,24 +47,59 @@ namespace CookedRabbit.Pools
             return Task.CompletedTask;
         }
 
-        #endregion
-
-        public Task<IModel> GetTransientChannel()
+        private Task CreatePoolChannelsWithManualAck()
         {
-            IModel channel = null;
+            for (int i = 0; i < _channelsToMaintain; i++)
+            { 
+                var channel = _rcp.GetConnection().CreateModel();
+                channel.ConfirmSelect();
 
-            try
-            {
-                channel = _rcp.GetConnection().CreateModel();
+                _channelPool.Enqueue((_channelId++, channel));
             }
-            catch { } // TODO
 
-            return Task.FromResult(channel);
+            return Task.CompletedTask;
         }
 
-        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPair()
+        #endregion
+
+        public async Task<IModel> GetTransientChannelAsync()
         {
-            var t = await Task.Run(() =>
+            var t = await Task.Run(() => // Helps decouples from any calling thread.
+            {
+                IModel channel = null;
+
+                try
+                { channel = _rcp.GetConnection().CreateModel(); }
+                catch { } // TODO
+
+                return channel;
+            });
+
+            return t;
+        }
+
+        public async Task<IModel> GetTransientChannelWithManualAckAsync()
+        {
+            var t = await Task.Run(() => // Helps decouples from any calling thread.
+            {
+                IModel channel = null;
+
+                try
+                {
+                    channel = _rcp.GetConnection().CreateModel();
+                    channel.ConfirmSelect();
+                }
+                catch { } // TODO
+
+                return channel;
+            });
+
+            return t;
+        }
+
+        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync()
+        {
+            var t = await Task.Run(() => // Helps decouples from any calling thread.
             {
                 if (_channelPool.TryDequeue(out (ulong ChannelId, IModel Channel) channelPair))
                 {
@@ -84,13 +121,46 @@ namespace CookedRabbit.Pools
 
                 return channelPair;
             });
-            
+
+            return t;
+        }
+
+        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairWithManualAckAsync()
+        {
+            var t = await Task.Run(() => // Helps decouples from any calling thread.
+            {
+                if (_channelWithManualAckPool.TryDequeue(out (ulong ChannelId, IModel Channel) channelPair))
+                {
+                    if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
+                    {
+                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                        channelPair.Channel.ConfirmSelect();
+
+                        _channelWithManualAckPool.Enqueue(channelPair);
+
+                        _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
+                    }
+                    else if (channelPair.Channel == null)
+                    {
+                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                        channelPair.Channel.ConfirmSelect();
+
+                        _channelWithManualAckPool.Enqueue(channelPair);
+                    }
+                    else
+                    { _channelWithManualAckPool.Enqueue(channelPair); }
+                }
+
+                return channelPair;
+            });
+
             return t;
         }
 
         public void FlagDeadChannel(ulong deadChannelId)
         {
-            _flaggedAsDeadChannels.Add(deadChannelId);
+            if (!_flaggedAsDeadChannels.Contains(deadChannelId))
+            { _flaggedAsDeadChannels.Add(deadChannelId); }
         }
 
         #region Dispose

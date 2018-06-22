@@ -1,7 +1,9 @@
 ﻿using CookedRabbit.Pools;
 using CookedRabbit.Services;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,9 +97,9 @@ namespace CookedRabbit
             int counter = 0;
             while (true)
             {
-                var task1 = SendMessageAsync((await rcp.GetPooledChannelPair()).Channel, counter++);
-                var task2 = SendMessageAsync((await rcp.GetPooledChannelPair()).Channel, counter++);
-                var task3 = SendMessageAsync((await rcp.GetPooledChannelPair()).Channel, counter++);
+                var task1 = SendMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel, counter++);
+                var task2 = SendMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel, counter++);
+                var task3 = SendMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel, counter++);
 
                 await Task.WhenAll(new Task[] { task1, task2, task3 });
             }
@@ -108,15 +110,15 @@ namespace CookedRabbit
             ResetThreadName(Thread.CurrentThread, "PoolChannel ReceiveMessagesForever Thread");
             while (true)
             {
-                var (ChannelId, Channel) = await rcp.GetPooledChannelPair();
+                var (ChannelId, Channel) = await rcp.GetPooledChannelPairAsync();
                 if (Channel.MessageCount(queueName) > 0)
                 {
                     var task1 = ReceiveMessageAsync(Channel);
-                    var task2 = ReceiveMessageAsync((await rcp.GetPooledChannelPair()).Channel);
-                    var task3 = ReceiveMessageAsync((await rcp.GetPooledChannelPair()).Channel);
-                    var task4 = ReceiveMessageAsync((await rcp.GetPooledChannelPair()).Channel);
-                    var task5 = ReceiveMessageAsync((await rcp.GetPooledChannelPair()).Channel);
-                    var task6 = ReceiveMessageAsync((await rcp.GetPooledChannelPair()).Channel);
+                    var task2 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
+                    var task3 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
+                    var task4 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
+                    var task5 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
+                    var task6 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
 
                     await Task.WhenAll(new Task[] { task1, task2, task3, task4, task5, task6 });
                 }
@@ -250,27 +252,40 @@ namespace CookedRabbit
         {
             while (true)
             {
-                //await Task.Delay(rand.Next(0, 2));  // Throttle Option
+                await Task.Delay(rand.Next(0, 2));  // Throttle Option
 
-                //var task1 = _rabbitService.GetManyAsync(queueName, 100);
-                //var task2 = _rabbitService.GetManyAsync(queueName, 100);
-                //var task3 = _rabbitService.GetManyAsync(queueName, 100);
+                (IModel Channel, List<BasicGetResult> Results) batchResult = (null, new List<BasicGetResult>());
 
-                //await Task.WhenAll(new Task[] { task1, task2, task3 });
+                try
+                {
+                    batchResult = await _rabbitService.GetManyWithManualAckAsync(queueName, 100);
+                }
+                catch { }
 
-                //var results = task1.Result;
-                //results.AddRange(task2.Result);
-                //results.AddRange(task3.Result);
 
-                //foreach (var result in results)
-                //{
-                //    var message = Encoding.UTF8.GetString(result.Body);
-                //    if (_accuracyCheck.ContainsKey(message))
-                //    {
-                //        _accuracyCheck[message] = true;
-                //    }
-                //}
+                foreach (var result in batchResult.Results)
+                {
+                    var success = await DoWork(result.Body);
+
+                    if (success)
+                    { batchResult.Channel.BasicAck(result.DeliveryTag, false); }
+                    else
+                    { batchResult.Channel.BasicNack(result.DeliveryTag, false, true); }
+                }
             }
+        }
+
+        private static Task<bool> DoWork(byte[] body)
+        {
+            var success = false;
+            var message = Encoding.UTF8.GetString(body);
+            if (_accuracyCheck.ContainsKey(message))
+            {
+                _accuracyCheck[message] = true;
+                success = true;
+            }
+
+            return Task.FromResult(success);
         }
     }
 }
