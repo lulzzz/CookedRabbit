@@ -1,4 +1,5 @@
-﻿using CookedRabbit.Pools;
+﻿using CookedRabbit.Models;
+using CookedRabbit.Pools;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
@@ -167,6 +168,54 @@ namespace CookedRabbit.Services
             }
 
             return (Channel, results);
+        }
+
+        public async Task<AckableResult> GetAckableAsync(string queueName)
+        {
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
+
+            BasicGetResult result = null;
+
+            try
+            { result = Channel.BasicGet(queue: queueName, autoAck: false); }
+            catch (Exception e)
+            { await Console.Out.WriteLineAsync(e.Demystify().Message); }
+
+            return new AckableResult { Channel = Channel, Results = new List<BasicGetResult>() { result } };
+        }
+
+        public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
+        {
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
+
+            uint queueCount = 0;
+
+            try { queueCount = Channel.MessageCount(queueName); }
+            catch (Exception e)
+            { await Console.Out.WriteLineAsync(e.Demystify().Message); }
+
+            int resultCount = 0;
+            var results = new List<BasicGetResult>();
+
+            if (queueCount != 0)
+            {
+                while (queueCount > 0 && resultCount < batchCount)
+                {
+                    try
+                    {
+                        var result = Channel.BasicGet(queue: queueName, autoAck: false);
+                        if (result == null) //Empty Queue
+                        { break; }
+
+                        results.Add(result);
+                        resultCount++;
+                    }
+                    catch (Exception e)
+                    { await Console.Out.WriteLineAsync(e.Demystify().Message); }
+                }
+            }
+
+            return new AckableResult { Channel = Channel, Results = results };
         }
 
         #endregion

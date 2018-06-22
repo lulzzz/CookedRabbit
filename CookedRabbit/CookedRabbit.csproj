@@ -101,6 +101,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bus\Interfaces\IRabbitBus.cs" />
+    <Compile Include="Bus\RabbitBus.cs" />
     <Compile Include="Helpers\RabbitHelper.cs" />
     <Compile Include="Services\Interfaces\IRabbitService.cs" />
     <Compile Include="Pools\RabbitChannelPool.cs" />
@@ -121,6 +123,9 @@
     <Content Include="RabbitMQ.Client.dll" />
     <Content Include="RabbitMQ.Client.pdb" />
     <Content Include="RabbitMQ.Client.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

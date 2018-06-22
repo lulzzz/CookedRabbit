@@ -235,7 +235,7 @@ namespace CookedRabbit
 
         #endregion
 
-        #region RabbitService w/ Delay Acknowledge
+        #region RabbitService w/ Delay Acknowledge & Accuracy Test
 
         public static async Task RunRabbitServiceDelayAckTestAsync()
         {
