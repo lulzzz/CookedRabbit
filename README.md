@@ -14,10 +14,12 @@ Use the HTTP API management from RabbitMQ to verify communication is occurring.
 The WarmupAsync() will create the queue '001' to work with, if it doesn't exist, and send/receive a test message.
 
 ### NetFramework
-#### Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+ language features.
+
+    Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+ language features.
 
 ### NetCore
-#### Either the above requirement, or Visual Studio Code, pointed to NetCore folder, and SDK NetCore 2.1.0 also installed.
+
+    Same or Visual Studio Code, opening up NetCore folder. NetCore 2.1.0 SDK also installed.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
