@@ -7,7 +7,7 @@ Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModel
 To Run, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally and running first.
 Use the HTTP API management from RabbitMQ to verify communication is occurring.
 
-#### Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+.
+#### Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+ language features.
 
 or
 
