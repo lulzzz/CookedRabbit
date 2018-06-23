@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookedRabbit.Demo", "CookedRabbit\CookedRabbit.Demo.csproj", "{8291B2FC-C60F-449C-B070-C54568192BAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookedRabbit.Demo", "CookedRabbit.Demo\CookedRabbit.Demo.csproj", "{8291B2FC-C60F-449C-B070-C54568192BAF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookedRabbit.Library", "CookedRabbit.Library\CookedRabbit.Library.csproj", "{9B8FDF84-D866-4114-8B2A-78BE8185E8A8}"
 EndProject

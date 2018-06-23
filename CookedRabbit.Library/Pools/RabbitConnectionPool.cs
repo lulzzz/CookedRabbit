@@ -10,6 +10,7 @@ namespace CookedRabbit.Library.Pools
         private const short _connectionsToMaintain = 10;
         private ConnectionFactory _connectionFactory = null;
         private ConcurrentQueue<IConnection> _connectionPool = new ConcurrentQueue<IConnection>();
+        private string ConnectionNamePrefix = string.Empty; // Used if connections go null later.
 
         #region Constructor & Setup
 
@@ -28,7 +29,7 @@ namespace CookedRabbit.Library.Pools
             if (_connectionFactory is null)
             {
                 _connectionFactory = await CreateConnectionFactoryAsync(rabbitHostName);
-
+                ConnectionNamePrefix = connectionName;
                 await CreateConnectionsAsync(connectionName);
             }
         }
@@ -84,7 +85,10 @@ namespace CookedRabbit.Library.Pools
         {
             if (_connectionPool.TryDequeue(out IConnection connection))
             {
-                if (connection != null) { _connectionPool.Enqueue(connection); }
+                if (connection != null)
+                { _connectionPool.Enqueue(connection); }
+                else
+                { connection = _connectionFactory.CreateConnection(ConnectionNamePrefix); }
             }
 
             return connection;

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
-using static CookedRabbit.MemoryLeakExamples; // Simplest examples.
-using static CookedRabbit.BatchSendExamples; // Simple but begining to get complicated examples.
-using static CookedRabbit.ChannelExamples; // Complicated examples.
-using static CookedRabbit.RabbitServiceExamples; // Complicated examples wrapped in a Service.
-using static CookedRabbit.ConsumerExamples; // Complicated patterns made simple.
-using static CookedRabbit.DemoHelper;
+using static CookedRabbit.Demo.MemoryLeakExamples; // Simplest examples.
+using static CookedRabbit.Demo.BatchSendExamples; // Simple but begining to get complicated examples.
+using static CookedRabbit.Demo.ChannelExamples; // Complicated examples.
+using static CookedRabbit.Demo.RabbitServiceExamples; // Complicated examples wrapped in a Service.
+using static CookedRabbit.Demo.ConsumerExamples; // Complicated patterns made simple.
+using static CookedRabbit.Demo.DemoHelper;
 using System.Diagnostics;
 
-namespace CookedRabbit
+namespace CookedRabbit.Demo
 {
     public class Program
     {

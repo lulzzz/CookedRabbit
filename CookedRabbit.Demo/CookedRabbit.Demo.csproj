@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8291B2FC-C60F-449C-B070-C54568192BAF}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>CookedRabbit</RootNamespace>
-    <AssemblyName>CookedRabbit</AssemblyName>
+    <RootNamespace>CookedRabbit.Demo</RootNamespace>
+    <AssemblyName>CookedRabbit.Demo</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

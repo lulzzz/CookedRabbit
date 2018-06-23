@@ -50,7 +50,7 @@ namespace CookedRabbit.Library.Pools
         private Task CreatePoolChannelsWithManualAck()
         {
             for (int i = 0; i < _channelsToMaintain; i++)
-            { 
+            {
                 var channel = _rcp.GetConnection().CreateModel();
                 channel.ConfirmSelect();
 
@@ -62,23 +62,7 @@ namespace CookedRabbit.Library.Pools
 
         #endregion
 
-        public async Task<IModel> GetTransientChannelAsync()
-        {
-            var t = await Task.Run(() => // Helps decouples from any calling thread.
-            {
-                IModel channel = null;
-
-                try
-                { channel = _rcp.GetConnection().CreateModel(); }
-                catch { } // TODO
-
-                return channel;
-            });
-
-            return t;
-        }
-
-        public async Task<IModel> GetTransientChannelWithManualAckAsync()
+        public async Task<IModel> GetTransientChannelAsync(bool enableAck = false)
         {
             var t = await Task.Run(() => // Helps decouples from any calling thread.
             {
@@ -87,7 +71,9 @@ namespace CookedRabbit.Library.Pools
                 try
                 {
                     channel = _rcp.GetConnection().CreateModel();
-                    channel.ConfirmSelect();
+
+                    if (enableAck)
+                    { channel.ConfirmSelect(); }
                 }
                 catch { } // TODO
 
@@ -100,7 +86,7 @@ namespace CookedRabbit.Library.Pools
         // TODO: Upon pulling a channel, move to channel to InUse Pool, calling service must move it back.
         // This prevents any issue of the same channel being used at the same time in concurrency.
         // TODO: A very simple await until channels available if out of channels.
-        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync()
+        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync(bool enableAck = false)
         {
             var t = await Task.Run(() => // Helps decouples from any calling thread.
             {
@@ -109,49 +95,24 @@ namespace CookedRabbit.Library.Pools
                     if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
                     {
                         channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
-                        _channelPool.Enqueue(channelPair);
 
+                        if (enableAck)
+                        { channelPair.Channel.ConfirmSelect(); }
+
+                        _channelPool.Enqueue(channelPair);
                         _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
                     }
                     else if (channelPair.Channel == null)
                     {
                         channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+
+                        if (enableAck)
+                        { channelPair.Channel.ConfirmSelect(); }
+
                         _channelPool.Enqueue(channelPair);
                     }
                     else
                     { _channelPool.Enqueue(channelPair); }
-                }
-
-                return channelPair;
-            });
-
-            return t;
-        }
-
-        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairWithManualAckAsync()
-        {
-            var t = await Task.Run(() => // Helps decouples from any calling thread.
-            {
-                if (_channelWithManualAckPool.TryDequeue(out (ulong ChannelId, IModel Channel) channelPair))
-                {
-                    if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
-                    {
-                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
-                        channelPair.Channel.ConfirmSelect();
-
-                        _channelWithManualAckPool.Enqueue(channelPair);
-
-                        _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
-                    }
-                    else if (channelPair.Channel == null)
-                    {
-                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
-                        channelPair.Channel.ConfirmSelect();
-
-                        _channelWithManualAckPool.Enqueue(channelPair);
-                    }
-                    else
-                    { _channelWithManualAckPool.Enqueue(channelPair); }
                 }
 
                 return channelPair;

@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static CookedRabbit.DemoHelper;
+using static CookedRabbit.Demo.DemoHelper;
 
-namespace CookedRabbit
+namespace CookedRabbit.Demo
 {
     public static class MemoryLeakExamples
     {

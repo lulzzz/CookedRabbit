@@ -2,9 +2,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using static CookedRabbit.DemoHelper;
+using static CookedRabbit.Demo.DemoHelper;
 
-namespace CookedRabbit
+namespace CookedRabbit.Demo
 {
     public static class BatchSendExamples
     {

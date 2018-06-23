@@ -170,7 +170,7 @@ namespace CookedRabbit.Library.Services
 
         public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
 
             BasicGetResult result = null;
 
@@ -184,7 +184,7 @@ namespace CookedRabbit.Library.Services
 
         public async Task<(IModel ChannelId, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
 
             uint queueCount = 0;
 
@@ -218,7 +218,7 @@ namespace CookedRabbit.Library.Services
 
         public async Task<AckableResult> GetAckableAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
 
             BasicGetResult result = null;
 
@@ -232,7 +232,7 @@ namespace CookedRabbit.Library.Services
 
         public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairWithManualAckAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
 
             uint queueCount = 0;
 
@@ -274,7 +274,7 @@ namespace CookedRabbit.Library.Services
             ushort prefetchCount = 120,
             bool autoAck = false)
         {
-            var channel = await _rcp.GetTransientChannelWithManualAckAsync();
+            var channel = await _rcp.GetTransientChannelAsync(enableAck: true);
             if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
 
             var consumer = new EventingBasicConsumer(channel);

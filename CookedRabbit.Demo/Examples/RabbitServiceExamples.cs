@@ -7,9 +7,9 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static CookedRabbit.DemoHelper;
+using static CookedRabbit.Demo.DemoHelper;
 
-namespace CookedRabbit
+namespace CookedRabbit.Demo
 {
     public class RabbitServiceExamples
     {
