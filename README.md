@@ -17,7 +17,7 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 #### Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+ language features.
 
 ### NetCore
-#### Solution requires Visual Studio Code, point to NetCore folder, and SDK NetCore 2.1.0
+#### Either the above requirement, or Visual Studio Code, pointed to NetCore folder, and SDK NetCore 2.1.0 also installed.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
