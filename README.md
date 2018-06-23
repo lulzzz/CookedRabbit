@@ -52,12 +52,13 @@ Use the HTTP API management from RabbitMQ to verify communication is occurring.
                             ║                                                       ║
                             ╚== » RabbitConnectionPool(hostname, connectionname) ===╣
                                     ║                                               ║
-                                    ║ & RabbitMQ ConnectionFactory                  ║
-                                    ║ & ConnectionPool                              ║
+                                    ║ &RabbitMQ ConnectionFactory                   ║
+                                    ║ &ConnectionPool                               ║
                                     ╚===============================================╝
 
-Legend:
-& Indicates mandatory/crucial internal object.
-+ Exists (or exists with future enhancements)
-- Does not exist yet.
-! Important
+Legend:  
+
+    & Indicates mandatory/crucial internal object.  
+    + Exists (or exists with future enhancements)  
+    - Does not exist yet.  
+    ! Important  
