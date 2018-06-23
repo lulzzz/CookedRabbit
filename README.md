@@ -8,6 +8,19 @@ Inspired to write my own much dumber RabbitMQ wrapper than RawRabbit (https://gi
 ### Why use CookedRabbit?
 Do or do not, I am not really bothered either way. One actual benefit to using CookedRabbit is that I will only keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
 
+Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
+
+    RabbitMQ Dotnet Client 5.1.0 (6/23/2018)
+
+    Changes from Official Release
+       All NuGets updated.
+       NetFramework 4.5/4.5.1 -> 4.7.2
+       NetStandard 1.5 -> 2.0
+       NetCore 2.0 -> 2.1
+       C# 7.3 (latest version)
+       ApiGen re-compiled.
+       Client compiled as x64 (for x86 CookedRabbit, have to go with the official NuGet from RabbitMQ)
+
 ### Configuring RabbitMQ Server First (if running Local)
 To run .Demo locally, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally and running first.
 Use the HTTP API management from RabbitMQ to verify communication is occurring.
