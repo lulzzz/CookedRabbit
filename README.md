@@ -7,11 +7,13 @@ Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModel
 To Run, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally and running first.
 Use the HTTP API management from RabbitMQ to verify communication is occurring.
 
+### NetFramework
 #### Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+ language features.
 
-or
+### NetCore
+#### Solution requires Visual Studio Code, point to NetCore folder, and SDK NetCore 2.1.0
 
-#### Solution requires Visual Studio Code, point to NetCore folder, and SDK NetCore 2.1.0 installed (runtime 2.1.1 seems buggy at this time)
+*Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
 #### Library Topology At A Glance
 
