@@ -54,7 +54,7 @@ namespace CookedRabbit.Pools
                 var channel = _rcp.GetConnection().CreateModel();
                 channel.ConfirmSelect();
 
-                _channelPool.Enqueue((_channelId++, channel));
+                _channelWithManualAckPool.Enqueue((_channelId++, channel));
             }
 
             return Task.CompletedTask;
@@ -97,6 +97,9 @@ namespace CookedRabbit.Pools
             return t;
         }
 
+        // TODO: Upon pulling a channel, move to channel to InUse Pool, calling service must move it back.
+        // This prevents any issue of the same channel being used at the same time in concurrency.
+        // TODO: A very simple await until channels available if out of channels.
         public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync()
         {
             var t = await Task.Run(() => // Helps decouples from any calling thread.

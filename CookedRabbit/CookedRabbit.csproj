@@ -102,6 +102,8 @@
   <ItemGroup>
     <Compile Include="Bus\Interfaces\IRabbitBus.cs" />
     <Compile Include="Bus\RabbitBus.cs" />
+    <Compile Include="Examples\ConsumerExamples.cs" />
+    <Compile Include="Examples\RabbitServiceExamples.cs" />
     <Compile Include="Helpers\RabbitHelper.cs" />
     <Compile Include="Models\AckableResult.cs" />
     <Compile Include="Services\Interfaces\IRabbitService.cs" />

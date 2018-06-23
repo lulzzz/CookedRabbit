@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using static CookedRabbit.BatchSendExamples;
-using static CookedRabbit.MemoryLeakExamples;
-using static CookedRabbit.ChannelExamples;
+using static CookedRabbit.MemoryLeakExamples; // Simplest examples.
+using static CookedRabbit.BatchSendExamples; // Simple but begining to get complicated examples.
+using static CookedRabbit.ChannelExamples; // Complicated examples.
+using static CookedRabbit.RabbitServiceExamples; // Complicated examples wrapped in a Service.
+using static CookedRabbit.ConsumerExamples; // Complicated patterns made simple.
 using static CookedRabbit.DemoHelper;
 using System.Diagnostics;
 
@@ -30,14 +32,13 @@ namespace CookedRabbit
             // Basic queue create, message send, message received.
             await WarmupAsync();
 
+            // Bad Designs
             //await RunMemoryLeakAsync();
-
             //await RunMemoryLeakMadeWorseAsync();
-
             //await RunMemoryLeakFixAttemptOneAsync();
-
             //await RunMemoryLeakFixAttemptTwoAsync();
 
+            // Workarounds for Bad Designs
             // Focus on this method to see high performance in concurrent threads using
             // a dictionary that is also being cleaned up without deadlocks or
             // exceptions.
@@ -51,30 +52,37 @@ namespace CookedRabbit
             //await RunMemoryLeakFixAttemptFourAsync(); // Semaphore
             //await RunMemoryLeakFixAttemptFiveAsync(); // ConcurrentDictionary
 
+            // Trying To Improve Design By Channel Management
             // THESE Demonstrate how little memory is used by re-using a channel.
-            //
             // Same as RunMemoryLeakFixAttemptSixAsync with a single channel instead of disposables.
             // Run Stress Test with Multi-Thread access to a Channel.
             // Channels shared across threads is not recommended but when compared to Memory Leak Work #6,
             // the performance is stellar.
             //await RunCrossThreadChannelsOneAsync();
-
             // Send messages in batches over a single channel.
             //await RunNonCrossThreadChannelsAsync();
 
+            // Complex Tests Using Channel/Connection Pools
             // Testing out various channel creation methods
             //await RunManualTransientChannelTestAsync();
             //await RunPoolChannelTestAsync();
 
-            // All Together Using RabbitService
+            // All Together Using RabbitService backed by Channel/Connection Pools
             //await RunRabbitServicePoolChannelTestAsync();
             //await RunRabbitServiceAccuracyTestAsync();
-
             // Adding a Manual Ack Implementation
-            await RunRabbitServiceDelayAckTestAsync();
+            //await RunRabbitServiceDelayAckTestAsync();
+
+            // Wrapping Up Everything But Simplifying With RabbitMQ
+            // Adding a BasicConsumer instead of GetMany
+            //await RunRabbitServiceConsumerAckTestAsync();
+            //await RunRabbitServiceConsumerRetryTestAsync();
+            await RunRabbitServiceBatchPublishWithConsumerTestAsync();
 
             await Console.In.ReadLineAsync();
         }
+
+        #region Global BoomBoom Examples
 
         private static async void HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -116,5 +124,7 @@ namespace CookedRabbit
 
             await Console.Out.WriteAsync(message);
         }
+
+        #endregion
     }
 }
