@@ -9,12 +9,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookedRabbit.Library", "Coo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NetCore", "NetCore", "{08F22544-FB58-429C-B4D4-34FFF7AE7AD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookedRabbit.Core.Demo", "NetCore\CookedRabbit.Core.Demo\CookedRabbit.Core.Demo.csproj", "{74D72E9C-6D18-4DF3-A66C-671F25DBA8FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CookedRabbit.Core.Demo", "NetCore\CookedRabbit.Core.Demo\CookedRabbit.Core.Demo.csproj", "{74D72E9C-6D18-4DF3-A66C-671F25DBA8FB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{805DC36F-5E8C-4C5C-964F-F4C7B18805DB} = {805DC36F-5E8C-4C5C-964F-F4C7B18805DB}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookedRabbit.Core.Library", "NetCore\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj", "{805DC36F-5E8C-4C5C-964F-F4C7B18805DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CookedRabbit.Core.Library", "NetCore\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj", "{805DC36F-5E8C-4C5C-964F-F4C7B18805DB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CBF61554-A3CD-436A-BFC1-9AE7A2002B38}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

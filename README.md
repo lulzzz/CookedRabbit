@@ -3,6 +3,8 @@ Creating a simple RabbitMQ wrapper for dealing with channels and connection head
 
 Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModels (RabbitMQ term for Channels) in container objects makes code prone to memory leaks, thus it is good to see how not to do things as well as how I do it. The examples in the CookedRabbit.Demo demonstrate very rudimentary usages of RabbitMQ. It's not supposed to be rocket science. The library is the simplification, removal, and abstraction of common usage code when wrapping RabbitMQ DotNetClient. It continues to add complexity and simplification at the same time in the RabbitBus & RabbitService.
 
+Inspired to write my own much dumber RabbitMQ wrapper than RawRabbit (https://github.com/pardahlman/RawRabbit). The longterm goal is to be short and sweet, nothing more and nothing less. If you need a more thorough/advanced solution, I highly recommend checking out RawRabbit.
+
 ### Configuring RabbitMQ Server First (if running Local)
 To run .Demo locally, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally and running first.
 Use the HTTP API management from RabbitMQ to verify communication is occurring.
@@ -21,13 +23,13 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
     ║
     ║ Your Business Logic
     ║
-    ╚== » RabbbitBus() =============================================================╗
+    ╚══ » RabbbitBus() ═════════════════════════════════════════════════════════════╗
             ║                                                                       ║
             ║ - Exception Handling                                                  ║
             ║ - Circuit Breaker                                                     ║
             ║ - Abstraction                                                         ║
             ║                                                                       ║
-            ╚== » RabbitService(hostname, connectionname) ==========================╣
+            ╚══ » RabbitService(hostname, connectionname) ══════════════════════════╣
                     ║                                                               ║
                     ║ &RabbitChannelPool                                            ║
                     ║ + Flag Channel As Dead                                        ║
@@ -44,7 +46,7 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
                     ║ - throw ex                                                    ║
                     ║ ! Opinionated Throttling                                      ║
                     ║                                                               ║
-                    ╚== » RabbitChannelPool(hostname, connectionname)  =============╣
+                    ╚══ » RabbitChannelPool(hostname, connectionname) ══════════════╣
                             ║                                                       ║
                             ║ &RabbitConnectionPool                                 ║
                             ║ + GetTransientChannel (non-Ackable)                   ║
@@ -57,11 +59,11 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
                             ║ - throw ex                                            ║
                             ║ ! System For Dealing With Flagged Dead Channels       ║
                             ║                                                       ║
-                            ╚== » RabbitConnectionPool(hostname, connectionname) ===╣
+                            ╚══ » RabbitConnectionPool(hostname, connectionname) ═══╣
                                     ║                                               ║
                                     ║ &RabbitMQ ConnectionFactory                   ║
                                     ║ &ConnectionPool                               ║
-                                    ╚===============================================╝
+                                    ╚═══════════════════════════════════════════════╝
 
 Legend:  
 
