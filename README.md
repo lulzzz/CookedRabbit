@@ -75,7 +75,7 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
                             ║ + GetTransientChannel (Ackable)                       ║
                             ║ + GetChannelPair from &ChannelPool (non-Ackable)      ║
                             ║ + GetChannelPair from &ChannelPool (ackable)          ║
-                            ║ - Delay when Channels Are In Pool                     ║
+                            ║ - Get Channel Delay (When All Channels Are In Use)    ║
                             ║ - In-Use Pool                                         ║
                             ║ - Replacing Console with Logger                       ║
                             ║ - throw ex                                            ║
