@@ -1,5 +1,5 @@
-﻿using CookedRabbit.Models;
-using CookedRabbit.Pools;
+﻿using CookedRabbit.Library.Models;
+using CookedRabbit.Library.Pools;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Services
+namespace CookedRabbit.Library.Services
 {
     public class RabbitService : IRabbitService
     {

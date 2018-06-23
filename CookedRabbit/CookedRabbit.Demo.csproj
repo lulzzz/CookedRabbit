@@ -100,27 +100,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bus\Interfaces\IRabbitBus.cs" />
-    <Compile Include="Bus\RabbitBus.cs" />
     <Compile Include="Examples\ConsumerExamples.cs" />
     <Compile Include="Examples\RabbitServiceExamples.cs" />
-    <Compile Include="Helpers\RabbitHelper.cs" />
-    <Compile Include="Models\AckableResult.cs" />
-    <Compile Include="Services\Interfaces\IRabbitService.cs" />
-    <Compile Include="Pools\RabbitChannelPool.cs" />
-    <Compile Include="Pools\RabbitConnectionPool.cs" />
     <Compile Include="Examples\ChannelExamples.cs" />
     <Compile Include="Examples\BatchSendExamples.cs" />
     <Compile Include="Helpers\DemoHelper.cs" />
     <Compile Include="Examples\MemoryLeakExamples.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\RabbitService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\CookedRabbit.Library\CookedRabbit.Library.csproj">
+      <Project>{9b8fdf84-d866-4114-8b2a-78be8185e8a8}</Project>
+      <Name>CookedRabbit.Library</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

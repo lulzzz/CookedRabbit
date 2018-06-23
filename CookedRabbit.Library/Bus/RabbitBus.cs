@@ -1,11 +1,6 @@
-﻿using CookedRabbit.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CookedRabbit.Library.Services;
 
-namespace CookedRabbit.Bus
+namespace CookedRabbit.Library.Bus
 {
     public class RabbitBus : IRabbitBus
     {

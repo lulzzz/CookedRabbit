@@ -3,7 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Pools
+namespace CookedRabbit.Library.Pools
 {
     public class RabbitConnectionPool : IDisposable
     {

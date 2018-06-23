@@ -1,4 +1,4 @@
-﻿using CookedRabbit.Services;
+﻿using CookedRabbit.Library.Services;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;

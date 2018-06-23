@@ -1,5 +1,5 @@
-﻿using CookedRabbit.Pools;
-using CookedRabbit.Services;
+﻿using CookedRabbit.Library.Pools;
+using CookedRabbit.Library.Services;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
