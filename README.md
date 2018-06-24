@@ -38,37 +38,41 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
 ### Default Values Currently Hardcoded
 
-     Pools:
-     Connections: 10
-     ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Cross Channels
+Pools:
 
-     Connection Factory:
-     Heartbeats: 15s
-     MaxChannels: 1000 (per Connection)
-     AutomaticRecoveryEnabled: true
-     RecoverTopologyEnabled: true
-     NetworkRecoveryInterval: 10s
+~~Connections: 10~~
+~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Cross Channels~~
 
-     SendManyAsBatches:
+Connection Factory:
+
+~~Heartbeats: 15s~~
+~~MaxChannels: 1000 (per Connection)~~
+~~AutomaticRecoveryEnabled: true~~
+~~RecoverTopologyEnabled: true~~
+~~NetworkRecoveryInterval: 10s~~
+
+ PublishManyAsBatches:
+
      BatchSize: 100
 
-     Consumer:
-     BasicQos(0, 100, false)
+ Consumer:
+
+     BasicQos(0, prefetchSize, false)
 
 #### Library Topology At A Glance
 
     ║
     ║ Your Business Logic
     ║
-    ╚══ » RabbbitBus() ═════════════════════════════════════════════════════════════╗
-            ║                                                                       ║
-            ║ - Exception Handling                                                  ║
-            ║ - Circuit Breaker                                                     ║
-            ║ - Abstraction                                                         ║
-            ║                                                                       ║
-            ╚══ » RabbitService(hostname, connectionname) ══════════════════════════╣
+    ╠══ » RabbbitBus() ═════════════════════════════════════════════════════════════╗
+    ║       ║                                                                       ║
+    ║       ║ - Exception Handling                                                  ║
+    ║       ║ - Circuit Breaker                                                     ║
+    ║       ║ - Abstraction                                                         ║
+    ║       ║                                                                       ║
+    ╚════ » ╚══ » RabbitService ════════════════════════════════════════════════════╣
                     ║                                                               ║
-                    ║ &RabbitChannelPool                                            ║
+                    ║ & RabbitChannelPool                                           ║
                     ║ + Flag Channel As Dead                                        ║
                     ║ + Return Channel To Pool (Finished Work)                      ║
                     ║ + Publish                                                     ║
@@ -83,23 +87,25 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
                     ║ - throw ex                                                    ║
                     ║ ! Opinionated Throttling                                      ║
                     ║                                                               ║
-                    ╚══ » RabbitChannelPool(hostname, connectionname) ══════════════╣
+                    ╚══ » RabbitChannelPool ════════════════════════════════════════╣
                             ║                                                       ║
-                            ║ &RabbitConnectionPool                                 ║
+                            ║ & RabbitConnectionPool                                ║
                             ║ + GetTransientChannel (non-Ackable)                   ║
                             ║ + GetTransientChannel (Ackable)                       ║
                             ║ + GetChannelPair from &ChannelPool (non-Ackable)      ║
                             ║ + GetChannelPair from &ChannelPool (ackable)          ║
                             ║ + Get Channel Delay (When All Channels Are In Use)    ║
-                            ║ + In Use Pool                                         ║
+                            ║ + In Use ChannelPair Pool                             ║
+                            ║ + In Use Ack ChannelPair Pool                         ║
+                            ║ + Return Channel to A Pool                            ║
                             ║ - Replacing Console with Logger                       ║
                             ║ - throw ex                                            ║
                             ║ ! System For Dealing With Flagged Dead Channels       ║
                             ║                                                       ║
-                            ╚══ » RabbitConnectionPool(hostname, connectionname) ═══╣
+                            ╚══ » RabbitConnectionPool ═════════════════════════════╣
                                     ║                                               ║
-                                    ║ &RabbitMQ ConnectionFactory                   ║
-                                    ║ &ConnectionPool                               ║
+                                    ║ & RabbitMQ ConnectionFactory                  ║
+                                    ║ & ConnectionPool                              ║
                                     ║ - System for Dealing with Flagged Connections ║
                                     ║                                               ║
                                     ╚═══════════════════════════════════════════════╝

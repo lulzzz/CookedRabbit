@@ -1,11 +1,6 @@
-﻿using CookedRabbit.Core.Library.Pools;
-using CookedRabbit.Core.Library.Services;
-using RabbitMQ.Client;
+﻿using CookedRabbit.Core.Library.Models;
+using CookedRabbit.Core.Library.Pools;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static CookedRabbit.Core.Demo.DemoHelper;
@@ -16,9 +11,11 @@ namespace CookedRabbit.Core.Demo
     {
         #region Demonstrating a Connection Pool
 
+        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", LocalHostName = Environment.MachineName };
+
         public static async Task RunManualTransientChannelTestAsync()
         {
-            var rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync("localhost", Environment.CurrentDirectory);
+            var rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(_rabbitSeasoning);
 
             var sendMessage = SendMessagesForeverAsync(rcp);
             var receiveMessage = ReceiveMessagesForeverAsync(rcp);
@@ -88,7 +85,7 @@ namespace CookedRabbit.Core.Demo
 
         public static async Task RunPoolChannelTestAsync()
         {
-            var rcp = await RabbitChannelPool.CreateRabbitChannelPoolAsync("localhost", "localhost");
+            var rcp = await RabbitChannelPool.CreateRabbitChannelPoolAsync(_rabbitSeasoning);
 
             var sendMessage = PoolChannel_SendMessagesForeverAsync(rcp);
             var receiveMessage = PoolChannel_ReceiveMessagesForeverAsync(rcp);

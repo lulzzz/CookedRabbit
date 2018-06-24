@@ -105,12 +105,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Examples\ConsumerExamples.cs" />
-    <Compile Include="Examples\RabbitServiceExamples.cs" />
-    <Compile Include="Examples\ChannelExamples.cs" />
-    <Compile Include="Examples\BatchSendExamples.cs" />
+    <Compile Include="Examples\05_ConsumerExamples.cs" />
+    <Compile Include="Examples\04_RabbitServiceExamples.cs" />
+    <Compile Include="Examples\03_ChannelExamples.cs" />
+    <Compile Include="Examples\02_BatchSendExamples.cs" />
     <Compile Include="Helpers\DemoHelper.cs" />
-    <Compile Include="Examples\MemoryLeakExamples.cs" />
+    <Compile Include="Examples\01_MemoryLeakExamples.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

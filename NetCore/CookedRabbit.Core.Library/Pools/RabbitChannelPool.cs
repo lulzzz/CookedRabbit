@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using CookedRabbit.Core.Library.Models;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -9,30 +10,33 @@ namespace CookedRabbit.Core.Library.Pools
     public class RabbitChannelPool : IDisposable
     {
         private ulong _channelId = 0;
-        private const short _channelsToMaintain = 100;
+        private ushort _channelsToMaintain = 100;
         private RabbitConnectionPool _rcp = null;
         private ConcurrentQueue<(ulong, IModel)> _channelPool = new ConcurrentQueue<(ulong, IModel)>();
         private ConcurrentBag<(ulong, IModel)> _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentQueue<(ulong, IModel)> _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
         private ConcurrentBag<(ulong, IModel)> _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
+        private RabbitSeasoning _originalRabbitSeasoning = null; // Used if channels go null later.
 
         #region Constructor & Setup
 
         private RabbitChannelPool() { }
 
-        public static async Task<RabbitChannelPool> CreateRabbitChannelPoolAsync(string rabbitHostName, string localHostName)
+        public static async Task<RabbitChannelPool> CreateRabbitChannelPoolAsync(RabbitSeasoning rabbitSeasoning)
         {
             RabbitChannelPool rcp = new RabbitChannelPool();
-            await rcp.Initialize(rabbitHostName, localHostName);
+            await rcp.Initialize(rabbitSeasoning);
             return rcp;
         }
 
-        private async Task Initialize(string rabbitHostName, string localHostName)
+        private async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
             if (_rcp is null)
             {
-                _rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(rabbitHostName, localHostName);
+                _originalRabbitSeasoning = rabbitSeasoning;
+                _channelsToMaintain = rabbitSeasoning.ChannelPoolCount;
+                _rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
 
                 await CreatePoolChannels();
                 await CreatePoolChannelsWithManualAck();

@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using CookedRabbit.Library.Models;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
@@ -7,36 +8,38 @@ namespace CookedRabbit.Library.Pools
 {
     public class RabbitConnectionPool : IDisposable
     {
-        private const short _connectionsToMaintain = 10;
+        private ushort _connectionsToMaintain = 10;
         private ConnectionFactory _connectionFactory = null;
         private ConcurrentQueue<IConnection> _connectionPool = new ConcurrentQueue<IConnection>();
-        private string ConnectionNamePrefix = string.Empty; // Used if connections go null later.
+        private RabbitSeasoning _originalRabbitSeasoning = null; // Used if connections go null later.
 
         #region Constructor & Setup
 
         private RabbitConnectionPool()
         { }
 
-        public static async Task<RabbitConnectionPool> CreateRabbitConnectionPoolAsync(string rabbitHostName, string connectionName)
+        public static async Task<RabbitConnectionPool> CreateRabbitConnectionPoolAsync(RabbitSeasoning rabbitSeasoning)
         {
             RabbitConnectionPool rcp = new RabbitConnectionPool();
-            await rcp.Initialize(rabbitHostName, connectionName);
+            await rcp.Initialize(rabbitSeasoning);
             return rcp;
         }
 
-        private async Task Initialize(string rabbitHostName, string connectionName)
+        private async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
             if (_connectionFactory is null)
             {
-                _connectionFactory = await CreateConnectionFactoryAsync(rabbitHostName);
+                _originalRabbitSeasoning = rabbitSeasoning;
+                _connectionsToMaintain = rabbitSeasoning.ConnectionPoolCount;
+
+                _connectionFactory = await CreateConnectionFactoryAsync(rabbitSeasoning);
                 if (_connectionFactory is null) throw new ArgumentNullException("Connection factory is null.");
 
-                ConnectionNamePrefix = connectionName;
-                await CreateConnectionsAsync(connectionName);
+                await CreateConnectionsAsync(rabbitSeasoning.LocalHostName);
             }
         }
 
-        private Task<ConnectionFactory> CreateConnectionFactoryAsync(string rabbitHostName)
+        private Task<ConnectionFactory> CreateConnectionFactoryAsync(RabbitSeasoning rabbitSeasoning)
         {
             ConnectionFactory cf = null;
 
@@ -44,13 +47,13 @@ namespace CookedRabbit.Library.Pools
             {
                 cf = new ConnectionFactory
                 {
-                    HostName = rabbitHostName,
-                    AutomaticRecoveryEnabled = true,
-                    TopologyRecoveryEnabled = true,
-                    NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
-                    RequestedHeartbeat = 15,
-                    RequestedChannelMax = 1000,
-                    DispatchConsumersAsync = true
+                    HostName = rabbitSeasoning.RabbitHost,
+                    AutomaticRecoveryEnabled = rabbitSeasoning.AutoRecovery,
+                    TopologyRecoveryEnabled = rabbitSeasoning.TopologyRecovery,
+                    NetworkRecoveryInterval = TimeSpan.FromSeconds(rabbitSeasoning.NetRecoveryTimeout),
+                    RequestedHeartbeat = rabbitSeasoning.HeartbeatInterval,
+                    RequestedChannelMax = rabbitSeasoning.MaxChannelsPerConnection,
+                    DispatchConsumersAsync = rabbitSeasoning.EnableDispatchConsumersAsync
                 };
             }
             catch { cf = null; }
@@ -102,7 +105,7 @@ namespace CookedRabbit.Library.Pools
                 if (connection != null)
                 { _connectionPool.Enqueue(connection); }
                 else
-                { connection = _connectionFactory.CreateConnection(ConnectionNamePrefix); }
+                { connection = _connectionFactory.CreateConnection(_originalRabbitSeasoning?.LocalHostName); }
             }
 
             return connection;

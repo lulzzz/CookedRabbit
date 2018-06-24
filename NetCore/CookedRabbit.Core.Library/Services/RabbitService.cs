@@ -12,10 +12,12 @@ namespace CookedRabbit.Core.Library.Services
     public class RabbitService : IRabbitService
     {
         private readonly RabbitChannelPool _rcp = null;
+        private readonly RabbitSeasoning _originalRabbitSeasoning = null; // Used if for recovery later.
 
-        public RabbitService(string rabbitHostName, string localHostName)
+        public RabbitService(RabbitSeasoning rabbitSeasoning)
         {
-            _rcp = RabbitChannelPool.CreateRabbitChannelPoolAsync(rabbitHostName, localHostName).GetAwaiter().GetResult();
+            _originalRabbitSeasoning = rabbitSeasoning;
+            _rcp = RabbitChannelPool.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
         }
 
         #region BasicPublish Section

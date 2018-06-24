@@ -103,6 +103,7 @@
   <ItemGroup>
     <Compile Include="Bus\Interfaces\IRabbitBus.cs" />
     <Compile Include="Bus\RabbitBus.cs" />
+    <Compile Include="Models\RabbitSeasoning.cs" />
     <Compile Include="Models\AckableResult.cs" />
     <Compile Include="Pools\RabbitChannelPool.cs" />
     <Compile Include="Pools\RabbitConnectionPool.cs" />
