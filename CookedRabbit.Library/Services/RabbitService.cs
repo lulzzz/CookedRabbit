@@ -21,14 +21,14 @@ namespace CookedRabbit.Library.Services
 
         #region BasicPublish Section
 
-        public async Task<bool> PublishAsync(string queueName, byte[] payload)
+        public async Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload)
         {
             var success = false;
             var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             try
             {
-                Channel.BasicPublish(exchange: string.Empty,
+                Channel.BasicPublish(exchange: exchangeName,
                                      routingKey: queueName,
                                      false,
                                      basicProperties: null,
@@ -49,7 +49,7 @@ namespace CookedRabbit.Library.Services
             return success;
         }
 
-        public async Task<List<int>> PublishManyAsync(string queueName, List<byte[]> payloads)
+        public async Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads)
         {
             var failures = new List<int>();
             var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -60,13 +60,13 @@ namespace CookedRabbit.Library.Services
             {
                 try
                 {
-                    Channel.BasicPublish(exchange: string.Empty,
+                    Channel.BasicPublish(exchange: exchangeName,
                                          routingKey: queueName,
                                          false,
                                          basicProperties: null,
                                          body: payload);
 
-                    await Task.Delay(rand.Next(0,1));
+                    await Task.Delay(rand.Next(0, 1));
                 }
                 catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                 {
@@ -88,7 +88,7 @@ namespace CookedRabbit.Library.Services
             return failures;
         }
 
-        public async Task<List<int>> PublishManyAsBatchesAsync(string queueName, List<byte[]> payloads)
+        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads)
         {
             var failures = new List<int>();
             var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -104,7 +104,7 @@ namespace CookedRabbit.Library.Services
                 {
                     try
                     {
-                        Channel.BasicPublish(exchange: string.Empty,
+                        Channel.BasicPublish(exchange: exchangeName,
                                              routingKey: queueName,
                                              false,
                                              basicProperties: null,

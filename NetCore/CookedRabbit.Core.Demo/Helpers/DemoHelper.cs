@@ -46,6 +46,7 @@ namespace CookedRabbit.Core.Demo
         public readonly static string happyShutdown = "Happy shutdown.";
 
         public readonly static string queueName = "001";
+        public readonly static string exchangeName = string.Empty;
 
         #endregion
 

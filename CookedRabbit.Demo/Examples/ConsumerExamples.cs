@@ -38,7 +38,7 @@ namespace CookedRabbit.Demo
                 var message = $"{helloWorld} {count}";
                 _accuracyCheck.TryAdd(message, false);
 
-                var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes(message));
+                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
 
                 await Task.WhenAll(new Task[] { task1 });
 
@@ -92,7 +92,7 @@ namespace CookedRabbit.Demo
                 count++;
             }
 
-            var task1 = _rabbitService.PublishManyAsync(queueName, payloads); // Blocks transmission
+            var task1 = _rabbitService.PublishManyAsync(exchangeName, queueName, payloads); // Blocks transmission
 
             await Task.WhenAll(new Task[] { task1 });
         }
@@ -157,7 +157,7 @@ namespace CookedRabbit.Demo
                 count++;
             }
 
-            var task1 = _rabbitService.PublishManyAsBatchesAsync(queueName, payloads);
+            var task1 = _rabbitService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads);
 
             await Task.WhenAll(new Task[] { task1 });
         }

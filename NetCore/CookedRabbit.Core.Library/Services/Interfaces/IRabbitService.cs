@@ -9,9 +9,9 @@ namespace CookedRabbit.Core.Library.Services
 {
     public interface IRabbitService
     {
-        Task<bool> PublishAsync(string queueName, byte[] payload);
-        Task<List<int>> PublishManyAsync(string queueName, List<byte[]> payloads);
-        Task<List<int>> PublishManyAsBatchesAsync(string queueName, List<byte[]> payloads);
+        Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload);
+        Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads);
+        Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads);
 
         Task<BasicGetResult> GetAsync(string queueName);
         Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount);

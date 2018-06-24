@@ -34,8 +34,8 @@ namespace CookedRabbit.Core.Demo
             {
                 await Task.Delay(rand.Next(0, 2));
 
-                var task1 = _rabbitService.PublishAsync(queueName, await GetRandomByteArray(4000));
-                var task2 = _rabbitService.PublishAsync(queueName, await GetRandomByteArray(4000));
+                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(4000));
+                var task2 = _rabbitService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(4000));
 
                 await Task.WhenAll(new Task[] { task1, task2 });
 
@@ -79,7 +79,7 @@ namespace CookedRabbit.Core.Demo
                 var message = $"{helloWorld} {count}";
                 _accuracyCheck.TryAdd(message, false);
 
-                var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes(message));
+                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
 
                 await Task.WhenAll(new Task[] { task1 });
 
@@ -135,7 +135,7 @@ namespace CookedRabbit.Core.Demo
                 var message = $"{helloWorld} {count}";
                 _accuracyCheck.TryAdd(message, false);
 
-                var task1 = _rabbitService.PublishAsync(queueName, Encoding.UTF8.GetBytes(message));
+                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
 
                 await Task.WhenAll(new Task[] { task1 });
 
