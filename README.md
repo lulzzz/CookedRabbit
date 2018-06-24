@@ -41,7 +41,7 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 Pools:  
 
 ~~Connections: 10~~  
-~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Cross Channels~~  
+~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Across Connections~~  
 
 Connection Factory:  
 
