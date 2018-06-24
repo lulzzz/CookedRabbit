@@ -38,24 +38,24 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
 ### Default Values Currently Hardcoded
 
-Pools:
+Pools:  
 
-~~Connections: 10~~
-~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Cross Channels~~
+~~Connections: 10~~  
+~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Cross Channels~~  
 
-Connection Factory:
+Connection Factory:  
 
-~~Heartbeats: 15s~~
-~~MaxChannels: 1000 (per Connection)~~
-~~AutomaticRecoveryEnabled: true~~
-~~RecoverTopologyEnabled: true~~
-~~NetworkRecoveryInterval: 10s~~
+~~Heartbeats: 15s~~  
+~~MaxChannels: 1000 (per Connection)~~  
+~~AutomaticRecoveryEnabled: true~~  
+~~RecoverTopologyEnabled: true~~  
+~~NetworkRecoveryInterval: 10s~~  
 
- PublishManyAsBatches:
+ PublishManyAsBatches:  
 
      BatchSize: 100
 
- Consumer:
+ Consumer:  
 
      BasicQos(0, prefetchSize, false)
 
