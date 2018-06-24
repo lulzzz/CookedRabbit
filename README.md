@@ -30,34 +30,32 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
  * Visual Studio 2017+ installed (Community+).
  * .NET 4.7.2 SDK installed.
- * Compile as C# 7.2+.
+ * Compile as C# 7.2+ minimum.
 
 ### NetCore Requirements
 
  * Visual Studio Code or Visual Studio 2017+ installed.
  * Open Folder `NetCore` or open the SLN.
- * NetCore 2.1.0 SDK.
+  * Compile as C# 7.2+ minimum.
+ * NetCore 2.1.0 SDK installed.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
 ### Default Values Currently Hardcoded
 
-Pools:  
-
+Pools  
 ~~Connections: 10~~  
 ~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Across Connections~~  
 
-Connection Factory:  
-
+Connection Factory  
 ~~Heartbeats: 15s~~  
 ~~MaxChannels: 1000 (per Connection)~~  
 ~~AutomaticRecoveryEnabled: true~~  
 ~~RecoverTopologyEnabled: true~~  
 ~~NetworkRecoveryInterval: 10s~~  
 
- PublishManyAsBatches:  
-
-     BatchSize: 100
+ PublishManyAsBatches  
+~~BatchSize: 100~~
 
  Consumer:  
 
