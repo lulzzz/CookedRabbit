@@ -90,7 +90,7 @@ namespace CookedRabbit.Library.Services
             return failures;
         }
 
-        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads)
+        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100)
         {
             var failures = new List<int>();
             var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -99,8 +99,8 @@ namespace CookedRabbit.Library.Services
 
             while (payloads.Any())
             {
-                var processingPayloads = payloads.Take(100);
-                payloads.RemoveRange(0, payloads.Count > 100 ? 100 : payloads.Count);
+                var processingPayloads = payloads.Take(batchSize);
+                payloads.RemoveRange(0, payloads.Count > batchSize ? batchSize : payloads.Count);
 
                 foreach (var payload in processingPayloads)
                 {

@@ -11,7 +11,7 @@ namespace CookedRabbit.Core.Library.Services
     {
         Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload);
         Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads);
-        Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads);
+        Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100);
 
         Task<BasicGetResult> GetAsync(string queueName);
         Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount);

@@ -26,13 +26,17 @@ To run .Demo locally, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed loca
 Use the HTTP API management from RabbitMQ to verify communication is occurring.
 The WarmupAsync() will create the queue '001' to work with, if it doesn't exist, and send/receive a test message.
 
-### NetFramework
+### NetFramework Requirements
 
-    Solution requires Visual Studio 2017+, .NET 4.7.2 SDK installed, and using C# 7.2+ language features.
+ * Visual Studio 2017+ installed (Community+).
+ * .NET 4.7.2 SDK installed.
+ * Compile as C# 7.2+.
 
-### NetCore
+### NetCore Requirements
 
-    Same or Visual Studio Code, opening up NetCore folder. NetCore 2.1.0 SDK also installed.
+ * Visual Studio Code or Visual Studio 2017+ installed.
+ * Open Folder `NetCore` or open the SLN.
+ * NetCore 2.1.0 SDK.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
