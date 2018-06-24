@@ -163,5 +163,54 @@ namespace CookedRabbit.Core.Demo
         }
 
         #endregion
+
+        #region RabbitService w/ Publish in Batch & AsyncConsumer
+
+        private static AsyncEventingBasicConsumer asyncConsumer = null; // Sits and listens for messages
+
+        public static async Task RunRabbitServiceCreateAsyncConsumerTestAsync()
+        {
+            _rabbitService = new RabbitService("localhost", Environment.MachineName);
+            asyncConsumer = await _rabbitService.CreateAsynchronousConsumerAsync(AsyncWork, queueName);
+            await RabbitService_SendManyInBatchesWithLimitAsync();
+            await Console.Out.WriteLineAsync("Finished sending messages.");
+        }
+
+        public static Func<object, BasicDeliverEventArgs, Task> AsyncWork = async (o, ea) =>
+        {
+            ReceiveCount++;
+            var message = Encoding.UTF8.GetString(ea.Body);
+            if (_accuracyCheck.ContainsKey(message))
+            {
+                _accuracyCheck[message] = true;
+            }
+
+            if (o is AsyncEventingBasicConsumer consumer)
+            {
+                if (ReceiveCount % 10001 == 0)
+                {
+                    await Console.Out.WriteLineAsync($"Error processing messager in consumer, retrying.");
+
+                    try
+                    { consumer.Model?.BasicNack(ea.DeliveryTag, false, true); }
+                    catch (Exception ex)
+                    { await Console.Out.WriteLineAsync($"Error nacking messager in consumer. {ex.Message}"); }
+                }
+                else
+                {
+                    try
+                    { consumer.Model?.BasicAck(ea.DeliveryTag, false); }
+                    catch (Exception ex)
+                    { await Console.Out.WriteLineAsync($"Error acking messager in consumer. {ex.Message}"); }
+
+                    if (ReceiveCount % 100000 == 0)
+                    { await Console.Out.WriteLineAsync($"Received and acked {ReceiveCount} messages."); }
+                }
+            }
+
+            await Task.Yield();
+        };
+
+        #endregion
     }
 }

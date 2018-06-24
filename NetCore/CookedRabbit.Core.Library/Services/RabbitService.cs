@@ -4,7 +4,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,11 +23,11 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> PublishAsync(string queueName, byte[] payload)
         {
             var success = false;
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             try
             {
-                Channel.BasicPublish(exchange: "",
+                Channel.BasicPublish(exchange: string.Empty,
                                      routingKey: queueName,
                                      false,
                                      basicProperties: null,
@@ -50,27 +49,35 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<List<int>> PublishManyAsync(string queueName, List<byte[]> payloads)
         {
             var failures = new List<int>();
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
+            var count = 0;
+
             foreach (var payload in payloads)
             {
                 try
                 {
-                    Channel.BasicPublish(exchange: "",
+                    Channel.BasicPublish(exchange: string.Empty,
                                          routingKey: queueName,
                                          false,
                                          basicProperties: null,
                                          body: payload);
 
-                    await Task.Delay(rand.Next(0,1));
+                    await Task.Delay(rand.Next(0, 1));
                 }
                 catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                 {
+                    failures.Add(count);
                     _rcp.FlagDeadChannel(ChannelId);
                     await Console.Out.WriteLineAsync(ace.Message);
                 }
                 catch (Exception e)
-                { await Console.Out.WriteLineAsync(e.Message); }
+                {
+                    failures.Add(count);
+                    await Console.Out.WriteLineAsync(e.Message);
+                }
+
+                count++;
             }
 
             return failures;
@@ -79,8 +86,9 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<List<int>> PublishManyAsBatchesAsync(string queueName, List<byte[]> payloads)
         {
             var failures = new List<int>();
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
+            var count = 0;
 
             while (payloads.Any())
             {
@@ -91,7 +99,7 @@ namespace CookedRabbit.Core.Library.Services
                 {
                     try
                     {
-                        Channel.BasicPublish(exchange: "",
+                        Channel.BasicPublish(exchange: string.Empty,
                                              routingKey: queueName,
                                              false,
                                              basicProperties: null,
@@ -99,13 +107,18 @@ namespace CookedRabbit.Core.Library.Services
                     }
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
+                        failures.Add(count);
                         _rcp.FlagDeadChannel(ChannelId);
                         await Console.Out.WriteLineAsync(ace.Message);
                     }
                     catch (Exception e)
-                    { await Console.Out.WriteLineAsync(e.Message); }
+                    {
+                        failures.Add(count);
+                        await Console.Out.WriteLineAsync(e.Message);
+                    }
                 }
 
+                count++;
                 await Task.Delay(rand.Next(0, 2));
             }
 
@@ -118,7 +131,7 @@ namespace CookedRabbit.Core.Library.Services
 
         public async Task<BasicGetResult> GetAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync();
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             BasicGetResult result = null;
 
@@ -132,9 +145,8 @@ namespace CookedRabbit.Core.Library.Services
 
         public async Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync();
-
-            uint queueCount = 0;
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var queueCount = 0U;
 
             try { queueCount = Channel.MessageCount(queueName); }
             catch (Exception e)
@@ -170,7 +182,7 @@ namespace CookedRabbit.Core.Library.Services
 
         public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
 
             BasicGetResult result = null;
 
@@ -184,16 +196,14 @@ namespace CookedRabbit.Core.Library.Services
 
         public async Task<(IModel ChannelId, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
-
-            uint queueCount = 0;
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false);
+            var queueCount = 0U;
+            var resultCount = 0;
+            var results = new List<BasicGetResult>();
 
             try { queueCount = Channel.MessageCount(queueName); }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Message); }
-
-            int resultCount = 0;
-            var results = new List<BasicGetResult>();
 
             if (queueCount != 0)
             {
@@ -218,7 +228,7 @@ namespace CookedRabbit.Core.Library.Services
 
         public async Task<AckableResult> GetAckableAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
 
             BasicGetResult result = null;
 
@@ -232,16 +242,14 @@ namespace CookedRabbit.Core.Library.Services
 
         public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync(enableAck: true);
-
-            uint queueCount = 0;
+            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
+            var queueCount = 0U;
+            var resultCount = 0;
+            var results = new List<BasicGetResult>();
 
             try { queueCount = Channel.MessageCount(queueName); }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Message); }
-
-            int resultCount = 0;
-            var results = new List<BasicGetResult>();
 
             if (queueCount != 0)
             {
@@ -278,8 +286,27 @@ namespace CookedRabbit.Core.Library.Services
             if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
 
             var consumer = new EventingBasicConsumer(channel);
-            channel.BasicQos(0, 100, false);
+            channel.BasicQos(0, prefetchCount, false);
             consumer.Received += (model, ea) => ActionWork(model, ea);
+            channel.BasicConsume(queue: queueName,
+                                 autoAck: autoAck,
+                                 consumer: consumer);
+
+            return consumer;
+        }
+
+        public async Task<AsyncEventingBasicConsumer> CreateAsynchronousConsumerAsync(
+            Func<object, BasicDeliverEventArgs, Task> AsyncWork,
+            string queueName,
+            ushort prefetchCount = 120,
+            bool autoAck = false)
+        {
+            var channel = await _rcp.GetTransientChannelAsync(enableAck: true);
+            if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            channel.BasicQos(0, prefetchCount, false);
+            consumer.Received += (model, ea) => AsyncWork(model, ea);
             channel.BasicConsume(queue: queueName,
                                  autoAck: autoAck,
                                  consumer: consumer);

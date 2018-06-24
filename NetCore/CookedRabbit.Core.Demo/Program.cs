@@ -76,7 +76,8 @@ namespace CookedRabbit.Core.Demo
             // Adding a BasicConsumer instead of GetMany
             //await RunRabbitServiceConsumerAckTestAsync();
             //await RunRabbitServiceConsumerRetryTestAsync();
-            await RunRabbitServiceBatchPublishWithConsumerTestAsync();
+            //await RunRabbitServiceBatchPublishWithConsumerTestAsync();
+            await RunRabbitServiceCreateAsyncConsumerTestAsync();
 
             await Console.In.ReadLineAsync();
         }

@@ -29,6 +29,8 @@ namespace CookedRabbit.Core.Library.Pools
             if (_connectionFactory is null)
             {
                 _connectionFactory = await CreateConnectionFactoryAsync(rabbitHostName);
+                if (_connectionFactory is null) throw new ArgumentNullException("Connection factory is null.");
+
                 ConnectionNamePrefix = connectionName;
                 await CreateConnectionsAsync(connectionName);
             }
@@ -47,7 +49,8 @@ namespace CookedRabbit.Core.Library.Pools
                     TopologyRecoveryEnabled = true,
                     NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
                     RequestedHeartbeat = 15,
-                    RequestedChannelMax = 1000
+                    RequestedChannelMax = 1000,
+                    DispatchConsumersAsync = true
                 };
             }
             catch { cf = null; }
@@ -60,10 +63,21 @@ namespace CookedRabbit.Core.Library.Pools
             for (int i = 0; i < _connectionsToMaintain; i++)
             {
                 try
-                { _connectionPool.Enqueue(await CreateConnection($"{connectionName}:PoolConnection:{i}")); }
-                catch(RabbitMQ.Client.Exceptions.BrokerUnreachableException bue)
+                {
+                    var connection = await CreateConnection($"{connectionName}:PoolConnection:{i}");
+                    if (connection is null) throw new ArgumentNullException(nameof(connection));
+
+                    _connectionPool.Enqueue(connection);
+                }
+                catch (ArgumentNullException ane)
+                {
+                    await Console.Out.WriteLineAsync(ane.Message);
+                    throw;
+                }
+                catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException bue)
                 {
                     await Console.Out.WriteLineAsync(bue.Message);
+                    throw;
                 }
             }
         }

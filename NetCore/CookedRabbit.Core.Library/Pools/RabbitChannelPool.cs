@@ -12,7 +12,9 @@ namespace CookedRabbit.Core.Library.Pools
         private const short _channelsToMaintain = 100;
         private RabbitConnectionPool _rcp = null;
         private ConcurrentQueue<(ulong, IModel)> _channelPool = new ConcurrentQueue<(ulong, IModel)>();
+        private ConcurrentBag<(ulong, IModel)> _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentQueue<(ulong, IModel)> _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
+        private ConcurrentBag<(ulong, IModel)> _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
 
         #region Constructor & Setup
@@ -64,7 +66,7 @@ namespace CookedRabbit.Core.Library.Pools
 
         public async Task<IModel> GetTransientChannelAsync(bool enableAck = false)
         {
-            var t = await Task.Run(() => // Helps decouples from any calling thread.
+            var t = await Task.Run(() => // Helps decouple Tasks from any calling thread.
             {
                 IModel channel = null;
 
@@ -83,36 +85,82 @@ namespace CookedRabbit.Core.Library.Pools
             return t;
         }
 
-        // TODO: Upon pulling a channel, move to channel to InUse Pool, calling service must move it back.
-        // This prevents any issue of the same channel being used at the same time in concurrency.
-        // TODO: A very simple await until channels available if out of channels.
-        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync(bool enableAck = false)
+        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync()
         {
-            var t = await Task.Run(() => // Helps decouples from any calling thread.
+            var t = await Task.Run(async () => // Helps decouple Tasks from any calling thread.
             {
-                if (_channelPool.TryDequeue(out (ulong ChannelId, IModel Channel) channelPair))
+                var keepLoopingUntilChannelAcquired = true;
+                (ulong ChannelId, IModel Channel) channelPair = (0UL, null);
+
+                while (keepLoopingUntilChannelAcquired)
                 {
-                    if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
+                    if (_channelPool.TryDequeue(out channelPair))
                     {
-                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                        if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
+                        {
+                            // Create a new Channel
+                            channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                            _channelPoolInUse.Add(channelPair);
 
-                        if (enableAck)
-                        { channelPair.Channel.ConfirmSelect(); }
+                            _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
+                        }
+                        else if (channelPair.Channel == null)
+                        {
+                            // Create a new Channel
+                            channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                            _channelPoolInUse.Add(channelPair);
+                        }
+                        else
+                        { _channelPoolInUse.Add(channelPair); }
 
-                        _channelPool.Enqueue(channelPair);
-                        _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
-                    }
-                    else if (channelPair.Channel == null)
-                    {
-                        channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
-
-                        if (enableAck)
-                        { channelPair.Channel.ConfirmSelect(); }
-
-                        _channelPool.Enqueue(channelPair);
+                        keepLoopingUntilChannelAcquired = false;
                     }
                     else
-                    { _channelPool.Enqueue(channelPair); }
+                    { await Task.Delay(100); }
+                }
+
+                return channelPair;
+            });
+
+            return t;
+        }
+
+        public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAckableAsync()
+        {
+            var t = await Task.Run(async () => // Helps decouple Tasks from any calling thread.
+            {
+                var keepLoopingUntilChannelAcquired = true;
+                (ulong ChannelId, IModel Channel) channelPair = (0UL, null);
+
+                while (keepLoopingUntilChannelAcquired)
+                {
+                    if (_channelPool.TryDequeue(out channelPair))
+                    {
+                        if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
+                        {
+                            // Create a new Channel
+                            channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                            channelPair.Channel.ConfirmSelect();
+                            _channelWithManualAckPoolInUse.Add(channelPair);
+
+                            _flaggedAsDeadChannels.TryTake(out ulong noLongerDeadChannel);
+                        }
+                        else if (channelPair.Channel == null)
+                        {
+                            // Create a new Channel
+                            channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
+                            channelPair.Channel.ConfirmSelect();
+                            _channelWithManualAckPoolInUse.Add(channelPair);
+                        }
+                        else
+                        {
+                            _channelWithManualAckPoolInUse.Add(channelPair);
+                        }
+
+                        keepLoopingUntilChannelAcquired = false;
+                    }
+                    else
+                    { await Task.Delay(100); }
                 }
 
                 return channelPair;
@@ -125,6 +173,38 @@ namespace CookedRabbit.Core.Library.Pools
         {
             if (!_flaggedAsDeadChannels.Contains(deadChannelId))
             { _flaggedAsDeadChannels.Add(deadChannelId); }
+        }
+
+        public bool ReturnChannelToPool((ulong ChannelId, IModel Channel) ChannelPair)
+        {
+            var success = false;
+
+            if (_channelPoolInUse.Contains(ChannelPair))
+            {
+                _channelPool.Enqueue(ChannelPair);
+                if (!_channelPoolInUse.TryTake(out (ulong ChannelId, IModel Channel) removedChannelPair))
+                {
+                    Console.WriteLine($"Unable to remove channel from in-use pool {ChannelPair.ChannelId}");
+                }
+            }
+
+            return success;
+        }
+
+        public bool ReturnChannelToAckPool((ulong ChannelId, IModel Channel) ChannelPair)
+        {
+            var success = false;
+
+            if (_channelWithManualAckPoolInUse.Contains(ChannelPair))
+            {
+                _channelWithManualAckPool.Enqueue(ChannelPair);
+                if (!_channelWithManualAckPoolInUse.TryTake(out (ulong ChannelId, IModel Channel) removedChannelPair))
+                {
+                    Console.WriteLine($"Unable to remove channel from in-use pool {ChannelPair.ChannelId}");
+                }
+            }
+
+            return success;
         }
 
         #region Dispose
