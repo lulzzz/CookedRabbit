@@ -43,6 +43,8 @@ namespace CookedRabbit.Core.Library.Services
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Message); }
 
+            _rcp.ReturnChannelToPool((ChannelId, Channel));
+
             return success;
         }
 
@@ -80,6 +82,8 @@ namespace CookedRabbit.Core.Library.Services
                 count++;
             }
 
+            _rcp.ReturnChannelToPool((ChannelId, Channel));
+
             return failures;
         }
 
@@ -116,11 +120,14 @@ namespace CookedRabbit.Core.Library.Services
                         failures.Add(count);
                         await Console.Out.WriteLineAsync(e.Message);
                     }
+
+                    count++;
                 }
 
-                count++;
                 await Task.Delay(rand.Next(0, 2));
             }
+
+            _rcp.ReturnChannelToPool((ChannelId, Channel));
 
             return failures;
         }
@@ -139,6 +146,8 @@ namespace CookedRabbit.Core.Library.Services
             { result = Channel.BasicGet(queue: queueName, autoAck: true); }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Message); }
+
+            _rcp.ReturnChannelToPool((ChannelId, Channel));
 
             return result;
         }
@@ -173,6 +182,8 @@ namespace CookedRabbit.Core.Library.Services
                 }
             }
 
+            _rcp.ReturnChannelToPool((ChannelId, Channel));
+
             return results;
         }
 
@@ -190,6 +201,8 @@ namespace CookedRabbit.Core.Library.Services
             { result = Channel.BasicGet(queue: queueName, autoAck: false); }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Message); }
+
+            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
 
             return (Channel, result);
         }
@@ -223,6 +236,8 @@ namespace CookedRabbit.Core.Library.Services
                 }
             }
 
+            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
+
             return (Channel, results);
         }
 
@@ -236,6 +251,8 @@ namespace CookedRabbit.Core.Library.Services
             { result = Channel.BasicGet(queue: queueName, autoAck: false); }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Message); }
+
+            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
 
             return new AckableResult { Channel = Channel, Results = new List<BasicGetResult>() { result } };
         }
@@ -268,6 +285,8 @@ namespace CookedRabbit.Core.Library.Services
                     { await Console.Out.WriteLineAsync(e.Message); }
                 }
             }
+
+            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
 
             return new AckableResult { Channel = Channel, Results = results };
         }
