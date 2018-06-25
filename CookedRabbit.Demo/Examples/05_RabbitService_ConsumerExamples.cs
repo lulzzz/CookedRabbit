@@ -1,16 +1,16 @@
-﻿using CookedRabbit.Core.Library.Models;
-using CookedRabbit.Core.Library.Services;
+﻿using CookedRabbit.Library.Models;
+using CookedRabbit.Library.Services;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static CookedRabbit.Core.Demo.DemoHelper;
+using static CookedRabbit.Demo.DemoHelper;
 
-namespace CookedRabbit.Core.Demo
+namespace CookedRabbit.Demo
 {
-    public class ConsumerExamples
+    public class RabbitServiceConsumerExamples
     {
         #region RabbitService w/ Accuracy & Delay Acknowledge Consumer
 

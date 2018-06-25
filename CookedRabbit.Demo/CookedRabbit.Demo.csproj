@@ -105,8 +105,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Examples\05_ConsumerExamples.cs" />
-    <Compile Include="Examples\04_RabbitServiceExamples.cs" />
+    <Compile Include="Examples\05_RabbitService_ConsumerExamples.cs" />
+    <Compile Include="Examples\04_RabbitService_BasicExamples.cs" />
     <Compile Include="Examples\03_ChannelExamples.cs" />
     <Compile Include="Examples\02_BatchSendExamples.cs" />
     <Compile Include="Helpers\DemoHelper.cs" />

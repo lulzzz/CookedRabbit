@@ -6,7 +6,8 @@ Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModel
 Inspired to write my own much dumber RabbitMQ wrapper than RawRabbit (https://github.com/pardahlman/RawRabbit). The longterm goal is to be short and sweet, nothing more and nothing less. If you need a more thorough/advanced solution, I highly recommend checking out RawRabbit or EastyNetQ.
 
 ### Why use CookedRabbit?
-Do or do not, I am not really bothered either way. One actual benefit to using CookedRabbit is that I will only keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
+Do or do not, I am not really bothered either way :).  
+One actual benefit to using CookedRabbit is that I will only keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
 
 Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
 
@@ -36,7 +37,7 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
  * Visual Studio Code or Visual Studio 2017+ installed.
  * Open Folder `NetCore` or open the SLN.
-  * Compile as C# 7.2+ minimum.
+ * Compile as C# 7.2+ minimum.
  * NetCore 2.1.0 SDK installed.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
@@ -48,7 +49,7 @@ Pools
 ~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Across Connections~~  
 
 Connection Factory  
-~~Heartbeats: 15s~~  
+~~Heartbeats: 10s~~  
 ~~MaxChannels: 1000 (per Connection)~~  
 ~~AutomaticRecoveryEnabled: true~~  
 ~~RecoverTopologyEnabled: true~~  
@@ -57,9 +58,9 @@ Connection Factory
  PublishManyAsBatches  
 ~~BatchSize: 100~~
 
- Consumer:  
-
-     BasicQos(0, prefetchSize, false)
+ Consumer  
+~~QosPrefetchSize: 0~~
+~~QosPrefetchCount: 120~~
 
 #### Library Topology At A Glance
 
@@ -75,23 +76,28 @@ Connection Factory
     ╚════ » ╚══ » RabbitService ════════════════════════════════════════════════════╣
                     ║                                                               ║
                     ║ & RabbitChannelPool                                           ║
+                    ║ & RabbitSeasoning                                             ║
                     ║ + Flag Channel As Dead                                        ║
                     ║ + Return Channel To Pool (Finished Work)                      ║
                     ║ + Publish                                                     ║
                     ║ + PublishMany                                                 ║
                     ║ + PublishManyAsBatches                                        ║
                     ║ + Get                                                         ║
-                    ║   + Returns As ValueTuple or AckableResult                    ║
+                    ║   + Returns As ValueTuple                                     ║
+                    ║   + Returns As AckableResult                                  ║
                     ║ + GetMany                                                     ║
-                    ║   + Returns As ValueTuple or AckableResult                    ║
-                    ║ + CreateConsumer                                              ║
+                    ║   + Returns As ValueTuple                                     ║
+                    ║   + Returns As AckableResult                                  ║
+                    ║ + Create Consumer                                             ║
+                    ║ + Create AsyncConsumer                                        ║
                     ║ - Replacing Console with Logger                               ║
                     ║ - throw ex                                                    ║
-                    ║ ! Opinionated Throttling                                      ║
+                    ║ ! Opinionated Throttling (RabbitSeasoning Configurable)       ║
                     ║                                                               ║
                     ╚══ » RabbitChannelPool ════════════════════════════════════════╣
                             ║                                                       ║
                             ║ & RabbitConnectionPool                                ║
+                            ║ & RabbitSeasoning                                     ║
                             ║ + GetTransientChannel (non-Ackable)                   ║
                             ║ + GetTransientChannel (Ackable)                       ║
                             ║ + GetChannelPair from &ChannelPool (non-Ackable)      ║
@@ -107,7 +113,9 @@ Connection Factory
                             ╚══ » RabbitConnectionPool ═════════════════════════════╣
                                     ║                                               ║
                                     ║ & RabbitMQ ConnectionFactory                  ║
+                                    ║ & RabbitSeasoning                             ║
                                     ║ & ConnectionPool                              ║
+                                    ║ - throw ex                                    ║
                                     ║ - System for Dealing with Flagged Connections ║
                                     ║                                               ║
                                     ╚═══════════════════════════════════════════════╝

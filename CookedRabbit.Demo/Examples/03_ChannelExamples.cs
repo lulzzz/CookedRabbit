@@ -99,11 +99,21 @@ namespace CookedRabbit.Demo
             int counter = 0;
             while (true)
             {
-                var task1 = SendMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel, counter++);
-                var task2 = SendMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel, counter++);
-                var task3 = SendMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel, counter++);
+                var chanPair1 = await rcp.GetPooledChannelPairAsync();
+                var chanPair2 = await rcp.GetPooledChannelPairAsync();
+                var chanPair3 = await rcp.GetPooledChannelPairAsync();
+
+                var task1 = SendMessageAsync(chanPair1.Channel, counter++);
+                var task2 = SendMessageAsync(chanPair2.Channel, counter++);
+                var task3 = SendMessageAsync(chanPair3.Channel, counter++);
 
                 await Task.WhenAll(new Task[] { task1, task2, task3 });
+
+                rcp.ReturnChannelToPool(chanPair1);
+                rcp.ReturnChannelToPool(chanPair2);
+                rcp.ReturnChannelToPool(chanPair3);
+
+                await Task.Delay(1); // Optional Throttle
             }
         }
 
@@ -112,17 +122,32 @@ namespace CookedRabbit.Demo
             ResetThreadName(Thread.CurrentThread, "PoolChannel ReceiveMessagesForever Thread");
             while (true)
             {
-                var (ChannelId, Channel) = await rcp.GetPooledChannelPairAsync();
-                if (Channel.MessageCount(queueName) > 0)
+                var chanPair1 = await rcp.GetPooledChannelPairAsync();
+                if (chanPair1.Channel.MessageCount(queueName) > 0)
                 {
-                    var task1 = ReceiveMessageAsync(Channel);
-                    var task2 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
-                    var task3 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
-                    var task4 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
-                    var task5 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
-                    var task6 = ReceiveMessageAsync((await rcp.GetPooledChannelPairAsync()).Channel);
+                    var chanPair2 = await rcp.GetPooledChannelPairAsync();
+                    var chanPair3 = await rcp.GetPooledChannelPairAsync();
+                    var chanPair4 = await rcp.GetPooledChannelPairAsync();
+                    var chanPair5 = await rcp.GetPooledChannelPairAsync();
+                    var chanPair6 = await rcp.GetPooledChannelPairAsync();
+
+                    var task1 = ReceiveMessageAsync(chanPair1.Channel);
+                    var task2 = ReceiveMessageAsync(chanPair2.Channel);
+                    var task3 = ReceiveMessageAsync(chanPair3.Channel);
+                    var task4 = ReceiveMessageAsync(chanPair4.Channel);
+                    var task5 = ReceiveMessageAsync(chanPair5.Channel);
+                    var task6 = ReceiveMessageAsync(chanPair6.Channel);
 
                     await Task.WhenAll(new Task[] { task1, task2, task3, task4, task5, task6 });
+
+                    rcp.ReturnChannelToPool(chanPair1);
+                    rcp.ReturnChannelToPool(chanPair2);
+                    rcp.ReturnChannelToPool(chanPair3);
+                    rcp.ReturnChannelToPool(chanPair4);
+                    rcp.ReturnChannelToPool(chanPair5);
+                    rcp.ReturnChannelToPool(chanPair6);
+
+                    await Task.Delay(1); // Optional Throttle
                 }
             }
         }

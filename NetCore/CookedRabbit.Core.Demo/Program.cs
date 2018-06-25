@@ -4,7 +4,7 @@ using static CookedRabbit.Core.Demo.MemoryLeakExamples; // Simplest examples.
 using static CookedRabbit.Core.Demo.BatchSendExamples; // Simple but begining to get complicated examples.
 using static CookedRabbit.Core.Demo.ChannelExamples; // Complicated examples.
 using static CookedRabbit.Core.Demo.RabbitServiceExamples; // Complicated examples wrapped in a Service.
-using static CookedRabbit.Core.Demo.ConsumerExamples; // Complicated patterns made simple.
+using static CookedRabbit.Core.Demo.RabbitServiceConsumerExamples; // Complicated get many patterns made simple.
 using static CookedRabbit.Core.Demo.DemoHelper;
 
 namespace CookedRabbit.Core.Demo
@@ -76,8 +76,10 @@ namespace CookedRabbit.Core.Demo
             // Adding a BasicConsumer instead of GetMany
             //await RunRabbitServiceConsumerAckTestAsync();
             //await RunRabbitServiceConsumerRetryTestAsync();
-            //await RunRabbitServiceBatchPublishWithConsumerTestAsync();
-            await RunRabbitServiceCreateAsyncConsumerTestAsync();
+            //await RunRabbitServiceCreateAsyncConsumerTestAsync();
+
+            // Way faster than Async Consumer
+            await RunRabbitServiceBatchPublishWithConsumerTestAsync();
 
             await Console.In.ReadLineAsync();
         }

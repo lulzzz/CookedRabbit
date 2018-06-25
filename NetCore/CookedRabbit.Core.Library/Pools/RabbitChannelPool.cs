@@ -11,6 +11,7 @@ namespace CookedRabbit.Core.Library.Pools
     {
         private ulong _channelId = 0;
         private ushort _channelsToMaintain = 100;
+        private ushort _emptyPoolWaitTime = 100;
         private RabbitConnectionPool _rcp = null;
         private ConcurrentQueue<(ulong, IModel)> _channelPool = new ConcurrentQueue<(ulong, IModel)>();
         private ConcurrentBag<(ulong, IModel)> _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
@@ -36,6 +37,8 @@ namespace CookedRabbit.Core.Library.Pools
             {
                 _originalRabbitSeasoning = rabbitSeasoning;
                 _channelsToMaintain = rabbitSeasoning.ChannelPoolCount;
+                _emptyPoolWaitTime = rabbitSeasoning.EmptyPoolWaitTime;
+
                 _rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
 
                 await CreatePoolChannels();
@@ -67,6 +70,8 @@ namespace CookedRabbit.Core.Library.Pools
         }
 
         #endregion
+
+        #region Channels & Maintenance Section
 
         public async Task<IModel> GetTransientChannelAsync(bool enableAck = false)
         {
@@ -120,7 +125,10 @@ namespace CookedRabbit.Core.Library.Pools
                         keepLoopingUntilChannelAcquired = false;
                     }
                     else
-                    { await Task.Delay(100); }
+                    {
+                        await Console.Out.WriteLineAsync($"No channels available sleeping for {_emptyPoolWaitTime}ms.");
+                        await Task.Delay(_emptyPoolWaitTime);
+                    }
                 }
 
                 return channelPair;
@@ -210,6 +218,8 @@ namespace CookedRabbit.Core.Library.Pools
 
             return success;
         }
+
+        #endregion
 
         #region Dispose
 

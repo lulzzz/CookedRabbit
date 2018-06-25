@@ -304,11 +304,14 @@ namespace CookedRabbit.Library.Services
             ushort prefetchCount = 120,
             bool autoAck = false)
         {
+            if (!_originalRabbitSeasoning.EnableDispatchConsumersAsync)
+            { throw new ArgumentException("EnableDispatchConsumerAsync is set to true, set it to false to get an regular Consumer."); }
+
             var channel = await _rcp.GetTransientChannelAsync(enableAck: true);
             if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
 
             var consumer = new EventingBasicConsumer(channel);
-            channel.BasicQos(0, prefetchCount, false);
+            channel.BasicQos(_originalRabbitSeasoning.QosPrefetchSize, _originalRabbitSeasoning.QosPrefetchCount, false);
             consumer.Received += (model, ea) => ActionWork(model, ea);
             channel.BasicConsume(queue: queueName,
                                  autoAck: autoAck,
@@ -323,11 +326,14 @@ namespace CookedRabbit.Library.Services
             ushort prefetchCount = 120,
             bool autoAck = false)
         {
+            if (!_originalRabbitSeasoning.EnableDispatchConsumersAsync)
+            { throw new ArgumentException("EnableDispatchConsumerAsync is set to false, set it to true to get an AsyncConsumer."); }
+
             var channel = await _rcp.GetTransientChannelAsync(enableAck: true);
             if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
 
             var consumer = new AsyncEventingBasicConsumer(channel);
-            channel.BasicQos(0, prefetchCount, false);
+            channel.BasicQos(_originalRabbitSeasoning.QosPrefetchSize, _originalRabbitSeasoning.QosPrefetchCount, false);
             consumer.Received += (model, ea) => AsyncWork(model, ea);
             channel.BasicConsume(queue: queueName,
                                  autoAck: autoAck,
