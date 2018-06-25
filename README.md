@@ -6,11 +6,16 @@ Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModel
 Inspired to write my own much dumber RabbitMQ wrapper than RawRabbit (https://github.com/pardahlman/RawRabbit). The longterm goal is to be short and sweet, nothing more and nothing less. If you need a more thorough/advanced solution, I highly recommend checking out RawRabbit or EastyNetQ.
 
 #### Why use CookedRabbit?
+
+<details><summary>Click to show!</summary>
+<p>
+
 Do or do not, I am not really bothered either way :).  
 One actual benefit to using CookedRabbit is that I will only keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
 
 Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
 
+```
     RabbitMQ Dotnet Client 5.1.0 (6/23/2018)
 
     Changes from Official Release
@@ -21,6 +26,15 @@ Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
        C# 7.3 (latest version)
        ApiGen re-compiled.
        Client compiled as x64 (for x86 CookedRabbit, have to go with the official NuGet from RabbitMQ)
+```
+
+</p>
+</details>
+
+### Getting Started
+
+<details><summary>Click to show!</summary>
+<p>
 
 #### Configuring RabbitMQ Server First (if running Local)
 To run .Demo locally, have Erlang 20.3 and Server RabbitMQ v3.7.5 installed locally and running first.
@@ -29,6 +43,9 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
 #### Default Values Currently Hardcoded
 None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyService.
+
+</p>
+</details>
 
 ### NetFramework Requirements
 
@@ -59,7 +76,7 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
 
 ### Library Topology At A Glance
 
-<details><summary>Click to show!</summary>
+<details><summary>Click to show ASCII Art!</summary>
 <p>
 
 ```
