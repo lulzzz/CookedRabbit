@@ -49,6 +49,7 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
 
 <details><summary>Click to show!</summary>
 <p>
+
 ```
     ║
     ║ Your Business Logic
@@ -114,8 +115,6 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
                     ║ Work In Progress                                              ║
                     ╚═══════════════════════════════════════════════════════════════╝
 ```
-</p>
-</details>
 
 Legend  
 
@@ -123,3 +122,6 @@ Legend
     + Exists (or exists with future enhancements)  
     - Does not exist yet.  
     ! Important  
+
+</p>
+</details>
