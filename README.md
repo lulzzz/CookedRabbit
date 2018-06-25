@@ -42,14 +42,13 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
-### Default Values Currently Hardcoded
+#### Default Values Currently Hardcoded
 None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyService.
 
-#### Library Topology At A Glance
+### Library Topology At A Glance
 
 <details><summary>Click to show!</summary>
 <p>
-
 ```
     ║
     ║ Your Business Logic
@@ -113,8 +112,8 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
                     ║ & RabbitTopologySeasoning                                     ║
                     ║                                                               ║
                     ║ Work In Progress                                              ║
-                    ╚═══════════════════════════════════════════════════════════════╝```
-
+                    ╚═══════════════════════════════════════════════════════════════╝
+```
 </p>
 </details>
 
