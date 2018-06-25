@@ -47,6 +47,10 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
 
 #### Library Topology At A Glance
 
+<details><summary>Click to show!</summary>
+<p>
+
+```
     ║
     ║ Your Business Logic
     ║
@@ -109,7 +113,10 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
                     ║ & RabbitTopologySeasoning                                     ║
                     ║                                                               ║
                     ║ Work In Progress                                              ║
-                    ╚═══════════════════════════════════════════════════════════════╝
+                    ╚═══════════════════════════════════════════════════════════════╝```
+
+</p>
+</details>
 
 Legend  
 
