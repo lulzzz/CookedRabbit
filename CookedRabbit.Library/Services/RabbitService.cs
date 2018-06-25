@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CookedRabbit.Library.Services
 {
-    public class RabbitService : IRabbitService
+    public class RabbitService : IRabbitService, IDisposable
     {
         private readonly RabbitChannelPool _rcp = null;
         private readonly RabbitSeasoning _originalRabbitSeasoning = null; // Used if for recovery later.
@@ -26,11 +26,11 @@ namespace CookedRabbit.Library.Services
         public async Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload)
         {
             var success = false;
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             try
             {
-                Channel.BasicPublish(exchange: exchangeName,
+                channelPair.Channel.BasicPublish(exchange: exchangeName,
                                      routingKey: queueName,
                                      false,
                                      basicProperties: null,
@@ -40,13 +40,13 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                _rcp.FlagDeadChannel(ChannelId);
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
                 await Console.Out.WriteLineAsync(ace.Demystify().Message);
             }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
-            _rcp.ReturnChannelToPool((ChannelId, Channel));
+            _rcp.ReturnChannelToPool(channelPair);
 
             return success;
         }
@@ -54,7 +54,7 @@ namespace CookedRabbit.Library.Services
         public async Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads)
         {
             var failures = new List<int>();
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
             var count = 0;
 
@@ -62,7 +62,7 @@ namespace CookedRabbit.Library.Services
             {
                 try
                 {
-                    Channel.BasicPublish(exchange: exchangeName,
+                    channelPair.Channel.BasicPublish(exchange: exchangeName,
                                          routingKey: queueName,
                                          false,
                                          basicProperties: null,
@@ -73,7 +73,7 @@ namespace CookedRabbit.Library.Services
                 catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                 {
                     failures.Add(count);
-                    _rcp.FlagDeadChannel(ChannelId);
+                    _rcp.FlagDeadChannel(channelPair.ChannelId);
                     await Console.Out.WriteLineAsync(ace.Demystify().Message);
                 }
                 catch (Exception e)
@@ -85,7 +85,7 @@ namespace CookedRabbit.Library.Services
                 count++;
             }
 
-            _rcp.ReturnChannelToPool((ChannelId, Channel));
+            _rcp.ReturnChannelToPool(channelPair);
 
             return failures;
         }
@@ -93,7 +93,7 @@ namespace CookedRabbit.Library.Services
         public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100)
         {
             var failures = new List<int>();
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
             var count = 0;
 
@@ -106,7 +106,7 @@ namespace CookedRabbit.Library.Services
                 {
                     try
                     {
-                        Channel.BasicPublish(exchange: exchangeName,
+                        channelPair.Channel.BasicPublish(exchange: exchangeName,
                                              routingKey: queueName,
                                              false,
                                              basicProperties: null,
@@ -115,7 +115,7 @@ namespace CookedRabbit.Library.Services
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
                         failures.Add(count);
-                        _rcp.FlagDeadChannel(ChannelId);
+                        _rcp.FlagDeadChannel(channelPair.ChannelId);
                         await Console.Out.WriteLineAsync(ace.Demystify().Message);
                     }
                     catch (Exception e)
@@ -130,7 +130,7 @@ namespace CookedRabbit.Library.Services
                 await Task.Delay(rand.Next(0, 2));
             }
 
-            _rcp.ReturnChannelToPool((ChannelId, Channel));
+            _rcp.ReturnChannelToPool(channelPair);
 
             return failures;
         }
@@ -341,6 +341,24 @@ namespace CookedRabbit.Library.Services
 
             return consumer;
         }
+
+        #endregion
+
+        #region Dispose
+
+        private bool _disposedValue = false;
+
+        public virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing) { _rcp.Dispose(true); }
+
+                _disposedValue = true;
+            }
+        }
+
+        void IDisposable.Dispose() { Dispose(true); }
 
         #endregion
     }

@@ -225,7 +225,7 @@ namespace CookedRabbit.Library.Pools
 
         private bool _disposedValue = false;
 
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {

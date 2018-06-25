@@ -43,24 +43,7 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
 
 ### Default Values Currently Hardcoded
-
-Pools  
-~~Connections: 10~~  
-~~ChannelPool Channels: 100 (AutoAck), 100 (ManualAck), Distributed Across Connections~~  
-
-Connection Factory  
-~~Heartbeats: 10s~~  
-~~MaxChannels: 1000 (per Connection)~~  
-~~AutomaticRecoveryEnabled: true~~  
-~~RecoverTopologyEnabled: true~~  
-~~NetworkRecoveryInterval: 10s~~  
-
- PublishManyAsBatches  
-~~BatchSize: 100~~
-
- Consumer  
-~~QosPrefetchSize: 0~~
-~~QosPrefetchCount: 120~~
+None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyService.
 
 #### Library Topology At A Glance
 
@@ -73,52 +56,60 @@ Connection Factory
     ║       ║ - Circuit Breaker                                                     ║
     ║       ║ - Abstraction                                                         ║
     ║       ║                                                                       ║
-    ╚════ » ╚══ » RabbitService ════════════════════════════════════════════════════╣
+    ╠════ » ╠══ » RabbitService ════════════════════════════════════════════════════╣
+    ║       ║       ║                                                               ║
+    ║       ║       ║ & RabbitChannelPool                                           ║
+    ║       ║       ║ & RabbitSeasoning                                             ║
+    ║       ║       ║ + Flag Channel As Dead                                        ║
+    ║       ║       ║ + Return Channel To Pool (Finished Work)                      ║
+    ║       ║       ║ + Publish                                                     ║
+    ║       ║       ║ + PublishMany                                                 ║
+    ║       ║       ║ + PublishManyAsBatches                                        ║
+    ║       ║       ║ + Get                                                         ║
+    ║       ║       ║   + Returns As ValueTuple                                     ║
+    ║       ║       ║   + Returns As AckableResult                                  ║
+    ║       ║       ║ + GetMany                                                     ║
+    ║       ║       ║   + Returns As ValueTuple                                     ║
+    ║       ║       ║   + Returns As AckableResult                                  ║
+    ║       ║       ║ + Create Consumer                                             ║
+    ║       ║       ║ + Create AsyncConsumer                                        ║
+    ║       ║       ║ - Replacing Console with Logger                               ║
+    ║       ║       ║ - throw ex                                                    ║
+    ║       ║       ║ ! Opinionated Throttling (RabbitSeasoning Configurable)       ║
+    ║       ║       ║                                                               ║
+    ║       ║       ╚══ » RabbitChannelPool ════════════════════════════════════════╣
+    ║       ║               ║                                                       ║
+    ║       ║               ║ & RabbitConnectionPool                                ║
+    ║       ║               ║ & RabbitSeasoning                                     ║
+    ║       ║               ║ + GetTransientChannel (non-Ackable)                   ║
+    ║       ║               ║ + GetTransientChannel (Ackable)                       ║
+    ║       ║               ║ + GetChannelPair from &ChannelPool (non-Ackable)      ║
+    ║       ║               ║ + GetChannelPair from &ChannelPool (ackable)          ║
+    ║       ║               ║ + Get Channel Delay (When All Channels Are In Use)    ║
+    ║       ║               ║ + In Use ChannelPair Pool                             ║
+    ║       ║               ║ + In Use Ack ChannelPair Pool                         ║
+    ║       ║               ║ + Return Channel to A Pool                            ║
+    ║       ║               ║ - Replacing Console with Logger                       ║
+    ║       ║               ║ - throw ex                                            ║
+    ║       ║               ║ ! System For Dealing With Flagged Dead Channels       ║
+    ║       ║               ║                                                       ║
+    ║       ║               ╚══ » RabbitConnectionPool ═════════════════════════════╣
+    ║       ║                       ║                                               ║
+    ║       ║                       ║ & RabbitMQ ConnectionFactory                  ║
+    ║       ║                       ║ & RabbitSeasoning                             ║
+    ║       ║                       ║ & ConnectionPool                              ║
+    ║       ║                       ║ - throw ex                                    ║
+    ║       ║                       ║ - System for Dealing with Flagged Connections ║
+    ║       ║                       ║                                               ║
+    ║       ║                       ╚═══════════════════════════════════════════════╣
+    ║       ║                                                                       ║
+    ╚════ » ╚══ » RabbitTopologyService ════════════════════════════════════════════╣
                     ║                                                               ║
                     ║ & RabbitChannelPool                                           ║
-                    ║ & RabbitSeasoning                                             ║
-                    ║ + Flag Channel As Dead                                        ║
-                    ║ + Return Channel To Pool (Finished Work)                      ║
-                    ║ + Publish                                                     ║
-                    ║ + PublishMany                                                 ║
-                    ║ + PublishManyAsBatches                                        ║
-                    ║ + Get                                                         ║
-                    ║   + Returns As ValueTuple                                     ║
-                    ║   + Returns As AckableResult                                  ║
-                    ║ + GetMany                                                     ║
-                    ║   + Returns As ValueTuple                                     ║
-                    ║   + Returns As AckableResult                                  ║
-                    ║ + Create Consumer                                             ║
-                    ║ + Create AsyncConsumer                                        ║
-                    ║ - Replacing Console with Logger                               ║
-                    ║ - throw ex                                                    ║
-                    ║ ! Opinionated Throttling (RabbitSeasoning Configurable)       ║
+                    ║ & RabbitTopologySeasoning                                     ║
                     ║                                                               ║
-                    ╚══ » RabbitChannelPool ════════════════════════════════════════╣
-                            ║                                                       ║
-                            ║ & RabbitConnectionPool                                ║
-                            ║ & RabbitSeasoning                                     ║
-                            ║ + GetTransientChannel (non-Ackable)                   ║
-                            ║ + GetTransientChannel (Ackable)                       ║
-                            ║ + GetChannelPair from &ChannelPool (non-Ackable)      ║
-                            ║ + GetChannelPair from &ChannelPool (ackable)          ║
-                            ║ + Get Channel Delay (When All Channels Are In Use)    ║
-                            ║ + In Use ChannelPair Pool                             ║
-                            ║ + In Use Ack ChannelPair Pool                         ║
-                            ║ + Return Channel to A Pool                            ║
-                            ║ - Replacing Console with Logger                       ║
-                            ║ - throw ex                                            ║
-                            ║ ! System For Dealing With Flagged Dead Channels       ║
-                            ║                                                       ║
-                            ╚══ » RabbitConnectionPool ═════════════════════════════╣
-                                    ║                                               ║
-                                    ║ & RabbitMQ ConnectionFactory                  ║
-                                    ║ & RabbitSeasoning                             ║
-                                    ║ & ConnectionPool                              ║
-                                    ║ - throw ex                                    ║
-                                    ║ - System for Dealing with Flagged Connections ║
-                                    ║                                               ║
-                                    ╚═══════════════════════════════════════════════╝
+                    ║ Work In Progress                                              ║
+                    ╚═══════════════════════════════════════════════════════════════╝
 
 Legend  
 

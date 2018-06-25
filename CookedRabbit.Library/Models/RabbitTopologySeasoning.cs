@@ -2,6 +2,10 @@
 {
     public class RabbitTopologySeasoning : RabbitSeasoning
     {
+        // CookedRabbit RabbitTopologySeasoning Queue Settings
+
+        // CookedRabbit RabbitTopologySeasoning Exchange Settings
+
         // CookedRabbit RabbitTopologyService Pool Settings
         public new ushort EmptyPoolWaitTime { get; set; } = 100; // milliseconds
         public new string RabbitHost { get; set; } = string.Empty;
