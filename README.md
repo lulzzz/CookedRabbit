@@ -75,7 +75,23 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
 </p>
 </details>
 
-### Library Topology At A Glance
+### Upcoming Features
+
+<details><summary>Click to show!</summary>
+<p>
+
+ * NuGet packages.
+ * Add interfaces to the Pools.
+ * Disaster recovery & circuit break.
+ * More robust error handling.
+ * Connection eventlistener wireups.
+ * Quality life tools such as compression etc.
+ * A ServiceBus-esque client.
+
+</p>
+</details>
+
+### Current Library Topology At A Glance
 
 <details><summary>Click to show ASCII Art!</summary>
 <p>
