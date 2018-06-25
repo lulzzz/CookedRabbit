@@ -5,12 +5,13 @@ Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModel
 
 Inspired to write my own much dumber RabbitMQ wrapper than RawRabbit (https://github.com/pardahlman/RawRabbit). The longterm goal is to be short and sweet, nothing more and nothing less. If you need a more thorough/advanced solution, I highly recommend checking out RawRabbit or EastyNetQ.
 
-#### Why use CookedRabbit?
+### Why use CookedRabbit?
 
 <details><summary>Click to show!</summary>
 <p>
 
 Do or do not, I am not really bothered either way :).  
+
 One actual benefit to using CookedRabbit is that I will only keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
 
 Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
