@@ -141,26 +141,36 @@ namespace CookedRabbit.Library.Services
 
         public async Task<BasicGetResult> GetAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             BasicGetResult result = null;
 
             try
-            { result = Channel.BasicGet(queue: queueName, autoAck: true); }
+            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
-            _rcp.ReturnChannelToPool((ChannelId, Channel));
+            _rcp.ReturnChannelToPool(channelPair);
 
             return result;
         }
 
         public async Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var queueCount = 0U;
 
-            try { queueCount = Channel.MessageCount(queueName); }
+            try { queueCount = channelPair.Channel.MessageCount(queueName); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
@@ -173,7 +183,7 @@ namespace CookedRabbit.Library.Services
                 {
                     try
                     {
-                        var result = Channel.BasicGet(queue: queueName, autoAck: true);
+                        var result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true);
                         if (result == null) //Empty Queue
                         { break; }
 
@@ -185,7 +195,7 @@ namespace CookedRabbit.Library.Services
                 }
             }
 
-            _rcp.ReturnChannelToPool((ChannelId, Channel));
+            _rcp.ReturnChannelToPool(channelPair);
 
             return results;
         }
@@ -196,28 +206,38 @@ namespace CookedRabbit.Library.Services
 
         public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
+            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
 
             BasicGetResult result = null;
 
             try
-            { result = Channel.BasicGet(queue: queueName, autoAck: false); }
+            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
-            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
+            _rcp.ReturnChannelToAckPool(channelPair);
 
-            return (Channel, result);
+            return (channelPair.Channel, result);
         }
 
         public async Task<(IModel ChannelId, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false);
+            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false);
             var queueCount = 0U;
             var resultCount = 0;
             var results = new List<BasicGetResult>();
 
-            try { queueCount = Channel.MessageCount(queueName); }
+            try { queueCount = channelPair.Channel.MessageCount(queueName); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
@@ -227,47 +247,63 @@ namespace CookedRabbit.Library.Services
                 {
                     try
                     {
-                        var result = Channel.BasicGet(queue: queueName, autoAck: false);
+                        var result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false);
                         if (result == null) //Empty Queue
                         { break; }
 
                         results.Add(result);
                         resultCount++;
                     }
+                    catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+                    {
+                        _rcp.FlagDeadChannel(channelPair.ChannelId);
+                        await Console.Out.WriteLineAsync(ace.Demystify().Message);
+                        break;
+                    }
                     catch (Exception e)
                     { await Console.Out.WriteLineAsync(e.Demystify().Message); }
                 }
             }
 
-            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
+            _rcp.ReturnChannelToAckPool(channelPair);
 
-            return (Channel, results);
+            return (channelPair.Channel, results);
         }
 
         public async Task<AckableResult> GetAckableAsync(string queueName)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
+            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
 
             BasicGetResult result = null;
 
             try
-            { result = Channel.BasicGet(queue: queueName, autoAck: false); }
+            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
-            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
+            _rcp.ReturnChannelToAckPool(channelPair);
 
-            return new AckableResult { Channel = Channel, Results = new List<BasicGetResult>() { result } };
+            return new AckableResult { Channel = channelPair.Channel, Results = new List<BasicGetResult>() { result } };
         }
 
         public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
         {
-            var (ChannelId, Channel) = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
+            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
             var queueCount = 0U;
             var resultCount = 0;
             var results = new List<BasicGetResult>();
 
-            try { queueCount = Channel.MessageCount(queueName); }
+            try { queueCount = channelPair.Channel.MessageCount(queueName); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
             catch (Exception e)
             { await Console.Out.WriteLineAsync(e.Demystify().Message); }
 
@@ -277,21 +313,27 @@ namespace CookedRabbit.Library.Services
                 {
                     try
                     {
-                        var result = Channel.BasicGet(queue: queueName, autoAck: false);
+                        var result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false);
                         if (result == null) //Empty Queue
                         { break; }
 
                         results.Add(result);
                         resultCount++;
                     }
+                    catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+                    {
+                        _rcp.FlagDeadChannel(channelPair.ChannelId);
+                        await Console.Out.WriteLineAsync(ace.Demystify().Message);
+                        break;
+                    }
                     catch (Exception e)
                     { await Console.Out.WriteLineAsync(e.Demystify().Message); }
                 }
             }
 
-            _rcp.ReturnChannelToAckPool((ChannelId, Channel));
+            _rcp.ReturnChannelToAckPool(channelPair);
 
-            return new AckableResult { Channel = Channel, Results = results };
+            return new AckableResult { Channel = channelPair.Channel, Results = results };
         }
 
         #endregion
