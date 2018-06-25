@@ -29,11 +29,20 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
 
 ### NetFramework Requirements
 
+<details><summary>Click to show!</summary>
+<p>
+
  * Visual Studio 2017+ installed (Community+).
  * .NET 4.7.2 SDK installed.
  * Compile as C# 7.2+ minimum.
 
+ </p>
+</details>
+
 ### NetCore Requirements
+
+<details><summary>Click to show!</summary>
+<p>
 
  * Visual Studio Code or Visual Studio 2017+ installed.
  * Open Folder `NetCore` or open the SLN.
@@ -41,6 +50,9 @@ The WarmupAsync() will create the queue '001' to work with, if it doesn't exist,
  * NetCore 2.1.0 SDK installed.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
+
+</p>
+</details>
 
 #### Default Values Currently Hardcoded
 None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyService.
