@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using static CookedRabbit.Demo.MemoryLeakExamples; // Simplest examples.
+using static CookedRabbit.Demo.ChannelExamples; // Simplest examples.
+using static CookedRabbit.Demo.MemoryLeakExamples; // Simplest examples but demonstrating memory leak scenarios.
 using static CookedRabbit.Demo.BatchSendExamples; // Simple but begining to get complicated examples.
-using static CookedRabbit.Demo.ChannelExamples; // Complicated examples.
+using static CookedRabbit.Demo.ChannelPoolExamples; // Complicated examples.
 using static CookedRabbit.Demo.RabbitServiceExamples; // Complicated examples wrapped in a Service.
 using static CookedRabbit.Demo.RabbitServiceConsumerExamples; // Complicated get many patterns made simple.
 using static CookedRabbit.Demo.DemoHelper;
@@ -32,7 +33,14 @@ namespace CookedRabbit.Demo
             // Basic queue create, message send, message received.
             await WarmupAsync();
 
-            // Bad Designs
+            // Basic Channel Operations
+            //await RunCreateChannelAndUseAsync();
+            //await RunCreateMultipleChannelsAndUseAsync();
+            //await RunCreateChannelAndDoubleDisposeAsync();
+            //await RunCreateChannelAndUseAfterDisposeAsync();
+            //await RunCreateChannelAndUseAfterUsingStatementAsync();
+
+            // Basic Channel Storage Bad Designs
             //await RunMemoryLeakAsync();
             //await RunMemoryLeakMadeWorseAsync();
             //await RunMemoryLeakFixAttemptOneAsync();

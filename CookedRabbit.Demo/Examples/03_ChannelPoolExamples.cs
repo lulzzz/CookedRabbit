@@ -7,7 +7,7 @@ using static CookedRabbit.Demo.DemoHelper;
 
 namespace CookedRabbit.Demo
 {
-    public static class ChannelExamples
+    public static class ChannelPoolExamples
     {
         #region Demonstrating a Connection Pool
 
