@@ -113,6 +113,7 @@
     <Compile Include="Services\Interfaces\IRabbitService.cs" />
     <Compile Include="Services\RabbitTopologyService.cs" />
     <Compile Include="Services\RabbitService.cs" />
+    <Compile Include="Utilities\Compression.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
