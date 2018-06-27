@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using static CookedRabbit.Library.Utilities.Compression;
 
 namespace CookedRabbit.Library.Services
 {
@@ -137,6 +138,44 @@ namespace CookedRabbit.Library.Services
 
         #endregion
 
+        #region CompressAndPublishSection
+
+        public async Task<bool> CompressAndPublishAsync(string exchangeName, string queueName, byte[] payload, string contentType)
+        {
+            var compressionTask = CompressBytesWithGzipAsync(payload);
+
+            var success = false;
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            try
+            {
+                var basicProperties = channelPair.Channel.CreateBasicProperties();
+                basicProperties.ContentEncoding = "gzip";
+                basicProperties.ContentType = contentType;
+                await compressionTask;
+                channelPair.Channel.BasicPublish(exchange: exchangeName,
+                                     routingKey: queueName,
+                                     false,
+                                     basicProperties: basicProperties,
+                                     body: compressionTask.Result);
+
+                success = true;
+            }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
+            catch (Exception e)
+            { await Console.Out.WriteLineAsync(e.Demystify().Message); }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return success;
+        }
+
+        #endregion
+
         #region BasicGet Section
 
         public async Task<BasicGetResult> GetAsync(string queueName)
@@ -225,7 +264,7 @@ namespace CookedRabbit.Library.Services
             return (channelPair.Channel, result);
         }
 
-        public async Task<(IModel ChannelId, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
+        public async Task<(IModel Channel, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false);
             var queueCount = 0U;
@@ -334,6 +373,37 @@ namespace CookedRabbit.Library.Services
             _rcp.ReturnChannelToAckPool(channelPair);
 
             return new AckableResult { Channel = channelPair.Channel, Results = results };
+        }
+
+        #endregion
+
+        #region GetAndDecompress Section
+
+        public async Task<byte[]> GetAndDecompressAsync(string queueName)
+        {
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            BasicGetResult result = null;
+
+            try
+            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                await Console.Out.WriteLineAsync(ace.Demystify().Message);
+            }
+            catch (Exception e)
+            { await Console.Out.WriteLineAsync(e.Demystify().Message); }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            byte[] output = result.Body;
+            if (result.BasicProperties.ContentType == "gzip")
+            {
+                output = await DecompressBytesWithGzipAsync(result.Body);
+            }
+
+            return output;
         }
 
         #endregion

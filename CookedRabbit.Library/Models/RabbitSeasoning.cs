@@ -23,15 +23,5 @@
         public bool TopologyRecovery { get; set; } = true;
         public ushort NetRecoveryTimeout { get; set; } = 10;
         public bool EnableDispatchConsumersAsync { get; set; } = false;
-
-        public class RabbitTopologySeasoning
-        {
-            // CookedRabbit RabbitTopologyService Pool Settings
-            public ushort EmptyPoolWaitTime { get; set; } = 100; // milliseconds
-            public string RabbitHost { get; set; } = string.Empty;
-            public string LocalHostName { get; set; } = string.Empty;
-            public ushort ConnectionPoolCount { get; set; } = 1;
-            public ushort ChannelPoolCount { get; set; } = 10;
-        }
     }
 }

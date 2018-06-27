@@ -13,11 +13,15 @@ namespace CookedRabbit.Library.Services
         Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads);
         Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100);
 
+        Task<bool> CompressAndPublishAsync(string exchangeName, string queueName, byte[] payload, string contentType);
+
         Task<BasicGetResult> GetAsync(string queueName);
         Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount);
 
+        Task<byte[]> GetAndDecompressAsync(string queueName);
+
         Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName);
-        Task<(IModel ChannelId, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount);
+        Task<(IModel Channel, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount);
 
         Task<AckableResult> GetAckableAsync(string queueName);
         Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount);
