@@ -500,7 +500,7 @@ namespace CookedRabbit.Library.Services
             ushort prefetchCount = 120,
             bool autoAck = false)
         {
-            if (!_originalRabbitSeasoning.EnableDispatchConsumersAsync)
+            if (_originalRabbitSeasoning.EnableDispatchConsumersAsync)
             { throw new ArgumentException("EnableDispatchConsumerAsync is set to true, set it to false to get an regular Consumer."); }
 
             var channel = await _rcp.GetTransientChannelAsync(enableAck: true);

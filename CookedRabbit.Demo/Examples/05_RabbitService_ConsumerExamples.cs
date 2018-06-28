@@ -23,6 +23,7 @@ namespace CookedRabbit.Demo
 
         public static async Task RunRabbitServiceConsumerAckTestAsync()
         {
+            _rabbitSeasoning.EnableDispatchConsumersAsync = false;
             _rabbitService = new RabbitService(_rabbitSeasoning);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionWork, queueName);
@@ -73,6 +74,7 @@ namespace CookedRabbit.Demo
 
         public static async Task RunRabbitServiceConsumerRetryTestAsync()
         {
+            _rabbitSeasoning.EnableDispatchConsumersAsync = false;
             _rabbitService = new RabbitService(_rabbitSeasoning);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
@@ -138,6 +140,7 @@ namespace CookedRabbit.Demo
 
         public static async Task RunRabbitServiceBatchPublishWithConsumerTestAsync()
         {
+            _rabbitSeasoning.EnableDispatchConsumersAsync = false;
             _rabbitService = new RabbitService(_rabbitSeasoning);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
@@ -172,6 +175,7 @@ namespace CookedRabbit.Demo
 
         public static async Task RunRabbitServiceCreateAsyncConsumerTestAsync()
         {
+            _rabbitSeasoning.EnableDispatchConsumersAsync = true;
             _rabbitService = new RabbitService(_rabbitSeasoning);
             asyncConsumer = await _rabbitService.CreateAsynchronousConsumerAsync(AsyncWork, queueName);
             await RabbitService_SendManyInBatchesWithLimitAsync();
@@ -212,6 +216,39 @@ namespace CookedRabbit.Demo
 
             await Task.Yield();
         };
+
+        #endregion
+
+        #region RabbitService PublishInBatchInParallel
+
+        public static async Task RunRabbitServiceBatchPublishWithInParallelConsumerTestAsync()
+        {
+            _rabbitSeasoning.EnableDispatchConsumersAsync = false;
+            _rabbitService = new RabbitService(_rabbitSeasoning);
+
+            consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
+            await RabbitService_SendManyInBatchesParallelWithLimitAsync();
+            await Console.Out.WriteLineAsync("Finished sending messages.");
+        }
+
+        public static async Task RabbitService_SendManyInBatchesParallelWithLimitAsync()
+        {
+            var count = 0;
+            var payloads = new List<byte[]>();
+
+            while (count < SendLimit)
+            {
+                //await Task.Delay(rand.Next(0, 2)); // Throttle Option
+                var message = $"{helloWorld} {count}";
+                _accuracyCheck.TryAdd(message, false);
+                payloads.Add(Encoding.UTF8.GetBytes(message));
+                count++;
+            }
+
+            var task1 = _rabbitService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads);
+
+            await Task.WhenAll(new Task[] { task1 });
+        }
 
         #endregion
     }

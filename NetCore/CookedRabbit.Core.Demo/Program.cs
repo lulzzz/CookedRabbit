@@ -87,7 +87,10 @@ namespace CookedRabbit.Core.Demo
             //await RunRabbitServiceCreateAsyncConsumerTestAsync();
 
             // Way faster than Async Consumer
-            await RunRabbitServiceBatchPublishWithConsumerTestAsync();
+            //await RunRabbitServiceBatchPublishWithConsumerTestAsync();
+
+            // Same but Parallel Publish
+            await RunRabbitServiceBatchPublishWithInParallelConsumerTestAsync();
 
             await Console.In.ReadLineAsync();
         }
