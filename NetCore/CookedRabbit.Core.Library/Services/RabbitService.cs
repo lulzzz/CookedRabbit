@@ -230,9 +230,10 @@ namespace CookedRabbit.Core.Library.Services
                 if (messageProperties is null)
                 {
                     messageProperties = channelPair.Channel.CreateBasicProperties();
-                    messageProperties.ContentEncoding = ContentEncoding.Gzip.Description();
-                    messageProperties.ContentType = contentType;
                 }
+
+                messageProperties.ContentEncoding = ContentEncoding.Gzip.Description();
+                messageProperties.ContentType = contentType;
 
                 await compressionTask;
                 channelPair.Channel.BasicPublish(exchange: exchangeName,
