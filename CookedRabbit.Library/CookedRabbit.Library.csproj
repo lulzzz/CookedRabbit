@@ -114,6 +114,7 @@
     <Compile Include="Services\RabbitTopologyService.cs" />
     <Compile Include="Services\RabbitService.cs" />
     <Compile Include="Utilities\Compression.cs" />
+    <Compile Include="Utilities\Enums.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

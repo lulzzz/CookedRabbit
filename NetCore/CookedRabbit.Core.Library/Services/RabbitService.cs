@@ -1,12 +1,15 @@
 ﻿using CookedRabbit.Core.Library.Models;
 using CookedRabbit.Core.Library.Pools;
+using CookedRabbit.Core.Library.Utilities;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static CookedRabbit.Core.Library.Utilities.Compression;
+using static CookedRabbit.Core.Library.Utilities.Enums;
 
 namespace CookedRabbit.Core.Library.Services
 {
@@ -23,7 +26,7 @@ namespace CookedRabbit.Core.Library.Services
 
         #region BasicPublish Section
 
-        public async Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload)
+        public async Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload, IBasicProperties messageProperties = null)
         {
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -31,10 +34,10 @@ namespace CookedRabbit.Core.Library.Services
             try
             {
                 channelPair.Channel.BasicPublish(exchange: exchangeName,
-                                     routingKey: queueName,
-                                     false,
-                                     basicProperties: null,
-                                     body: payload);
+                    routingKey: queueName,
+                    false,
+                    basicProperties: messageProperties,
+                    body: payload);
 
                 success = true;
             }
@@ -51,7 +54,7 @@ namespace CookedRabbit.Core.Library.Services
             return success;
         }
 
-        public async Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads)
+        public async Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads, IBasicProperties messageProperties = null)
         {
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -63,10 +66,10 @@ namespace CookedRabbit.Core.Library.Services
                 try
                 {
                     channelPair.Channel.BasicPublish(exchange: exchangeName,
-                                         routingKey: queueName,
-                                         false,
-                                         basicProperties: null,
-                                         body: payload);
+                        routingKey: queueName,
+                        false,
+                        basicProperties: messageProperties,
+                        body: payload);
 
                     await Task.Delay(rand.Next(0, 1));
                 }
@@ -90,7 +93,7 @@ namespace CookedRabbit.Core.Library.Services
             return failures;
         }
 
-        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100)
+        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100, IBasicProperties messageProperties = null)
         {
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -107,10 +110,10 @@ namespace CookedRabbit.Core.Library.Services
                     try
                     {
                         channelPair.Channel.BasicPublish(exchange: exchangeName,
-                                             routingKey: queueName,
-                                             false,
-                                             basicProperties: null,
-                                             body: payload);
+                            routingKey: queueName,
+                            false,
+                            basicProperties: messageProperties,
+                            body: payload);
                     }
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
@@ -135,11 +138,87 @@ namespace CookedRabbit.Core.Library.Services
             return failures;
         }
 
+        public async Task<List<int>> PublishManyAsBatchesInParallelAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100, IBasicProperties messageProperties = null)
+        {
+            var failures = new ConcurrentBag<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var rand = new Random();
+            var count = 0;
+
+            while (payloads.Any())
+            {
+                var procCount = Environment.ProcessorCount;
+                var processingPayloads = payloads.Take(batchSize);
+                payloads.RemoveRange(0, payloads.Count > batchSize ? batchSize : payloads.Count);
+
+                if (processingPayloads.Count() >= procCount)
+                {
+                    Parallel.ForEach(processingPayloads, new ParallelOptions { MaxDegreeOfParallelism = procCount },
+                        (payload) =>
+                        {
+                            try
+                            {
+                                channelPair.Channel.BasicPublish(exchange: exchangeName,
+                                    routingKey: queueName,
+                                    false,
+                                    basicProperties: messageProperties,
+                                    body: payload);
+                            }
+                            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
+                            {
+                                failures.Add(count);
+                                _rcp.FlagDeadChannel(channelPair.ChannelId);
+                            }
+                            catch (Exception)
+                            { failures.Add(count); }
+
+                            count++;
+                        });
+                }
+                else
+                {
+                    foreach (var payload in processingPayloads)
+                    {
+                        try
+                        {
+                            channelPair.Channel.BasicPublish(exchange: exchangeName,
+                                routingKey: queueName,
+                                false,
+                                basicProperties: messageProperties,
+                                body: payload);
+                        }
+                        catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+                        {
+                            failures.Add(count);
+                            _rcp.FlagDeadChannel(channelPair.ChannelId);
+                            await Console.Out.WriteLineAsync(ace.Message);
+                        }
+                        catch (Exception e)
+                        {
+                            failures.Add(count);
+                            await Console.Out.WriteLineAsync(e.Message);
+                        }
+
+                        count++;
+                    }
+                }
+
+                await Task.Delay(rand.Next(0, 2));
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            var failureList = failures.ToList();
+            failureList.Sort();
+
+            return failureList;
+        }
+
         #endregion
 
         #region CompressAndPublishSection
 
-        public async Task<bool> CompressAndPublishAsync(string exchangeName, string queueName, byte[] payload, string contentType)
+        public async Task<bool> CompressAndPublishAsync(string exchangeName, string queueName, byte[] payload, string contentType, IBasicProperties messageProperties = null)
         {
             var compressionTask = CompressBytesWithGzipAsync(payload);
 
@@ -148,15 +227,19 @@ namespace CookedRabbit.Core.Library.Services
 
             try
             {
-                var basicProperties = channelPair.Channel.CreateBasicProperties();
-                basicProperties.ContentEncoding = "gzip";
-                basicProperties.ContentType = contentType;
+                if (messageProperties is null)
+                {
+                    messageProperties = channelPair.Channel.CreateBasicProperties();
+                    messageProperties.ContentEncoding = ContentEncoding.Gzip.Description();
+                    messageProperties.ContentType = contentType;
+                }
+
                 await compressionTask;
                 channelPair.Channel.BasicPublish(exchange: exchangeName,
-                                     routingKey: queueName,
-                                     false,
-                                     basicProperties: null,
-                                     body: compressionTask.Result);
+                    routingKey: queueName,
+                    false,
+                    basicProperties: messageProperties,
+                    body: compressionTask.Result);
 
                 success = true;
             }
@@ -396,10 +479,11 @@ namespace CookedRabbit.Core.Library.Services
 
             _rcp.ReturnChannelToPool(channelPair);
 
-            byte[] output = result.Body;
-            if (result.BasicProperties.ContentType == "gzip")
+            byte[] output = result?.Body;
+            if (result != null)
             {
-                output = await DecompressBytesWithGzipAsync(result.Body);
+                if (result.BasicProperties.ContentEncoding == ContentEncoding.Gzip.Description())
+                { output = await DecompressBytesWithGzipAsync(result.Body); }
             }
 
             return output;
