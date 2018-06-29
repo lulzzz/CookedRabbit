@@ -16,7 +16,7 @@ namespace CookedRabbit.Demo
     {
         #region RabbitService is a RabbitMQ Wrapper
 
-        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", LocalHostName = Environment.MachineName };
+        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName };
 
         // Using RabbitService backed by a Channel Pool
         public static RabbitService _rabbitService;

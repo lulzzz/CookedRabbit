@@ -10,10 +10,11 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            using (MemoryStream memoryStream = new MemoryStream())
-            using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, false))
+            using (MemoryStream memoryStream = new MemoryStream()) // Don't Stack Usings
             {
-                await gzipStream.WriteAsync(input, 0, input.Length);
+                using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, false))
+                { await gzipStream.WriteAsync(input, 0, input.Length); }
+
                 output = memoryStream.ToArray();
             }
 

@@ -82,6 +82,9 @@
     <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=2.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Diagnostics.Tracing.EventSource.Redist.2.0.1\lib\net461\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="RabbitMQ.Client, Version=5.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\RabbitMQ\net472\RabbitMQ.Client.dll</HintPath>
@@ -106,12 +109,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Examples\00_ChannelExamples.cs" />
+    <Compile Include="Examples\06_RabbitService_CompressionExamples.cs" />
     <Compile Include="Examples\05_RabbitService_ConsumerExamples.cs" />
     <Compile Include="Examples\04_RabbitService_BasicExamples.cs" />
     <Compile Include="Examples\03_ChannelPoolExamples.cs" />
     <Compile Include="Examples\02_BatchSendExamples.cs" />
     <Compile Include="Helpers\DemoHelper.cs" />
     <Compile Include="Examples\01_MemoryLeakExamples.cs" />
+    <Compile Include="Helpers\TestObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

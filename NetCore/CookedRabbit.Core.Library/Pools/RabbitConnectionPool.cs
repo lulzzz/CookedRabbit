@@ -35,7 +35,7 @@ namespace CookedRabbit.Core.Library.Pools
                 _connectionFactory = await CreateConnectionFactoryAsync(rabbitSeasoning);
                 if (_connectionFactory is null) throw new ArgumentNullException("Connection factory is null.");
 
-                await CreateConnectionsAsync(rabbitSeasoning.LocalHostName);
+                await CreateConnectionsAsync(rabbitSeasoning.ConnectionName);
             }
         }
 
@@ -105,7 +105,7 @@ namespace CookedRabbit.Core.Library.Pools
                 if (connection != null)
                 { _connectionPool.Enqueue(connection); }
                 else
-                { connection = _connectionFactory.CreateConnection(_originalRabbitSeasoning?.LocalHostName); }
+                { connection = _connectionFactory.CreateConnection(_originalRabbitSeasoning?.ConnectionName); }
             }
 
             return connection;
