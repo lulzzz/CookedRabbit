@@ -1,4 +1,8 @@
-# CookedRabbit ![build](https://ci.appveyor.com/api/projects/status/github/thyams/CookedRabbit?branch=master&svg=true)
+# CookedRabbit ![build](https://ci.appveyor.com/api/projects/status/github/thyams/CookedRabbit?branch=master&svg=true) 
+### [![CookedRabbit.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
+### [![CookedRabbit.Core.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
+
+
 Creating a simple RabbitMQ wrapper for dealing with channels and connection headaches. It also shows you  the natural evolution to common everyday problems with RabbitMQ implementations and how to avoid them.
 
 Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModels (RabbitMQ term for Channels) in container objects makes code prone to memory leaks, thus it is good to see how not to do things as well as how I do it. The examples in the CookedRabbit.Demo demonstrate very rudimentary usages of RabbitMQ. It's not supposed to be rocket science. The library is the simplification, removal, and abstraction of common usage code when wrapping RabbitMQ DotNetClient. It continues to add complexity and simplification at the same time in the RabbitBus & RabbitService.
@@ -80,7 +84,7 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
 <details><summary>Click to show!</summary>
 <p>
 
- * NuGet packages.
+ * ~~NuGet packages.~~ Done, Libraries uploaded.
  * Add interfaces to the Pools.
  * Disaster recovery & circuit break.
  * More robust error handling.

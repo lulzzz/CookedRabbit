@@ -8,7 +8,7 @@
     <licenseUrl>https://github.com/thyams/CookedRabbit/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/thyams/CookedRabbit</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A C# wrapper for RabbitMQ.</description>
+    <description>CookedRabbit is a C# RabbitMQ wrapper for Net Framework.</description>
     <releaseNotes>Initial Release.</releaseNotes>
     <copyright>Copyright 2018</copyright>
     <tags>C# RabbitMQ CookedRabbit Net NetCore</tags>

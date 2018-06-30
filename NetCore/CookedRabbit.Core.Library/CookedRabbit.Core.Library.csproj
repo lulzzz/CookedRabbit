@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <Company>HouseofCat.io</Company>
-    <Description>CookedRabbit is a C# RabbitMQ wrapper.</Description>
+    <Description>CookedRabbit is a C# RabbitMQ wrapper for NetCore.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Copyright>Copyright © 2018</Copyright>
     <PackageLicenseUrl>https://github.com/thyams/CookedRabbit/blob/master/LICENSE</PackageLicenseUrl>
