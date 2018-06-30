@@ -1,17 +1,22 @@
 <?xml version="1.0"?>
 <package >
-    <metadata>
-        <id>$id$</id>
-        <version>$version$</version>
-        <title>$title$</title>
-        <authors>House of Cat</authors>
-        <owners>House of Cat</owners>
-        <licenseUrl>https://github.com/thyams/CookedRabbit/blob/master/LICENSE</licenseUrl>
-        <projectUrl>https://github.com/thyams/CookedRabbit</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>CookedRabbit RabbitMQ wrapper.</description>
-        <releaseNotes>Initial NuGet release of Net Library</releaseNotes>
-        <copyright>Copyright 2018</copyright>
-        <tags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore Net</tags>
-    </metadata>
+  <metadata>
+    <id>CookedRabbit.Library</id>
+    <version>1.0.0</version>
+    <authors>HouseofCat.io</authors>
+    <owners>HouseofCat.io</owners>
+    <licenseUrl>https://github.com/thyams/CookedRabbit/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/thyams/CookedRabbit</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A C# wrapper for RabbitMQ.</description>
+    <releaseNotes>Initial Release.</releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>C# RabbitMQ CookedRabbit Net NetCore</tags>
+    <dependencies>
+      <dependency id="Ben.Demystifier" version="0.1.1" />
+      <dependency id="Microsoft.Diagnostics.Tracing.EventSource.Redist" version="2.0.1" />
+      <dependency id="System.Collections.Immutable" version="1.5.0" />
+      <dependency id="System.Reflection.Metadata" version="1.6.0" />
+    </dependencies>
+  </metadata>
 </package>

@@ -4,6 +4,14 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Platforms>AnyCPU;x64;x86</Platforms>
     <Company>HouseofCat.io</Company>
+    <Description>CookedRabbit is a C# RabbitMQ wrapper.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Copyright>Copyright © 2018</Copyright>
+    <PackageLicenseUrl>https://github.com/thyams/CookedRabbit/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/thyams/CookedRabbit</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/thyams/CookedRabbit</RepositoryUrl>
+    <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore Net</PackageTags>
+    <PackageReleaseNotes>NuGet release of CookedRabbit NetCore Library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
