@@ -6,18 +6,26 @@ using System.Threading.Tasks;
 
 namespace CookedRabbit.Core.Library.Pools
 {
+    /// <summary>
+    /// CookedRabbit RabbitChannelPool creates the connections and manages the connection usage.
+    /// </summary>
     public class RabbitConnectionPool : IDisposable
     {
         private ushort _connectionsToMaintain = 10;
         private ConnectionFactory _connectionFactory = null;
         private ConcurrentQueue<IConnection> _connectionPool = new ConcurrentQueue<IConnection>();
-        private RabbitSeasoning _originalRabbitSeasoning = null; // Used if connections go null later.
+        private RabbitSeasoning _seasoning = null; // Used if connections go null later.
 
         #region Constructor & Setup
 
         private RabbitConnectionPool()
         { }
 
+        /// <summary>
+        /// CookedRabbit RabbitConnectionPool factory.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <returns></returns>
         public static async Task<RabbitConnectionPool> CreateRabbitConnectionPoolAsync(RabbitSeasoning rabbitSeasoning)
         {
             RabbitConnectionPool rcp = new RabbitConnectionPool();
@@ -29,7 +37,7 @@ namespace CookedRabbit.Core.Library.Pools
         {
             if (_connectionFactory is null)
             {
-                _originalRabbitSeasoning = rabbitSeasoning;
+                _seasoning = rabbitSeasoning;
                 _connectionsToMaintain = rabbitSeasoning.ConnectionPoolCount;
 
                 _connectionFactory = await CreateConnectionFactoryAsync(rabbitSeasoning);
@@ -98,6 +106,10 @@ namespace CookedRabbit.Core.Library.Pools
 
         #endregion
 
+        /// <summary>
+        /// Public method to get a connection manually. Lifetime is the responsiblity of the calling service.
+        /// </summary>
+        /// <returns></returns>
         public IConnection GetConnection()
         {
             if (_connectionPool.TryDequeue(out IConnection connection))
@@ -105,7 +117,7 @@ namespace CookedRabbit.Core.Library.Pools
                 if (connection != null)
                 { _connectionPool.Enqueue(connection); }
                 else
-                { connection = _connectionFactory.CreateConnection(_originalRabbitSeasoning?.ConnectionName); }
+                { connection = _connectionFactory.CreateConnection(_seasoning?.ConnectionName); }
             }
 
             return connection;
@@ -115,6 +127,10 @@ namespace CookedRabbit.Core.Library.Pools
 
         private bool _disposedValue = false;
 
+        /// <summary>
+        /// RabbitConnectionPool dispose method.
+        /// </summary>
+        /// <param name="disposing"></param>
         public virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)

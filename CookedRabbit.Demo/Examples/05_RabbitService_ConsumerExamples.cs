@@ -224,7 +224,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceBatchPublishWithInParallelConsumerTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitService(_rabbitSeasoning, null);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
             await RabbitService_SendManyInBatchesParallelWithLimitAsync();

@@ -4,8 +4,16 @@ using System.Threading.Tasks;
 
 namespace CookedRabbit.Core.Library.Utilities
 {
+    /// <summary>
+    /// CookedRabbit Utility class to compress objects.
+    /// </summary>
     public static class Compression
     {
+        /// <summary>
+        /// Compresses a byte[] with Gzip.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static async Task<byte[]> CompressBytesWithGzipAsync(byte[] input)
         {
             byte[] output = null;
@@ -21,6 +29,11 @@ namespace CookedRabbit.Core.Library.Utilities
             return output;
         }
 
+        /// <summary>
+        /// Decompresses a byte[] with Gzip.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static async Task<byte[]> DecompressBytesWithGzipAsync(byte[] input)
         {
             byte[] output = null;

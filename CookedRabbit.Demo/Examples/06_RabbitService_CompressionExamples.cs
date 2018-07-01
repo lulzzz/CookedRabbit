@@ -1,16 +1,12 @@
-﻿using CookedRabbit.Library.Models;
+﻿using CookedRabbit.Demo.Helpers;
+using CookedRabbit.Library.Models;
 using CookedRabbit.Library.Services;
-using RabbitMQ.Client.Events;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using static CookedRabbit.Library.Utilities.Enums;
 using static CookedRabbit.Demo.DemoHelper;
-using System.Dynamic;
-using Newtonsoft.Json;
-using CookedRabbit.Demo.Helpers;
+using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Demo
 {
@@ -41,7 +37,7 @@ namespace CookedRabbit.Demo
         {
             var payload = await GetAnObjectAsBytes();
 
-            await _rabbitService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.utf8.Description()}");
+            await _rabbitService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.Utf8.Description()}");
         }
 
         public static async Task RabbitService_ReceiveMessageAsync()

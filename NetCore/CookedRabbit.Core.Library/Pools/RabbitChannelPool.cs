@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace CookedRabbit.Core.Library.Pools
 {
+    /// <summary>
+    /// CookedRabbit RabbitChannelPool creates the connection pool and manages the channels.
+    /// </summary>
     public class RabbitChannelPool : IDisposable
     {
         private ulong _channelId = 0;
@@ -18,12 +21,17 @@ namespace CookedRabbit.Core.Library.Pools
         private ConcurrentQueue<(ulong, IModel)> _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
         private ConcurrentBag<(ulong, IModel)> _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
-        private RabbitSeasoning _originalRabbitSeasoning = null; // Used if channels go null later.
+        private RabbitSeasoning _seasoning = null; // Used if channels go null later.
 
         #region Constructor & Setup
 
         private RabbitChannelPool() { }
 
+        /// <summary>
+        /// CookedRabbit RabbitChannelPool factory.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <returns></returns>
         public static async Task<RabbitChannelPool> CreateRabbitChannelPoolAsync(RabbitSeasoning rabbitSeasoning)
         {
             RabbitChannelPool rcp = new RabbitChannelPool();
@@ -31,11 +39,16 @@ namespace CookedRabbit.Core.Library.Pools
             return rcp;
         }
 
+        /// <summary>
+        /// RabbitChannelPool initialization method.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <returns></returns>
         private async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
             if (_rcp is null)
             {
-                _originalRabbitSeasoning = rabbitSeasoning;
+                _seasoning = rabbitSeasoning;
                 _channelsToMaintain = rabbitSeasoning.ChannelPoolCount;
                 _emptyPoolWaitTime = rabbitSeasoning.EmptyPoolWaitTime;
 
@@ -73,6 +86,11 @@ namespace CookedRabbit.Core.Library.Pools
 
         #region Channels & Maintenance Section
 
+        /// <summary>
+        /// Creates a transient (untracked) RabbitMQ channel. Closing/Disposal is the responsibility of the calling service.
+        /// </summary>
+        /// <param name="enableAck"></param>
+        /// <returns></returns>
         public async Task<IModel> GetTransientChannelAsync(bool enableAck = false)
         {
             var t = await Task.Run(() => // Helps decouple Tasks from any calling thread.
@@ -94,6 +112,10 @@ namespace CookedRabbit.Core.Library.Pools
             return t;
         }
 
+        /// <summary>
+        /// Gets a pre-created (tracked) RabbitMQ channel. Must be returned by the calling the service!
+        /// </summary>
+        /// <returns></returns>
         public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync()
         {
             var t = await Task.Run(async () => // Helps decouple Tasks from any calling thread.
@@ -137,6 +159,10 @@ namespace CookedRabbit.Core.Library.Pools
             return t;
         }
 
+        /// <summary>
+        /// Gets a pre-created (tracked) RabbitMQ channel that can acknowledge messages. Must be returned by the calling the service!
+        /// </summary>
+        /// <returns></returns>
         public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAckableAsync()
         {
             var t = await Task.Run(async () => // Helps decouple Tasks from any calling thread.
@@ -181,12 +207,21 @@ namespace CookedRabbit.Core.Library.Pools
             return t;
         }
 
+        /// <summary>
+        /// Adds ChannelId to a ConcurrentBag. This indicates it will be removed on it's next turn for usage and a new channel will be created instead of using this one.
+        /// </summary>
+        /// <param name="deadChannelId"></param>
         public void FlagDeadChannel(ulong deadChannelId)
         {
             if (!_flaggedAsDeadChannels.Contains(deadChannelId))
             { _flaggedAsDeadChannels.Add(deadChannelId); }
         }
 
+        /// <summary>
+        /// Called to return a channel (ackable) to its channel pool.
+        /// </summary>
+        /// <param name="ChannelPair"></param>
+        /// <returns></returns>
         public bool ReturnChannelToPool((ulong ChannelId, IModel Channel) ChannelPair)
         {
             var success = false;
@@ -203,6 +238,11 @@ namespace CookedRabbit.Core.Library.Pools
             return success;
         }
 
+        /// <summary>
+        /// Called to return a channel (ackable) to its channel pool.
+        /// </summary>
+        /// <param name="ChannelPair"></param>
+        /// <returns></returns>
         public bool ReturnChannelToAckPool((ulong ChannelId, IModel Channel) ChannelPair)
         {
             var success = false;
@@ -225,6 +265,10 @@ namespace CookedRabbit.Core.Library.Pools
 
         private bool _disposedValue = false;
 
+        /// <summary>
+        /// RabbitChannelPool dispose method.
+        /// </summary>
+        /// <param name="disposing"></param>
         public virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
