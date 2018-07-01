@@ -109,59 +109,83 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
     ║       ║ - Circuit Breaker                                                     ║
     ║       ║ - Abstraction                                                         ║
     ║       ║                                                                       ║
-    ╠════ » ╠══ » RabbitService ════════════════════════════════════════════════════╣
+    ╠════ » ╠══ » RabbitService : IRabbitService ═══════════════════════════════════╣
     ║       ║       ║                                                               ║
     ║       ║       ║ & RabbitChannelPool                                           ║
     ║       ║       ║ & RabbitSeasoning                                             ║
+    ║       ║       ║                                                               ║
     ║       ║       ║ + Flag Channel As Dead                                        ║
     ║       ║       ║ + Return Channel To Pool (Finished Work)                      ║
+    ║       ║       ║                                                               ║
     ║       ║       ║ + Publish                                                     ║
     ║       ║       ║ + PublishMany                                                 ║
     ║       ║       ║ + PublishManyAsBatches                                        ║
+    ║       ║       ║                                                               ║
     ║       ║       ║ + Get                                                         ║
     ║       ║       ║   + Returns As ValueTuple                                     ║
     ║       ║       ║   + Returns As AckableResult                                  ║
     ║       ║       ║ + GetMany                                                     ║
     ║       ║       ║   + Returns As ValueTuple                                     ║
     ║       ║       ║   + Returns As AckableResult                                  ║
-    ║       ║       ║ + Create Consumer                                             ║
-    ║       ║       ║ + Create AsyncConsumer                                        ║
-    ║       ║       ║ - Replacing Console with Logger                               ║
-    ║       ║       ║ - throw ex                                                    ║
-    ║       ║       ║ ! Opinionated Throttling (RabbitSeasoning Configurable)       ║
+    ║       ║       ║                                                               ║
+    ║       ║       ║ + CreateConsumerAsync                                         ║
+    ║       ║       ║ + CreateAsyncConsumerAsync                                    ║
+    ║       ║       ║                                                               ║
+    ║       ║       ║ Customize:                                                    ║
+    ║       ║       ║ + Use ILogger                                                 ║
+    ║       ║       ║ + throw ex                                                    ║
+    ║       ║       ║ + Throttling                                                  ║
     ║       ║       ║                                                               ║
     ║       ║       ╚══ » RabbitChannelPool ════════════════════════════════════════╣
     ║       ║               ║                                                       ║
     ║       ║               ║ & RabbitConnectionPool                                ║
     ║       ║               ║ & RabbitSeasoning                                     ║
+    ║       ║               ║                                                       ║
     ║       ║               ║ + GetTransientChannel (non-Ackable)                   ║
     ║       ║               ║ + GetTransientChannel (Ackable)                       ║
+    ║       ║               ║                                                       ║
     ║       ║               ║ + GetChannelPair from &ChannelPool (non-Ackable)      ║
     ║       ║               ║ + GetChannelPair from &ChannelPool (ackable)          ║
+    ║       ║               ║                                                       ║
+    ║       ║               ║ Mechanisms:                                           ║
     ║       ║               ║ + Get Channel Delay (When All Channels Are In Use)    ║
     ║       ║               ║ + In Use ChannelPair Pool                             ║
     ║       ║               ║ + In Use Ack ChannelPair Pool                         ║
     ║       ║               ║ + Return Channel to A Pool                            ║
-    ║       ║               ║ - Replacing Console with Logger                       ║
+    ║       ║               ║                                                       ║
+    ║       ║               ║ Customize:                                            ║
+    ║       ║               ║ - Use ILogger                                         ║
     ║       ║               ║ - throw ex                                            ║
-    ║       ║               ║ ! System For Dealing With Flagged Dead Channels       ║
+    ║       ║               ║ - System for Dealing with Flagged Connections         ║
     ║       ║               ║                                                       ║
     ║       ║               ╚══ » RabbitConnectionPool ═════════════════════════════╣
     ║       ║                       ║                                               ║
     ║       ║                       ║ & RabbitMQ ConnectionFactory                  ║
     ║       ║                       ║ & RabbitSeasoning                             ║
     ║       ║                       ║ & ConnectionPool                              ║
+    ║       ║                       ║                                               ║
+    ║       ║                       ║ Customize:                                    ║
+    ║       ║                       ║ - Use ILogger                                 ║
     ║       ║                       ║ - throw ex                                    ║
     ║       ║                       ║ - System for Dealing with Flagged Connections ║
     ║       ║                       ║                                               ║
     ║       ║                       ╚═══════════════════════════════════════════════╣
     ║       ║                                                                       ║
-    ╚════ » ╚══ » RabbitTopologyService ════════════════════════════════════════════╣
+    ╚════ » ╚══ » RabbitTopologyService : IRabbitTopologyService ═══════════════════╣
                     ║                                                               ║
                     ║ & RabbitChannelPool                                           ║
                     ║ & RabbitTopologySeasoning                                     ║
                     ║                                                               ║
-                    ║ Work In Progress                                              ║
+                    ║ + QueueDeclareAsync                                           ║
+                    ║ + QueueDeleteAsync                                            ║
+                    ║ + QueueBindToExchangeAsync                                    ║
+                    ║ + QueueUnbindToExchangeAsync                                  ║
+                    ║                                                               ║
+                    ║ + ExchangeDeclareAsync                                        ║
+                    ║ + ExchangeDeleteAsync                                         ║
+                    ║ + ExchangeBindToExchangeAsync                                 ║
+                    ║ + ExchangeUnbindToExchangeAsync                               ║
+                    ║                                                               ║
                     ╚═══════════════════════════════════════════════════════════════╝
 ```
 
