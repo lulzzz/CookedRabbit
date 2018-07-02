@@ -1,8 +1,9 @@
 # CookedRabbit ![build](https://ci.appveyor.com/api/projects/status/github/thyams/CookedRabbit?branch=master&svg=true) 
-### CookedRabbit.Library [![CookedRabbit.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/) CookedRabbit.Core.Library [![CookedRabbit.Core.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
+### CookedRabbit.Library [![CookedRabbit.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
+### CookedRabbit.Core.Library [![CookedRabbit.Core.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
 
 
-Creating a simple RabbitMQ wrapper for dealing with channels and connection headaches. It also shows you  the natural evolution to common everyday problems with RabbitMQ implementations and how to avoid them.
+CookedRabbit is a simple RabbitMQ wrapper for dealing with channels and connection headaches. It also shows you  the natural evolution to common everyday problems with RabbitMQ implementations and how to avoid them.
 
 Everything begins with the Demo client demonstrating MemoryLeaks. Storing IModels (RabbitMQ term for Channels) in container objects makes code prone to memory leaks, thus it is good to see how not to do things as well as how I do it. The examples in the CookedRabbit.Demo demonstrate very rudimentary usages of RabbitMQ. It's not supposed to be rocket science. The library is the simplification, removal, and abstraction of common usage code when wrapping RabbitMQ DotNetClient. It continues to add complexity and simplification at the same time in the RabbitBus & RabbitService.
 
@@ -83,13 +84,17 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
 <details><summary>Click to show!</summary>
 <p>
 
+ * ~~Add XML comments.~~ Done.
+ * ~~Create Wiki.~~ Basic one done, generated from XML comments.
  * ~~NuGet packages.~~ Done, Libraries uploaded.
- * Add interfaces to the Pools.
+ * ~~Add interfaces to the Pools.~~ Done, everything updated.
+ * ~~More robust error handling.~~ Done, will continue pattern.
+ * ~~Quality life tools such as compression etc.~~ Done, will add more.
+ * Connection EventListener wireups.
  * Disaster recovery & circuit break.
- * More robust error handling.
- * Connection eventlistener wireups.
- * Quality life tools such as compression etc.
  * A ServiceBus-esque client.
+ * Additional Demonstrations.
+ * Add xUnit tests.
 
 </p>
 </details>
@@ -136,7 +141,7 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
     ║       ║       ║ + throw ex                                                    ║
     ║       ║       ║ + Throttling                                                  ║
     ║       ║       ║                                                               ║
-    ║       ║       ╚══ » RabbitChannelPool ════════════════════════════════════════╣
+    ║       ║       ╚══ » RabbitChannelPool : IRabbitChannelPool ═══════════════════╣
     ║       ║               ║                                                       ║
     ║       ║               ║ & RabbitConnectionPool                                ║
     ║       ║               ║ & RabbitSeasoning                                     ║
@@ -156,9 +161,8 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
     ║       ║               ║ Customize:                                            ║
     ║       ║               ║ - Use ILogger                                         ║
     ║       ║               ║ - throw ex                                            ║
-    ║       ║               ║ - System for Dealing with Flagged Connections         ║
     ║       ║               ║                                                       ║
-    ║       ║               ╚══ » RabbitConnectionPool ═════════════════════════════╣
+    ║       ║               ╚══ » RabbitConnectionPool : IRabbitConnectionPool ═════╣
     ║       ║                       ║                                               ║
     ║       ║                       ║ & RabbitMQ ConnectionFactory                  ║
     ║       ║                       ║ & RabbitSeasoning                             ║
