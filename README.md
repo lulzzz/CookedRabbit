@@ -16,9 +16,9 @@ Inspired to write my own much dumber RabbitMQ wrapper than RawRabbit (https://gi
 
 Do or do not, I am not really bothered either way :).  
 
-One actual benefit to using CookedRabbit is that I will only keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
+Some actual benefits to using CookedRabbit is that I will only being keep it simple. I will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft for that matter.
 
-Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
+Which leads me to the custom compiled RabbitMQ CookedRabbit uses and includes in this solution:
 
 ```
     RabbitMQ Dotnet Client 5.1.0 (6/23/2018)
@@ -32,6 +32,12 @@ Which leads me to the custom compiled RabbitMQ CookedRabbit uses:
        ApiGen re-compiled.
        Client compiled as x64 (for x86 CookedRabbit, have to go with the official NuGet from RabbitMQ)
 ```
+
+CookedRabbit will be Dependency Injection friendly.  
+CookedRabbit services support an optional ILogger from Microsoft.Extensions.Logger.  
+CookedRabbit supports logic based customizations.  
+CookedRabbit has full XML comments.  
+CookedRabbit Wiki will be generated from XML comments.  
 
 </p>
 </details>
