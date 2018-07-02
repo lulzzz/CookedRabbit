@@ -1,4 +1,4 @@
-# CookedRabbit ![build](https://ci.appveyor.com/api/projects/status/github/thyams/CookedRabbit?branch=master&svg=true) 
+# CookedRabbit (v1.0.0.4) ![build](https://ci.appveyor.com/api/projects/status/github/thyams/CookedRabbit?branch=master&svg=true) 
 ### CookedRabbit.Library [![CookedRabbit.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
 ### CookedRabbit.Core.Library [![CookedRabbit.Core.Library NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
 
