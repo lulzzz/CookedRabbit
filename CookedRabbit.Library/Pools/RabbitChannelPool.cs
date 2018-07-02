@@ -10,12 +10,12 @@ namespace CookedRabbit.Library.Pools
     /// <summary>
     /// CookedRabbit RabbitChannelPool creates the connection pool and manages the channels.
     /// </summary>
-    public class RabbitChannelPool : IDisposable
+    public class RabbitChannelPool : IRabbitChannelPool
     {
         private ulong _channelId = 0;
         private ushort _channelsToMaintain = 100;
         private ushort _emptyPoolWaitTime = 100;
-        private RabbitConnectionPool _rcp = null;
+        private IRabbitConnectionPool _rcp = null;
         private ConcurrentQueue<(ulong, IModel)> _channelPool = new ConcurrentQueue<(ulong, IModel)>();
         private ConcurrentBag<(ulong, IModel)> _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentQueue<(ulong, IModel)> _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
@@ -31,8 +31,8 @@ namespace CookedRabbit.Library.Pools
         /// CookedRabbit RabbitChannelPool factory.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
-        /// <returns></returns>
-        public static async Task<RabbitChannelPool> CreateRabbitChannelPoolAsync(RabbitSeasoning rabbitSeasoning)
+        /// <returns>Returns a RabbitChannelPool.</returns>
+        public static async Task<IRabbitChannelPool> CreateRabbitChannelPoolAsync(RabbitSeasoning rabbitSeasoning)
         {
             RabbitChannelPool rcp = new RabbitChannelPool();
             await rcp.Initialize(rabbitSeasoning);
@@ -90,7 +90,7 @@ namespace CookedRabbit.Library.Pools
         /// Creates a transient (untracked) RabbitMQ channel. Closing/Disposal is the responsibility of the calling service.
         /// </summary>
         /// <param name="enableAck"></param>
-        /// <returns></returns>
+        /// <returns>Returns an IModel channel (RabbitMQ).</returns>
         public async Task<IModel> GetTransientChannelAsync(bool enableAck = false)
         {
             var t = await Task.Run(() => // Helps decouple Tasks from any calling thread.
@@ -115,7 +115,7 @@ namespace CookedRabbit.Library.Pools
         /// <summary>
         /// Gets a pre-created (tracked) RabbitMQ channel. Must be returned by the calling the service!
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns a ValueTuple(ulong, IModel)</returns>
         public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAsync()
         {
             var t = await Task.Run(async () => // Helps decouple Tasks from any calling thread.
@@ -162,7 +162,7 @@ namespace CookedRabbit.Library.Pools
         /// <summary>
         /// Gets a pre-created (tracked) RabbitMQ channel that can acknowledge messages. Must be returned by the calling the service!
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns a ValueTuple(ulong, IModel)</returns>
         public async Task<(ulong ChannelId, IModel Channel)> GetPooledChannelPairAckableAsync()
         {
             var t = await Task.Run(async () => // Helps decouple Tasks from any calling thread.
@@ -221,7 +221,7 @@ namespace CookedRabbit.Library.Pools
         /// Called to return a channel (ackable) to its channel pool.
         /// </summary>
         /// <param name="ChannelPair"></param>
-        /// <returns></returns>
+        /// <returns>Returns a bool indicating success or failure.</returns>
         public bool ReturnChannelToPool((ulong ChannelId, IModel Channel) ChannelPair)
         {
             var success = false;
@@ -242,7 +242,7 @@ namespace CookedRabbit.Library.Pools
         /// Called to return a channel (ackable) to its channel pool.
         /// </summary>
         /// <param name="ChannelPair"></param>
-        /// <returns></returns>
+        /// <returns>Returns a bool indicating success or failure.</returns>
         public bool ReturnChannelToAckPool((ulong ChannelId, IModel Channel) ChannelPair)
         {
             var success = false;
@@ -261,25 +261,47 @@ namespace CookedRabbit.Library.Pools
 
         #endregion
 
-        #region Dispose
+        #region Shutdown Section
 
-        private bool _disposedValue = false;
+        private bool _shutdown = false;
 
         /// <summary>
-        /// RabbitChannelPool dispose method.
+        /// RabbitChannelPool shutdown method closes all channels, disposes each model, and refreshes the objects in memory.
         /// </summary>
-        /// <param name="disposing"></param>
-        public virtual void Dispose(bool disposing)
+        public void Shutdown()
         {
-            if (!_disposedValue)
+            if (!_shutdown)
             {
-                if (disposing) { _rcp.Dispose(true); }
+                _shutdown = true;
+                foreach (var channelPair in _channelPool)
+                {
+                    try
+                    {
+                        channelPair.Item2.Close(200, "CookedRabbit shuttingdown.");
+                        channelPair.Item2.Dispose();
+                    }
+                    catch { }
+                }
 
-                _disposedValue = true;
+                _channelPool = new ConcurrentQueue<(ulong, IModel)>();
+                _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
+
+                foreach (var channelPair in _channelWithManualAckPool)
+                {
+                    try
+                    {
+                        channelPair.Item2.Close(200, "CookedRabbit shuttingdown.");
+                        channelPair.Item2.Dispose();
+                    }
+                    catch { }
+                }
+
+                _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
+                _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
+
+                _rcp.Shutdown();
             }
         }
-
-        void IDisposable.Dispose() { Dispose(true); }
 
         #endregion
     }

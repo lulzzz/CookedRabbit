@@ -144,6 +144,8 @@
     <Compile Include="Models\RabbitTopologySeasoning.cs" />
     <Compile Include="Models\RabbitSeasoning.cs" />
     <Compile Include="Models\AckableResult.cs" />
+    <Compile Include="Pools\Interfaces\IRabbitConnectionPool.cs" />
+    <Compile Include="Pools\Interfaces\IRabbitChannelPool.cs" />
     <Compile Include="Pools\RabbitChannelPool.cs" />
     <Compile Include="Pools\RabbitConnectionPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

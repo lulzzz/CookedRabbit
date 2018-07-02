@@ -22,7 +22,7 @@ namespace CookedRabbit.Core.Library.Services
     public class RabbitService : IRabbitService, IDisposable
     {
         private readonly ILogger _logger;
-        private readonly RabbitChannelPool _rcp = null;
+        private readonly IRabbitChannelPool _rcp = null;
         private readonly RabbitSeasoning _seasoning = null; // Used if for recovery later.
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="queueName"></param>
         /// <param name="payload"></param>
         /// <param name="messageProperties"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload,
             IBasicProperties messageProperties = null)
         {
@@ -95,7 +95,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="queueName"></param>
         /// <param name="payloads"></param>
         /// <param name="messageProperties"></param>
-        /// <returns></returns>
+        /// <returns>Returns a List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads,
             IBasicProperties messageProperties = null)
         {
@@ -156,7 +156,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="payloads"></param>
         /// <param name="batchSize"></param>
         /// <param name="messageProperties"></param>
-        /// <returns></returns>
+        /// <returns>Returns a List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100,
             IBasicProperties messageProperties = null)
         {
@@ -223,7 +223,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="payloads"></param>
         /// <param name="batchSize"></param>
         /// <param name="messageProperties"></param>
-        /// <returns></returns>
+        /// <returns>Returns a List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsBatchesInParallelAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100,
             IBasicProperties messageProperties = null)
         {
@@ -291,7 +291,8 @@ namespace CookedRabbit.Core.Library.Services
                     }
                 }
 
-                await Task.Delay(rand.Next(0, 2));
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(rand.Next(0, 2)); }
             }
 
             _rcp.ReturnChannelToPool(channelPair);
@@ -315,7 +316,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="payload"></param>
         /// <param name="contentType"></param>
         /// <param name="messageProperties"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> CompressAndPublishAsync(string exchangeName, string queueName, byte[] payload, string contentType,
             IBasicProperties messageProperties = null)
         {
@@ -373,7 +374,7 @@ namespace CookedRabbit.Core.Library.Services
         /// Get a BasicGetResult from a queue.
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns></returns>
+        /// <returns>Returns a BasicGetResult (RabbitMQ).</returns>
         public async Task<BasicGetResult> GetAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -412,7 +413,7 @@ namespace CookedRabbit.Core.Library.Services
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="batchCount"></param>
-        /// <returns></returns>
+        /// <returns>Returns a List&lt;BasicGetResult&gt; (RabbitMQ).</returns>
         public async Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -500,7 +501,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <para>Returns a List&lt;ValueTuple(IModel, BasicGetResult)&gt;.</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns></returns>
+        /// <returns>Returns a ValueTuple(IModel, BasicGetResult) (RabbitMQ).</returns>
         public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
@@ -534,12 +535,12 @@ namespace CookedRabbit.Core.Library.Services
         }
 
         /// <summary>
-        /// Get a List of BasicGetResult from a queue.
-        /// <para>Returns a ValueTuple(IModel, List&lt;BasicGetResult&gt;).</para>
+        /// Get an AckableResult from a queue.
+        /// <para>Returns a CookedRabbit AckableResult.</para>
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="batchCount"></param>
-        /// <returns></returns>
+        /// <returns>Returns an AckableResult (CookedRabbit).</returns>
         public async Task<(IModel Channel, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -622,7 +623,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <para>Returns a CookedRabbit AckableResult.</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns></returns>
+        /// <returns>Returns an AckableResult (CookedRabbit).</returns>
         public async Task<AckableResult> GetAckableAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
@@ -661,7 +662,7 @@ namespace CookedRabbit.Core.Library.Services
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="batchCount"></param>
-        /// <returns></returns>
+        /// <returns>Returns an AckableResult (CookedRabbit).</returns>
         public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -745,10 +746,10 @@ namespace CookedRabbit.Core.Library.Services
 
         /// <summary>
         /// Gets a payload from a queue and decompresses.
-        /// <para>Returns a byte[].</para>
+        /// <para>Returns a byte[] (decompressed).</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns></returns>
+        /// <returns>Returns a byte[] (decompressed).</returns>
         public async Task<byte[]> GetAndDecompressAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -793,13 +794,13 @@ namespace CookedRabbit.Core.Library.Services
         #region Consumer Section
 
         /// <summary>
-        /// Create a RabbitMQ Consumer asynchronously. (Requires EnableDispatchConsumersAsync = false in RabbitSeasoning.)
+        /// Create a RabbitMQ Consumer (subscriber) asynchronously. (Requires EnableDispatchConsumersAsync = false in RabbitSeasoning.)
         /// </summary>
         /// <param name="ActionWork"></param>
         /// <param name="queueName"></param>
         /// <param name="prefetchCount"></param>
         /// <param name="autoAck"></param>
-        /// <returns></returns>
+        /// <returns>Returns a RabbitMQ EventingBasicConsumer.</returns>
         public async Task<EventingBasicConsumer> CreateConsumerAsync(
             Action<object, BasicDeliverEventArgs> ActionWork,
             string queueName,
@@ -823,13 +824,13 @@ namespace CookedRabbit.Core.Library.Services
         }
 
         /// <summary>
-        /// Create a RabbitMQ AsyncConsumer asynchronously. (Requires EnableDispatchConsumersAsync = true in RabbitSeasoning.)
+        /// Create a RabbitMQ AsyncConsumer (subscriber) asynchronously. (Requires EnableDispatchConsumersAsync = true in RabbitSeasoning.)
         /// </summary>
         /// <param name="AsyncWork"></param>
         /// <param name="queueName"></param>
         /// <param name="prefetchCount"></param>
         /// <param name="autoAck"></param>
-        /// <returns></returns>
+        /// <returns>Returns a RabbitMQ AsyncEventingBasicConsumer.</returns>
         public async Task<AsyncEventingBasicConsumer> CreateAsynchronousConsumerAsync(
             Func<object, BasicDeliverEventArgs, Task> AsyncWork,
             string queueName,
@@ -901,8 +902,7 @@ namespace CookedRabbit.Core.Library.Services
         {
             if (!_disposedValue)
             {
-                if (disposing) { _rcp.Dispose(true); }
-
+                if (disposing) { _rcp.Shutdown(); }
                 _disposedValue = true;
             }
         }

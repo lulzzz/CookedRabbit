@@ -16,7 +16,7 @@ namespace CookedRabbit.Library.Services
     public class RabbitTopologyService : IRabbitTopologyService, IDisposable
     {
         private readonly ILogger _logger;
-        private readonly RabbitChannelPool _rcp = null;
+        private readonly IRabbitChannelPool _rcp = null;
         private readonly RabbitTopologySeasoning _seasoning = null; // Used if for recovery later.
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="exclusive"></param>
         /// <param name="autoDelete"></param>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> QueueDeclareAsync(string queueName, bool durable = true, bool exclusive = false,
                                                   bool autoDelete = false, IDictionary<string, object> args = null)
         {
@@ -90,7 +90,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="queueName"></param>
         /// <param name="onlyIfUnused"></param>
         /// <param name="onlyIfEmpty"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> QueueDeleteAsync(string queueName, bool onlyIfUnused = false, bool onlyIfEmpty = false)
         {
             var success = false;
@@ -135,7 +135,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="exchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> QueueBindToExchangeAsync(string queueName, string exchangeName, string routingKey = "",
                                                          IDictionary<string, object> args = null)
         {
@@ -182,7 +182,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="exchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> QueueUnbindFromExchangeAsync(string queueName, string exchangeName, string routingKey = "",
                                                              IDictionary<string, object> args = null)
         {
@@ -234,7 +234,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="durable"></param>
         /// <param name="autoDelete"></param>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> ExchangeDeclareAsync(string exchangeName, string exchangeType, bool durable = true,
                                                      bool autoDelete = false, IDictionary<string, object> args = null)
         {
@@ -280,7 +280,7 @@ namespace CookedRabbit.Library.Services
         /// </summary>
         /// <param name="exchangeName"></param>
         /// <param name="onlyIfUnused"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> ExchangeDeleteAsync(string exchangeName, bool onlyIfUnused = false)
         {
             var success = false;
@@ -324,7 +324,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="parentExchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> ExchangeBindToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "",
                                                             IDictionary<string, object> args = null)
         {
@@ -371,7 +371,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="parentExchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>Returns bool indicating success or failure.</returns>
         public async Task<bool> ExchangeUnbindToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "",
                                                               IDictionary<string, object> args = null)
         {
@@ -455,15 +455,14 @@ namespace CookedRabbit.Library.Services
         private bool _disposedValue = false;
 
         /// <summary>
-        /// RabbitTopologyService dispose method.
+        /// RabbitService dispose method.
         /// </summary>
         /// <param name="disposing"></param>
         public virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
-                if (disposing) { _rcp.Dispose(true); }
-
+                if (disposing) { _rcp.Shutdown(); }
                 _disposedValue = true;
             }
         }

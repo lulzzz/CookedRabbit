@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace CookedRabbit.Library.Pools
 {
     /// <summary>
-    /// CookedRabbit RabbitChannelPool creates the connections and manages the connection usage.
+    /// CookedRabbit RabbitConnectionPool creates the connections and manages the connection usage.
     /// </summary>
-    public class RabbitConnectionPool : IDisposable
+    public class RabbitConnectionPool : IRabbitConnectionPool
     {
         private ushort _connectionsToMaintain = 10;
         private ConnectionFactory _connectionFactory = null;
@@ -26,7 +26,7 @@ namespace CookedRabbit.Library.Pools
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <returns></returns>
-        public static async Task<RabbitConnectionPool> CreateRabbitConnectionPoolAsync(RabbitSeasoning rabbitSeasoning)
+        public static async Task<IRabbitConnectionPool> CreateRabbitConnectionPoolAsync(RabbitSeasoning rabbitSeasoning)
         {
             RabbitConnectionPool rcp = new RabbitConnectionPool();
             await rcp.Initialize(rabbitSeasoning);
@@ -109,7 +109,7 @@ namespace CookedRabbit.Library.Pools
         /// <summary>
         /// Public method to get a connection manually. Lifetime is the responsiblity of the calling service.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns an IConnection (RabbitMQ).</returns>
         public IConnection GetConnection()
         {
             if (_connectionPool.TryDequeue(out IConnection connection))
@@ -123,40 +123,31 @@ namespace CookedRabbit.Library.Pools
             return connection;
         }
 
-        #region Dispose
+        #region Shutdown Section
 
-        private bool _disposedValue = false;
+        private bool _shutdown = false;
 
         /// <summary>
-        /// RabbitConnectionPool dispose method.
+        /// RabbitConnectionPool shutdown method closes all connections and disposes them.
         /// </summary>
-        /// <param name="disposing"></param>
-        public virtual void Dispose(bool disposing)
+        public void Shutdown()
         {
-            if (!_disposedValue)
+            if (!_shutdown)
             {
-                if (disposing)
+                _shutdown = true;
+                foreach (var connection in _connectionPool)
                 {
-                    foreach (var connection in _connectionPool)
+                    try
                     {
-                        try
-                        { connection?.Close(200, "Happily shutting down."); }
-                        catch { }
-
-                        connection?.Dispose();
+                        connection.Close(200, "CookedRabbit shutting down.");
+                        connection.Dispose();
                     }
-
-                    _connectionFactory = null;
-                    _connectionPool = null;
+                    catch { }
                 }
 
-                _disposedValue = true;
+                _connectionPool = new ConcurrentQueue<IConnection>();
+                _connectionFactory = null;
             }
-        }
-
-        void IDisposable.Dispose()
-        {
-            Dispose(true);
         }
 
         #endregion
