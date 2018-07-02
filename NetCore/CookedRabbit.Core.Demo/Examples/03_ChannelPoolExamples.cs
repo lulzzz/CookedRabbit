@@ -23,7 +23,7 @@ namespace CookedRabbit.Core.Demo
             await Task.WhenAll(new Task[] { sendMessage, receiveMessage });
         }
 
-        public static async Task SendMessagesForeverAsync(RabbitConnectionPool rcp)
+        public static async Task SendMessagesForeverAsync(IRabbitConnectionPool rcp)
         {
             ResetThreadName(Thread.CurrentThread, "Transient SendMessagesForever Thread");
             int counter = 0;
@@ -50,7 +50,7 @@ namespace CookedRabbit.Core.Demo
             }
         }
 
-        public static async Task ReceiveMessagesForeverAsync(RabbitConnectionPool rcp)
+        public static async Task ReceiveMessagesForeverAsync(IRabbitConnectionPool rcp)
         {
             ResetThreadName(Thread.CurrentThread, "Transient ReceiveMessagesForever Thread");
             while (true)
@@ -93,7 +93,7 @@ namespace CookedRabbit.Core.Demo
             await Task.WhenAll(new Task[] { sendMessage, receiveMessage });
         }
 
-        public static async Task PoolChannel_SendMessagesForeverAsync(RabbitChannelPool rcp)
+        public static async Task PoolChannel_SendMessagesForeverAsync(IRabbitChannelPool rcp)
         {
             ResetThreadName(Thread.CurrentThread, "PoolChannel SendMessagesForever Thread");
             int counter = 0;
@@ -117,7 +117,7 @@ namespace CookedRabbit.Core.Demo
             }
         }
 
-        public static async Task PoolChannel_ReceiveMessagesForeverAsync(RabbitChannelPool rcp)
+        public static async Task PoolChannel_ReceiveMessagesForeverAsync(IRabbitChannelPool rcp)
         {
             ResetThreadName(Thread.CurrentThread, "PoolChannel ReceiveMessagesForever Thread");
             while (true)
