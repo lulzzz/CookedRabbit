@@ -52,26 +52,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\x64\Release\CookedRabbit.Library.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Ben.Demystifier, Version=0.1.0.0, Culture=neutral, PublicKeyToken=a6d206e05440431a, processorArchitecture=MSIL">
       <HintPath>..\packages\Ben.Demystifier.0.1.1\lib\net45\Ben.Demystifier.dll</HintPath>
@@ -141,7 +121,6 @@
   <ItemGroup>
     <Compile Include="Bus\Interfaces\IRabbitBus.cs" />
     <Compile Include="Bus\RabbitBus.cs" />
-    <Compile Include="Models\RabbitTopologySeasoning.cs" />
     <Compile Include="Models\RabbitSeasoning.cs" />
     <Compile Include="Models\AckableResult.cs" />
     <Compile Include="Pools\Interfaces\IRabbitConnectionPool.cs" />
@@ -156,6 +135,7 @@
     <Compile Include="Utilities\Compression.cs" />
     <Compile Include="Utilities\Enums.cs" />
     <Compile Include="Utilities\LogStrings.cs" />
+    <Compile Include="Utilities\RandomData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

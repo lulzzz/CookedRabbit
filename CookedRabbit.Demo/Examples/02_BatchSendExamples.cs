@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using static CookedRabbit.Demo.DemoHelper;
+using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Demo
 {

@@ -13,6 +13,7 @@ namespace CookedRabbit.Demo
     {
         #region Example Variables
 
+        public static Random rand = new Random();
         public static long TotalMemoryInBytesAtStart = GC.GetTotalMemory(false);
 
         public static Task cleanupTask;
@@ -330,10 +331,12 @@ namespace CookedRabbit.Demo
 
         #region Miscellaneous
 
+        private static readonly object _lockObject = new object();
+
         // Only works when run as Admin, or Debugged as Admin
         public static void ResetThreadName(Thread thread, string newName)
         {
-            lock (thread)
+            lock (_lockObject)
             {
                 var field = thread.GetType().GetField("m_Name", BindingFlags.Instance | BindingFlags.NonPublic);
                 if (null != field)
@@ -365,57 +368,6 @@ namespace CookedRabbit.Demo
 
             connectionFactory = null;
         }
-
-        #region Random Data Generation
-
-        public static async Task<List<byte[]>> CreatePayloadsAsync(int payloadCount)
-        {
-            var byteList = new List<byte[]>();
-
-            for (int i = 0; i < payloadCount; i++)
-            {
-                byteList.Add(await GetRandomByteArray());
-            }
-
-            return byteList;
-        }
-
-        private static Random rand = new Random();
-        private static uint x;
-        private static uint y;
-        private static uint z;
-        private static uint w;
-
-        public static async Task<byte[]> GetRandomByteArray(int sizeInBytes = 10000)
-        {
-            var bytes = new byte[sizeInBytes];
-
-            x = (uint)rand.Next(0, 1000);
-            y = (uint)rand.Next(0, 1000);
-            z = (uint)rand.Next(0, 1000);
-            w = (uint)rand.Next(0, 1000);
-            await FillBuffer(bytes, 0, sizeInBytes);
-
-            return bytes;
-        }
-
-        public static Task FillBuffer(byte[] buf, int offset, int offsetEnd)
-        {
-            while (offset < offsetEnd)
-            {
-                uint t = x ^ (x << 11);
-                x = y; y = z; z = w;
-                w = w ^ (w >> 19) ^ (t ^ (t >> 8));
-                buf[offset++] = (byte)(w & 0xFF);
-                buf[offset++] = (byte)((w >> 8) & 0xFF);
-                buf[offset++] = (byte)((w >> 16) & 0xFF);
-                buf[offset++] = (byte)((w >> 24) & 0xFF);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        #endregion
 
         #endregion
     }

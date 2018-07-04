@@ -17,14 +17,14 @@ namespace CookedRabbit.Library.Services
     {
         private readonly ILogger _logger;
         private readonly IRabbitChannelPool _rcp = null;
-        private readonly RabbitTopologySeasoning _seasoning = null; // Used if for recovery later.
+        private readonly RabbitSeasoning _seasoning = null; // Used for recovery later.
 
         /// <summary>
         /// CookedRabbit RabbitTopologyService constructor.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <param name="logger"></param>
-        public RabbitTopologyService(RabbitTopologySeasoning rabbitSeasoning, ILogger logger = null)
+        public RabbitTopologyService(RabbitSeasoning rabbitSeasoning, ILogger logger = null)
         {
             _logger = logger;
             _seasoning = rabbitSeasoning;
@@ -450,12 +450,12 @@ namespace CookedRabbit.Library.Services
 
         #endregion
 
-        #region Dispose
+        #region Dispose Section
 
         private bool _disposedValue = false;
 
         /// <summary>
-        /// RabbitService dispose method.
+        /// RabbitTopologyService dispose method.
         /// </summary>
         /// <param name="disposing"></param>
         public virtual void Dispose(bool disposing)

@@ -202,20 +202,47 @@ namespace CookedRabbit.Core.Library.Utilities
         public enum Charset
         {
             /// <summary>
-            /// ContentType.Utf8
+            /// Charset.Utf8
             /// </summary>
             [Description("charset=utf-8")]
             Utf8,
             /// <summary>
-            /// ContentType.Utf16
+            /// Charset.Utf16
             /// </summary>
             [Description("charset=utf-16")]
             Utf16,
             /// <summary>
-            /// ContentType.Utf32
+            /// Charset.Utf32
             /// </summary>
             [Description("charset=utf-32")]
             Utf32,
+        }
+
+        /// <summary>
+        /// Help specify the RabbitMQ exchange you are going to create.
+        /// </summary>
+        public enum ExchangeType
+        {
+            /// <summary>
+            /// RabbitMQ Exchange type called Direct.
+            /// </summary>
+            [Description("direct")]
+            Direct,
+            /// <summary>
+            /// RabbitMQ Exchange type called Fanout.
+            /// </summary>
+            [Description("fanout")]
+            Fanout,
+            /// <summary>
+            /// RabbitMQ Exchange type called Topic.
+            /// </summary>
+            [Description("topic")]
+            Topic,
+            /// <summary>
+            /// RabbitMQ Exchange type called Header.
+            /// </summary>
+            [Description("header")]
+            Header
         }
     }
 }

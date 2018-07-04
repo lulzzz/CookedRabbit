@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static CookedRabbit.Demo.DemoHelper;
 using static CookedRabbit.Library.Utilities.Enums;
+using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Demo
 {

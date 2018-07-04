@@ -24,7 +24,7 @@ namespace CookedRabbit.Library.Services
     {
         private readonly ILogger _logger;
         private readonly IRabbitChannelPool _rcp = null;
-        private readonly RabbitSeasoning _seasoning = null; // Used if for recovery later.
+        private readonly RabbitSeasoning _seasoning = null; // Used for recovery later.
 
         /// <summary>
         /// CookedRabbit RabbitService constructor.
@@ -44,22 +44,23 @@ namespace CookedRabbit.Library.Services
         /// Publish messages asynchronously.
         /// <para>Returns success or failure.</para>
         /// </summary>
-        /// <param name="exchangeName"></param>
-        /// <param name="queueName"></param>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
         /// <param name="payload"></param>
+        /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
-        public async Task<bool> PublishAsync(string exchangeName, string queueName, byte[] payload,
-            IBasicProperties messageProperties = null)
+        /// <returns>A bool indicating success or failure.</returns>
+        public async Task<bool> PublishAsync(string exchangeName, string routingKey, byte[] payload,
+            bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             try
             {
-                channelPair.Channel.BasicPublish(exchange: exchangeName,
-                    routingKey: queueName,
-                    false,
+                channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                    routingKey: routingKey,
+                    mandatory,
                     basicProperties: messageProperties,
                     body: payload);
 
@@ -92,13 +93,14 @@ namespace CookedRabbit.Library.Services
         /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
         /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
-        /// <param name="exchangeName"></param>
-        /// <param name="queueName"></param>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
         /// <param name="payloads"></param>
+        /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>Returns a List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsync(string exchangeName, string queueName, List<byte[]> payloads,
-            IBasicProperties messageProperties = null)
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsync(string exchangeName, string routingKey, List<byte[]> payloads,
+            bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -109,9 +111,9 @@ namespace CookedRabbit.Library.Services
             {
                 try
                 {
-                    channelPair.Channel.BasicPublish(exchange: exchangeName,
-                        routingKey: queueName,
-                        false,
+                    channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                        routingKey: routingKey,
+                        mandatory,
                         basicProperties: messageProperties,
                         body: payload);
                 }
@@ -152,14 +154,15 @@ namespace CookedRabbit.Library.Services
         /// Publishes many messages asynchronously in configurable batch sizes.
         /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
-        /// <param name="exchangeName"></param>
-        /// <param name="queueName"></param>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
         /// <param name="payloads"></param>
         /// <param name="batchSize"></param>
+        /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>Returns a List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100,
-            IBasicProperties messageProperties = null)
+        /// <returns>A List&lt;int&gt; of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, ushort batchSize = 100,
+            bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -175,9 +178,9 @@ namespace CookedRabbit.Library.Services
                 {
                     try
                     {
-                        channelPair.Channel.BasicPublish(exchange: exchangeName,
-                            routingKey: queueName,
-                            false,
+                        channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                            routingKey: routingKey,
+                            mandatory,
                             basicProperties: messageProperties,
                             body: payload);
                     }
@@ -219,14 +222,15 @@ namespace CookedRabbit.Library.Services
         /// Publishes many messages asynchronously in configurable batch sizes. High performance but experimental. Does not log exceptions.
         /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
-        /// <param name="exchangeName"></param>
-        /// <param name="queueName"></param>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
         /// <param name="payloads"></param>
         /// <param name="batchSize"></param>
+        /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>Returns a List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesInParallelAsync(string exchangeName, string queueName, List<byte[]> payloads, ushort batchSize = 100,
-            IBasicProperties messageProperties = null)
+        /// <returns>A List&lt;int&gt; of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, ushort batchSize = 100,
+            bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var failures = new ConcurrentBag<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -246,9 +250,9 @@ namespace CookedRabbit.Library.Services
                         {
                             try
                             {
-                                channelPair.Channel.BasicPublish(exchange: exchangeName,
-                                    routingKey: queueName,
-                                    false,
+                                channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                                    routingKey: routingKey,
+                                    mandatory,
                                     basicProperties: messageProperties,
                                     body: payload);
                             }
@@ -272,9 +276,9 @@ namespace CookedRabbit.Library.Services
                     {
                         try
                         {
-                            channelPair.Channel.BasicPublish(exchange: exchangeName,
-                                routingKey: queueName,
-                                false,
+                            channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                                routingKey: routingKey,
+                                mandatory,
                                 basicProperties: messageProperties,
                                 body: payload);
                         }
@@ -312,14 +316,15 @@ namespace CookedRabbit.Library.Services
         /// Compresses the payload before doing performing similar steps to PublishAsync().
         /// <para>Returns success or failure.</para>
         /// </summary>
-        /// <param name="exchangeName"></param>
-        /// <param name="queueName"></param>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
         /// <param name="payload"></param>
         /// <param name="contentType"></param>
+        /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
-        public async Task<bool> CompressAndPublishAsync(string exchangeName, string queueName, byte[] payload, string contentType,
-            IBasicProperties messageProperties = null)
+        /// <returns>A bool indicating success or failure.</returns>
+        public async Task<bool> CompressAndPublishAsync(string exchangeName, string routingKey, byte[] payload, string contentType,
+            bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var compressionTask = CompressBytesWithGzipAsync(payload);
 
@@ -335,9 +340,9 @@ namespace CookedRabbit.Library.Services
                 messageProperties.ContentType = contentType;
 
                 await compressionTask;
-                channelPair.Channel.BasicPublish(exchange: exchangeName,
-                    routingKey: queueName,
-                    false,
+                channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                    routingKey: routingKey,
+                    mandatory,
                     basicProperties: messageProperties,
                     body: compressionTask.Result);
 
@@ -414,7 +419,7 @@ namespace CookedRabbit.Library.Services
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="batchCount"></param>
-        /// <returns>Returns a List&lt;BasicGetResult&gt; (RabbitMQ).</returns>
+        /// <returns>A List of BasicGetResult (RabbitMQ object).</returns>
         public async Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -502,7 +507,7 @@ namespace CookedRabbit.Library.Services
         /// <para>Returns a List&lt;ValueTuple(IModel, BasicGetResult)&gt;.</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns>Returns a ValueTuple(IModel, BasicGetResult) (RabbitMQ).</returns>
+        /// <returns>A ValueTuple(IModel, BasicGetResult) (RabbitMQ objects).</returns>
         public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
@@ -536,12 +541,12 @@ namespace CookedRabbit.Library.Services
         }
 
         /// <summary>
-        /// Get an AckableResult from a queue.
-        /// <para>Returns a CookedRabbit AckableResult.</para>
+        /// Get a List of BasicGetResult from a queue.
+        /// <para>Returns a ValueTuple(IModel, List&lt;BasicGetResult&gt;) (RabbitMQ objects).</para>
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="batchCount"></param>
-        /// <returns>Returns an AckableResult (CookedRabbit).</returns>
+        /// <returns>A ValueTuple(IModel, List&lt;BasicGetResult&gt;) (RabbitMQ objects).</returns>
         public async Task<(IModel Channel, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -624,7 +629,7 @@ namespace CookedRabbit.Library.Services
         /// <para>Returns a CookedRabbit AckableResult.</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns>Returns an AckableResult (CookedRabbit).</returns>
+        /// <returns>An AckableResult (CookedRabbit object).</returns>
         public async Task<AckableResult> GetAckableAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
@@ -663,7 +668,7 @@ namespace CookedRabbit.Library.Services
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="batchCount"></param>
-        /// <returns>Returns an AckableResult (CookedRabbit).</returns>
+        /// <returns>An AckableResult (CookedRabbit object).</returns>
         public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -750,7 +755,7 @@ namespace CookedRabbit.Library.Services
         /// <para>Returns a byte[] (decompressed).</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns>Returns a byte[] (decompressed).</returns>
+        /// <returns>A byte[] (decompressed).</returns>
         public async Task<byte[]> GetAndDecompressAsync(string queueName)
         {
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -801,7 +806,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="queueName"></param>
         /// <param name="prefetchCount"></param>
         /// <param name="autoAck"></param>
-        /// <returns>Returns a RabbitMQ EventingBasicConsumer.</returns>
+        /// <returns>A RabbitMQ EventingBasicConsumer.</returns>
         public async Task<EventingBasicConsumer> CreateConsumerAsync(
             Action<object, BasicDeliverEventArgs> ActionWork,
             string queueName,
@@ -831,7 +836,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="queueName"></param>
         /// <param name="prefetchCount"></param>
         /// <param name="autoAck"></param>
-        /// <returns>Returns a RabbitMQ AsyncEventingBasicConsumer.</returns>
+        /// <returns>A RabbitMQ AsyncEventingBasicConsumer.</returns>
         public async Task<AsyncEventingBasicConsumer> CreateAsynchronousConsumerAsync(
             Func<object, BasicDeliverEventArgs, Task> AsyncWork,
             string queueName,
@@ -852,6 +857,46 @@ namespace CookedRabbit.Library.Services
                                  consumer: consumer);
 
             return consumer;
+        }
+
+        #endregion
+
+        #region Miscellaneous Section
+
+        /// <summary>
+        /// Gets the total message count from a queue.
+        /// </summary>
+        /// <param name="queueName">The queue to check the message count.</param>
+        /// <returns>A uint of the total messages in the queue.</returns>
+        public async Task<uint> GetMessageCountAsync(string queueName)
+        {
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            uint messageCount = 0;
+
+            try
+            { messageCount = channelPair.Channel.MessageCount(queueName); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+            {
+                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (Exception e)
+            {
+                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            finally { _rcp.ReturnChannelToPool(channelPair); }
+
+            return messageCount;
         }
 
         #endregion
@@ -894,7 +939,7 @@ namespace CookedRabbit.Library.Services
 
         #endregion
 
-        #region Dispose
+        #region Dispose Section
 
         private bool _disposedValue = false;
 
