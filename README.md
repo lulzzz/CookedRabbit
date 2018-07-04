@@ -100,7 +100,7 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
  * Disaster recovery & circuit break.
  * A ServiceBus-esque client.
  * Additional Demonstrations.
- * Add xUnit tests.
+ * Add Xunit tests.
 
 </p>
 </details>
@@ -120,7 +120,7 @@ None. Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopolog
     ║       ║ - Circuit Breaker                                                     ║
     ║       ║ - Abstraction                                                         ║
     ║       ║                                                                       ║
-    ╠════ » ╠══ » RabbitService : IRabbitService ═══════════════════════════════════╣
+    ╠════ » ╠══ » RabbitDeliveryService : IRabbitDeliveryService ═══════════════════╣
     ║       ║       ║                                                               ║
     ║       ║       ║ & RabbitChannelPool                                           ║
     ║       ║       ║ & RabbitSeasoning                                             ║

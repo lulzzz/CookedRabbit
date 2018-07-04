@@ -7,13 +7,13 @@ namespace CookedRabbit.Core.Library.Bus
     /// </summary>
     public class RabbitBus : IRabbitBus
     {
-        private readonly IRabbitService _rabbitService;
+        private readonly IRabbitDeliveryService _rabbitService;
 
         /// <summary>
         /// RabbitBus constructor.
         /// </summary>
         /// <param name="rabbitService"></param>
-        public RabbitBus(IRabbitService rabbitService)
+        public RabbitBus(IRabbitDeliveryService rabbitService)
         {
             _rabbitService = rabbitService;
         }

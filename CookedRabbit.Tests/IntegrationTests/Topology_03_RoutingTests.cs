@@ -10,7 +10,7 @@ namespace CookedRabbit.Tests.Integrations
 {
     public class Topology_03_RoutingTests : IDisposable
     {
-        private readonly RabbitService _rabbitService;
+        private readonly RabbitDeliveryService _rabbitService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
         private readonly string _testQueueName = "CookedRabbit.TopologyTestQueue";
@@ -29,7 +29,7 @@ namespace CookedRabbit.Tests.Integrations
                 ThrowExceptions = false
             };
 
-            _rabbitService = new RabbitService(_seasoning);
+            _rabbitService = new RabbitDeliveryService(_seasoning);
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try

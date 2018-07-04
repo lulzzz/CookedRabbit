@@ -128,10 +128,12 @@
     <Compile Include="Pools\RabbitChannelPool.cs" />
     <Compile Include="Pools\RabbitConnectionPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\Interfaces\IRabbitMaintenanceService.cs" />
     <Compile Include="Services\Interfaces\IRabbitTopologyService.cs" />
-    <Compile Include="Services\Interfaces\IRabbitService.cs" />
+    <Compile Include="Services\Interfaces\IRabbitDeliveryService.cs" />
+    <Compile Include="Services\RabbitMaintenanceService.cs" />
     <Compile Include="Services\RabbitTopologyService.cs" />
-    <Compile Include="Services\RabbitService.cs" />
+    <Compile Include="Services\RabbitDeliveryService.cs" />
     <Compile Include="Utilities\Compression.cs" />
     <Compile Include="Utilities\Enums.cs" />
     <Compile Include="Utilities\LogStrings.cs" />

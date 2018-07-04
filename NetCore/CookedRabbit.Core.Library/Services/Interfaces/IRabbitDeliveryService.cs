@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace CookedRabbit.Core.Library.Services
 {
     /// <summary>
-    /// The interface for RabbitService.
+    /// The interface for RabbitDeliveryService.
     /// </summary>
-    public interface IRabbitService
+    public interface IRabbitDeliveryService
     {
         /// <summary>
         /// Publish messages asynchronously.
@@ -118,7 +118,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <para>Returns a CookedRabbit AckableResult.</para>
         /// </summary>
         /// <param name="queueName"></param>
-        /// <returns>Returns an AckableResult (CookedRabbit object).</returns>
+        /// <returns>An AckableResult (CookedRabbit object).</returns>
         Task<AckableResult> GetAckableAsync(string queueName);
 
         /// <summary>

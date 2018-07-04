@@ -19,12 +19,12 @@ namespace CookedRabbit.Core.Demo
         private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName };
 
         // Using RabbitService backed by a Channel Pool
-        public static RabbitService _rabbitService;
+        public static RabbitDeliveryService _rabbitService;
         public static Random rand = new Random();
 
         public static async Task RunRabbitServicePoolChannelTestAsync()
         {
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_SendMessagesForeverAsync(), RabbitService_ReceiveMessagesForeverAsync() });
         }
@@ -68,7 +68,7 @@ namespace CookedRabbit.Core.Demo
 
         public static async Task RunRabbitServiceAccuracyTestAsync()
         {
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_ReceiveMessagesForeverWithAccuracyAsync(), RabbitService_SendMessagesForeverWithAccuracyAsync() });
         }
@@ -124,7 +124,7 @@ namespace CookedRabbit.Core.Demo
 
         public static async Task RunRabbitServiceDelayAckTestAsync()
         {
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_SendMessagesWithLimitWithAccuracyAsync(), RabbitService_ReceiveMessagesForeverDelayAckAsync() });
         }

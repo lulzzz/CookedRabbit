@@ -18,9 +18,9 @@ using static CookedRabbit.Library.Utilities.Enums;
 namespace CookedRabbit.Library.Services
 {
     /// <summary>
-    /// CookedRabbit main service for delivering and receiving messages using RabbitMQ.
+    /// CookedRabbit delivery service for delivering and receiving messages using RabbitMQ.
     /// </summary>
-    public class RabbitService : IRabbitService, IDisposable
+    public class RabbitDeliveryService : IRabbitDeliveryService, IDisposable
     {
         private readonly ILogger _logger;
         private readonly IRabbitChannelPool _rcp = null;
@@ -31,7 +31,7 @@ namespace CookedRabbit.Library.Services
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <param name="logger"></param>
-        public RabbitService(RabbitSeasoning rabbitSeasoning, ILogger logger = null)
+        public RabbitDeliveryService(RabbitSeasoning rabbitSeasoning, ILogger logger = null)
         {
             _logger = logger;
             _seasoning = rabbitSeasoning;

@@ -15,7 +15,7 @@ namespace CookedRabbit.Demo
         #region RabbitService w/ Accuracy & Delay Acknowledge Consumer
 
         private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName };
-        private static RabbitService _rabbitService;
+        private static RabbitDeliveryService _rabbitService;
         private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
         private static EventingBasicConsumer consumer = null; // Sits and listens for messages
         private static readonly uint SendLimit = 1000000;
@@ -24,7 +24,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceConsumerAckTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionWork, queueName);
             await RabbitService_SendMessagesWithLimitWithAccuracyAsync();
@@ -75,7 +75,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceConsumerRetryTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
             await RabbitService_SendManyWithLimitAsync();
@@ -141,7 +141,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceBatchPublishWithConsumerTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
             await RabbitService_SendManyInBatchesWithLimitAsync();
@@ -176,7 +176,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceCreateAsyncConsumerTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = true;
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
             asyncConsumer = await _rabbitService.CreateAsynchronousConsumerAsync(AsyncWork, queueName);
             await RabbitService_SendManyInBatchesWithLimitAsync();
             await Console.Out.WriteLineAsync("Finished sending messages.");
@@ -224,7 +224,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceBatchPublishWithInParallelConsumerTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitService(_rabbitSeasoning, null);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning, null);
 
             consumer = await _rabbitService.CreateConsumerAsync(ActionRejectWork, queueName);
             await RabbitService_SendManyInBatchesParallelWithLimitAsync();

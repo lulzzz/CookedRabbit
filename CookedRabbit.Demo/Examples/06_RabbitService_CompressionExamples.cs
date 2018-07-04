@@ -16,7 +16,7 @@ namespace CookedRabbit.Demo
         #region RabbitService Setup
 
         private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName, EnableDispatchConsumersAsync = false };
-        private static RabbitService _rabbitService;
+        private static RabbitDeliveryService _rabbitService;
         private static TestObject testObject = new TestObject();
         private static string _equalityCheck = string.Empty;
 
@@ -27,7 +27,7 @@ namespace CookedRabbit.Demo
         public static async Task RunRabbitServiceCompressAndDecompressTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitService(_rabbitSeasoning);
+            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await RabbitService_SendMessageAsync();
             await RabbitService_ReceiveMessageAsync();

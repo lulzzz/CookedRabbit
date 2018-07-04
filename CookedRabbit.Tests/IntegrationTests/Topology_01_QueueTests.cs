@@ -9,7 +9,7 @@ namespace CookedRabbit.Tests.Integrations
 {
     public class Topology_01_QueueTests : IDisposable
     {
-        private readonly RabbitService _rabbitService;
+        private readonly RabbitDeliveryService _rabbitService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
         private readonly string _testQueueName = "CookedRabbit.TopologyTestQueue";
@@ -25,7 +25,7 @@ namespace CookedRabbit.Tests.Integrations
                 ChannelPoolCount = 1
             };
 
-            _rabbitService = new RabbitService(_seasoning);
+            _rabbitService = new RabbitDeliveryService(_seasoning);
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try
@@ -55,7 +55,7 @@ namespace CookedRabbit.Tests.Integrations
         {
             // Arrange
             var queueName = _testQueueName;
-            string exchangeName = string.Empty; // Null throws error in RabbitMQ.
+            string exchangeName = string.Empty;
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
@@ -80,7 +80,7 @@ namespace CookedRabbit.Tests.Integrations
         {
             // Arrange
             var queueName = _testQueueName;
-            string exchangeName = string.Empty; // Null throws error in RabbitMQ.
+            string exchangeName = string.Empty;
             var payload = await GetRandomByteArray(1000);
 
             // Act

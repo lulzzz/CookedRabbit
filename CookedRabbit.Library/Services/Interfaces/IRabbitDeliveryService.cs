@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace CookedRabbit.Library.Services
 {
     /// <summary>
-    /// The interface for RabbitService.
+    /// The interface for RabbitDeliveryService.
     /// </summary>
-    public interface IRabbitService
+    public interface IRabbitDeliveryService
     {
         /// <summary>
         /// Publish messages asynchronously.
