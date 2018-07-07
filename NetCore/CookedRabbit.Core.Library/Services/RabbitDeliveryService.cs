@@ -34,7 +34,40 @@ namespace CookedRabbit.Core.Library.Services
         {
             _logger = logger;
             _seasoning = rabbitSeasoning;
-            _rcp = RabbitChannelPool.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
+            _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// CookedRabbit RabbitService constructor.  Allows for the sharing of a channel pool. If channel is not initialized, it will automatically initialize in here.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <param name="rcp"></param>
+        /// <param name="logger"></param>
+        public RabbitDeliveryService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rcp, ILogger logger = null)
+        {
+            _logger = logger;
+            _seasoning = rabbitSeasoning;
+            _rcp = rcp;
+
+            if (!_rcp.IsInitialized)
+            { _rcp.Initialize(rabbitSeasoning).GetAwaiter().GetResult(); }
+        }
+
+        /// <summary>
+        /// CookedRabbit RabbitService constructor. Allows for the sharing of a channel pool and connection pool.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <param name="rchanp"></param>
+        /// <param name="rconp"></param>
+        /// <param name="logger"></param>
+        public RabbitDeliveryService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rchanp, IRabbitConnectionPool rconp, ILogger logger = null)
+        {
+            _logger = logger;
+            _seasoning = rabbitSeasoning;
+
+            rchanp.SetConnectionPoolAsync(rabbitSeasoning, rconp).GetAwaiter().GetResult();
+
+            _rcp = rchanp;
         }
 
         #region BasicPublish Section
@@ -67,19 +100,19 @@ namespace CookedRabbit.Core.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -119,21 +152,21 @@ namespace CookedRabbit.Core.Library.Services
                 catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                 {
                     failures.Add(count);
-                    await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                    await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                 }
                 catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                 {
                     failures.Add(count);
-                    await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                    await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                 }
                 catch (Exception e)
                 {
                     failures.Add(count);
-                    await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                 }
@@ -159,8 +192,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="batchSize"></param>
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>A List&lt;int&gt; of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, ushort batchSize = 100,
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var failures = new List<int>();
@@ -170,8 +203,9 @@ namespace CookedRabbit.Core.Library.Services
 
             while (payloads.Any())
             {
-                var processingPayloads = payloads.Take(batchSize);
-                payloads.RemoveRange(0, payloads.Count > batchSize ? batchSize : payloads.Count);
+                var currentBatchSize = payloads.Count > batchSize ? batchSize : payloads.Count;
+                var processingPayloads = payloads.Take(currentBatchSize).ToList();
+                payloads.RemoveRange(0, currentBatchSize);
 
                 foreach (var payload in processingPayloads)
                 {
@@ -186,21 +220,21 @@ namespace CookedRabbit.Core.Library.Services
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
                         failures.Add(count);
-                        await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                     {
                         failures.Add(count);
-                        await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (Exception e)
                     {
                         failures.Add(count);
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
@@ -219,7 +253,6 @@ namespace CookedRabbit.Core.Library.Services
 
         /// <summary>
         /// Publishes many messages asynchronously in configurable batch sizes. High performance but experimental. Does not log exceptions.
-        /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
         /// <param name="exchangeName">The optional Exchange name.</param>
         /// <param name="routingKey">Either a topic/routing key or queue name.</param>
@@ -227,20 +260,20 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="batchSize"></param>
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>A List&lt;int&gt; of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, ushort batchSize = 100,
+        /// <returns></returns>
+        public async Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
             var failures = new ConcurrentBag<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
-            var count = 0;
 
             while (payloads.Any())
             {
                 var procCount = Environment.ProcessorCount;
-                var processingPayloads = payloads.Take(batchSize);
-                payloads.RemoveRange(0, payloads.Count > batchSize ? batchSize : payloads.Count);
+                var currentBatchSize = payloads.Count > batchSize ? batchSize : payloads.Count;
+                var processingPayloads = payloads.Take(currentBatchSize).ToList();
+                payloads.RemoveRange(0, currentBatchSize);
 
                 if (processingPayloads.Count() >= procCount)
                 {
@@ -256,18 +289,13 @@ namespace CookedRabbit.Core.Library.Services
                                     body: payload);
                             }
                             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
-                            {
-                                failures.Add(count);
-                                _rcp.FlagDeadChannel(channelPair.ChannelId);
-                            }
+                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                             catch (Exception)
-                            {
-                                failures.Add(count);
-                                _rcp.FlagDeadChannel(channelPair.ChannelId);
-                            }
-
-                            count++;
+                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                         });
+
+                    if (_seasoning.ThrottleFastBodyLoops)
+                    { await Task.Delay(rand.Next(0, 2)); }
                 }
                 else
                 {
@@ -282,16 +310,9 @@ namespace CookedRabbit.Core.Library.Services
                                 body: payload);
                         }
                         catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
-                        {
-                            failures.Add(count);
-                            _rcp.FlagDeadChannel(channelPair.ChannelId);
-                        }
+                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                         catch (Exception)
-                        {
-                            failures.Add(count);
-                        }
-
-                        count++;
+                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                     }
                 }
 
@@ -303,8 +324,6 @@ namespace CookedRabbit.Core.Library.Services
 
             var failureList = failures.ToList();
             failureList.Sort();
-
-            return failureList;
         }
 
         #endregion
@@ -349,19 +368,19 @@ namespace CookedRabbit.Core.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -390,19 +409,19 @@ namespace CookedRabbit.Core.Library.Services
             { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -428,19 +447,19 @@ namespace CookedRabbit.Core.Library.Services
             try { queueCount = channelPair.Channel.MessageCount(queueName); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -463,26 +482,26 @@ namespace CookedRabbit.Core.Library.Services
                     }
                     catch (Exception e) when (results.Count() > 0)
                     {
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         // Does not throw to use the results already found.
                         break;
                     }
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
-                        await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                     {
-                        await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (Exception e)
                     {
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
@@ -517,19 +536,19 @@ namespace CookedRabbit.Core.Library.Services
             { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -557,19 +576,19 @@ namespace CookedRabbit.Core.Library.Services
             try { queueCount = channelPair.Channel.MessageCount(queueName); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -589,26 +608,26 @@ namespace CookedRabbit.Core.Library.Services
                     }
                     catch (Exception e) when (results.Count() > 0)
                     {
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         // Does not throw to use the results already found.
                         break;
                     }
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
-                        await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                     {
-                        await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (Exception e)
                     {
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
@@ -639,19 +658,19 @@ namespace CookedRabbit.Core.Library.Services
             { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -679,19 +698,19 @@ namespace CookedRabbit.Core.Library.Services
             try { queueCount = channelPair.Channel.MessageCount(queueName); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -711,26 +730,26 @@ namespace CookedRabbit.Core.Library.Services
                     }
                     catch (Exception e) when (results.Count() > 0)
                     {
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         // Does not throw to use the results already found.
                         break;
                     }
                     catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                     {
-                        await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                     {
-                        await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
                     catch (Exception e)
                     {
-                        await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                     }
@@ -765,19 +784,19 @@ namespace CookedRabbit.Core.Library.Services
             { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -877,19 +896,19 @@ namespace CookedRabbit.Core.Library.Services
             { messageCount = channelPair.Channel.MessageCount(queueName); }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -902,7 +921,7 @@ namespace CookedRabbit.Core.Library.Services
 
         #region Error Handling Section
 
-        private async Task ReportErrors(Exception e, ulong channelId, params object[] args)
+        private async Task HandleError(Exception e, ulong channelId, params object[] args)
         {
             _rcp.FlagDeadChannel(channelId);
             var errorMessage = string.Empty;

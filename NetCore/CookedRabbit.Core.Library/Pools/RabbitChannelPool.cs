@@ -1,4 +1,5 @@
 ﻿using CookedRabbit.Core.Library.Models;
+using CookedRabbit.Core.Library.Utilities;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
@@ -23,20 +24,32 @@ namespace CookedRabbit.Core.Library.Pools
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
         private RabbitSeasoning _seasoning = null; // Used if channels go null later.
 
+        /// <summary>
+        /// Check to see if the channel pool has already been initialized.
+        /// </summary>
+        public bool IsInitialized { get; private set; } = false;
+
         #region Constructor & Setup
 
-        private RabbitChannelPool() { }
+        /// <summary>
+        /// CookedRabbit RabbitChannelPool constructor.
+        /// </summary>
+        public RabbitChannelPool() { }
 
         /// <summary>
-        /// CookedRabbit RabbitChannelPool factory.
+        /// Manually set the IRabbitConnectionPool for flexiblity in sharing the connection pool across services. If RabbitConnectionPool is not initialized, it will be here.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
-        /// <returns>Returns a RabbitChannelPool.</returns>
-        public static async Task<IRabbitChannelPool> CreateRabbitChannelPoolAsync(RabbitSeasoning rabbitSeasoning)
+        /// <param name="rcp"></param>
+        /// <returns></returns>
+        public async Task SetConnectionPoolAsync(RabbitSeasoning rabbitSeasoning, IRabbitConnectionPool rcp)
         {
-            RabbitChannelPool rcp = new RabbitChannelPool();
-            await rcp.Initialize(rabbitSeasoning);
-            return rcp;
+            if (_rcp != null) throw new SystemException("Can't assign a connection pool, one is already assigned.");
+
+            _rcp = rcp;
+
+            if (!_rcp.IsInitialized)
+            { await Initialize(rabbitSeasoning); }
         }
 
         /// <summary>
@@ -44,7 +57,7 @@ namespace CookedRabbit.Core.Library.Pools
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <returns></returns>
-        private async Task Initialize(RabbitSeasoning rabbitSeasoning)
+        public async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
             if (_rcp is null)
             {
@@ -52,10 +65,12 @@ namespace CookedRabbit.Core.Library.Pools
                 _channelsToMaintain = rabbitSeasoning.ChannelPoolCount;
                 _emptyPoolWaitTime = rabbitSeasoning.EmptyPoolWaitTime;
 
-                _rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
+                _rcp = await Factories.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
 
                 await CreatePoolChannels();
                 await CreatePoolChannelsWithManualAck();
+
+                IsInitialized = true;
             }
         }
 
@@ -277,7 +292,7 @@ namespace CookedRabbit.Core.Library.Pools
                 {
                     try
                     {
-                        channelPair.Item2.Close(200, "CookedRabbit shuttingdown.");
+                        channelPair.Item2.Close(200, "CookedRabbit shutting down.");
                         channelPair.Item2.Dispose();
                     }
                     catch { }
@@ -290,7 +305,7 @@ namespace CookedRabbit.Core.Library.Pools
                 {
                     try
                     {
-                        channelPair.Item2.Close(200, "CookedRabbit shuttingdown.");
+                        channelPair.Item2.Close(200, "CookedRabbit shutting down.");
                         channelPair.Item2.Dispose();
                     }
                     catch { }

@@ -1,5 +1,6 @@
 ﻿using CookedRabbit.Core.Library.Models;
 using CookedRabbit.Core.Library.Pools;
+using CookedRabbit.Core.Library.Utilities;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace CookedRabbit.Library.Services
         {
             _logger = logger;
             _seasoning = rabbitSeasoning;
-            _rcp = RabbitChannelPool.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
+            _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
         }
 
         #region Queue & Maintenance Section
@@ -41,7 +42,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="exclusive"></param>
         /// <param name="autoDelete"></param>
         /// <param name="args"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> QueueDeclareAsync(string queueName, bool durable = true, bool exclusive = false,
                                                   bool autoDelete = false, IDictionary<string, object> args = null)
         {
@@ -60,19 +61,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -89,7 +90,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="queueName"></param>
         /// <param name="onlyIfUnused"></param>
         /// <param name="onlyIfEmpty"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> QueueDeleteAsync(string queueName, bool onlyIfUnused = false, bool onlyIfEmpty = false)
         {
             var success = false;
@@ -105,19 +106,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -134,7 +135,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="exchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> QueueBindToExchangeAsync(string queueName, string exchangeName, string routingKey = "",
                                                          IDictionary<string, object> args = null)
         {
@@ -152,19 +153,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -181,7 +182,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="exchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> QueueUnbindFromExchangeAsync(string queueName, string exchangeName, string routingKey = "",
                                                              IDictionary<string, object> args = null)
         {
@@ -199,19 +200,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -233,7 +234,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="durable"></param>
         /// <param name="autoDelete"></param>
         /// <param name="args"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> ExchangeDeclareAsync(string exchangeName, string exchangeType, bool durable = true,
                                                      bool autoDelete = false, IDictionary<string, object> args = null)
         {
@@ -252,19 +253,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -279,7 +280,7 @@ namespace CookedRabbit.Library.Services
         /// </summary>
         /// <param name="exchangeName"></param>
         /// <param name="onlyIfUnused"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> ExchangeDeleteAsync(string exchangeName, bool onlyIfUnused = false)
         {
             var success = false;
@@ -294,19 +295,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -323,7 +324,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="parentExchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> ExchangeBindToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "",
                                                             IDictionary<string, object> args = null)
         {
@@ -341,19 +342,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -370,7 +371,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="parentExchangeName"></param>
         /// <param name="routingKey"></param>
         /// <param name="args"></param>
-        /// <returns>Returns bool indicating success or failure.</returns>
+        /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> ExchangeUnbindToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "",
                                                               IDictionary<string, object> args = null)
         {
@@ -388,19 +389,19 @@ namespace CookedRabbit.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -413,7 +414,7 @@ namespace CookedRabbit.Library.Services
 
         #region Error Handling Section
 
-        private async Task ReportErrors(Exception e, ulong channelId, params object[] args)
+        private async Task HandleError(Exception e, ulong channelId, params object[] args)
         {
             _rcp.FlagDeadChannel(channelId);
             var errorMessage = string.Empty;

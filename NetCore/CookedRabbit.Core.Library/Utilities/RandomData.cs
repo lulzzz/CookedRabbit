@@ -16,17 +16,18 @@ namespace CookedRabbit.Core.Library.Utilities
         private static uint w;
 
         /// <summary>
-        /// Create a list of byte[] with default random data of 10KB.
+        /// Create a list of byte[] (default random data of 1KB each).
         /// </summary>
         /// <param name="payloadCount">The number of byte[] to create.</param>
-        /// <returns>List of byte[] filled with 10,000 random bytes.</returns>
-        public static async Task<List<byte[]>> CreatePayloadsAsync(int payloadCount)
+        /// <param name="payloadSizeInBytes">The size of random bytes per byte[].</param>
+        /// <returns>List of byte[] random bytes.</returns>
+        public static async Task<List<byte[]>> CreatePayloadsAsync(int payloadCount, int payloadSizeInBytes = 1000)
         {
             var byteList = new List<byte[]>();
 
             for (int i = 0; i < payloadCount; i++)
             {
-                byteList.Add(await GetRandomByteArray());
+                byteList.Add(await GetRandomByteArray(payloadSizeInBytes));
             }
 
             return byteList;

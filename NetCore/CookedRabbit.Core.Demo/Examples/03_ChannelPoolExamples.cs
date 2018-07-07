@@ -1,5 +1,6 @@
 ﻿using CookedRabbit.Core.Library.Models;
 using CookedRabbit.Core.Library.Pools;
+using CookedRabbit.Core.Library.Utilities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace CookedRabbit.Core.Demo
 
         public static async Task RunManualTransientChannelTestAsync()
         {
-            var rcp = await RabbitConnectionPool.CreateRabbitConnectionPoolAsync(_rabbitSeasoning);
+            var rcp = await Factories.CreateRabbitConnectionPoolAsync(_rabbitSeasoning);
 
             var sendMessage = SendMessagesForeverAsync(rcp);
             var receiveMessage = ReceiveMessagesForeverAsync(rcp);
@@ -85,7 +86,7 @@ namespace CookedRabbit.Core.Demo
 
         public static async Task RunPoolChannelTestAsync()
         {
-            var rcp = await RabbitChannelPool.CreateRabbitChannelPoolAsync(_rabbitSeasoning);
+            var rcp = await Factories.CreateRabbitChannelPoolAsync(_rabbitSeasoning);
 
             var sendMessage = PoolChannel_SendMessagesForeverAsync(rcp);
             var receiveMessage = PoolChannel_ReceiveMessagesForeverAsync(rcp);

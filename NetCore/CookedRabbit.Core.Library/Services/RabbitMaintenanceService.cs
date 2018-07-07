@@ -1,5 +1,6 @@
 ﻿using CookedRabbit.Core.Library.Models;
 using CookedRabbit.Core.Library.Pools;
+using CookedRabbit.Core.Library.Utilities;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
@@ -27,14 +28,14 @@ namespace CookedRabbit.Core.Library.Services
         {
             _logger = logger;
             _seasoning = rabbitSeasoning;
-            _rcp = RabbitChannelPool.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
+            _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
         }
 
         /// <summary>
-        /// Empty the queue.
+        /// Empty/purge the queue.
         /// </summary>
-        /// <param name="queueName"></param>
-        /// <param name="deleteQueueAfter"></param>
+        /// <param name="queueName">The queue to remove from.</param>
+        /// <param name="deleteQueueAfter">Indicate if you want to delete the queue after purge.</param>
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PurgeQueueAsync(string queueName, bool deleteQueueAfter = false)
         {
@@ -54,19 +55,19 @@ namespace CookedRabbit.Core.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -78,8 +79,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <summary>
         /// Transfers one message from one queue to another queue.
         /// </summary>
-        /// <param name="originQueueName"></param>
-        /// <param name="targetQueueName"></param>
+        /// <param name="originQueueName">The queue to remove from.</param>
+        /// <param name="targetQueueName">The destination queue.</param>
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> TransferMessageAsync(string originQueueName, string targetQueueName)
         {
@@ -97,19 +98,19 @@ namespace CookedRabbit.Core.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -119,12 +120,59 @@ namespace CookedRabbit.Core.Library.Services
         }
 
         /// <summary>
-        /// Transfers all messages from one queue to another queue. Stops when on the first null result.
+        /// Transfers a number of messages from one queue to another queue.
         /// </summary>
-        /// <param name="originQueueName"></param>
-        /// <param name="targetQueueName"></param>
+        /// <param name="originQueueName">The queue to remove from.</param>
+        /// <param name="targetQueueName">The destination queue.</param>
+        /// <param name="count">Number of messages to transfer</param>
         /// <returns>A bool indicating success or failure.</returns>
-        public async Task<bool> TransferAllMessageAsync(string originQueueName, string targetQueueName)
+        public async Task<bool> TransferMessagesAsync(string originQueueName, string targetQueueName, ushort count)
+        {
+            var success = false;
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            try
+            {
+                for (ushort i = 0; i < count; i++)
+                {
+                    var result = channelPair.Channel.BasicGet(originQueueName, true);
+
+                    if (result != null && result.Body != null)
+                    { channelPair.Channel.BasicPublish(string.Empty, targetQueueName, false, null, result.Body); }
+                }
+
+                success = true;
+            }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+            {
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (Exception e)
+            {
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            finally { _rcp.ReturnChannelToPool(channelPair); }
+
+            return success;
+        }
+
+        /// <summary>
+        /// Transfers all messages from one queue to another queue. Stops on the first null result (when queue is empty).
+        /// </summary>
+        /// <param name="originQueueName">The queue to remove from.</param>
+        /// <param name="targetQueueName">The destination queue.</param>
+        /// <returns>A bool indicating success or failure.</returns>
+        public async Task<bool> TransferAllMessagesAsync(string originQueueName, string targetQueueName)
         {
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -145,19 +193,19 @@ namespace CookedRabbit.Core.Library.Services
             }
             catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
             {
-                await ReportErrors(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
             {
-                await ReportErrors(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
             catch (Exception e)
             {
-                await ReportErrors(e, channelPair.ChannelId, new { channelPair.ChannelId });
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                 if (_seasoning.ThrowExceptions) { throw; }
             }
@@ -168,7 +216,7 @@ namespace CookedRabbit.Core.Library.Services
 
         #region Error Handling Section
 
-        private async Task ReportErrors(Exception e, ulong channelId, params object[] args)
+        private async Task HandleError(Exception e, ulong channelId, params object[] args)
         {
             _rcp.FlagDeadChannel(channelId);
             var errorMessage = string.Empty;

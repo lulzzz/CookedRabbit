@@ -136,6 +136,7 @@
     <Compile Include="Services\RabbitDeliveryService.cs" />
     <Compile Include="Utilities\Compression.cs" />
     <Compile Include="Utilities\Enums.cs" />
+    <Compile Include="Utilities\Factories.cs" />
     <Compile Include="Utilities\LogStrings.cs" />
     <Compile Include="Utilities\RandomData.cs" />
   </ItemGroup>

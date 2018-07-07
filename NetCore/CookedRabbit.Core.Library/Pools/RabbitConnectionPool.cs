@@ -16,24 +16,25 @@ namespace CookedRabbit.Core.Library.Pools
         private ConcurrentQueue<IConnection> _connectionPool = new ConcurrentQueue<IConnection>();
         private RabbitSeasoning _seasoning = null; // Used if connections go null later.
 
+        /// <summary>
+        /// Check to see if the channel pool has already been initialized.
+        /// </summary>
+        public bool IsInitialized { get; private set; } = false;
+
         #region Constructor & Setup
 
-        private RabbitConnectionPool()
+        /// <summary>
+        /// CookedRabbit RabbitConnectionPool constructor.
+        /// </summary>
+        public RabbitConnectionPool()
         { }
 
         /// <summary>
-        /// CookedRabbit RabbitConnectionPool factory.
+        /// Initializes the RabbitConnectionPool for use.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <returns></returns>
-        public static async Task<IRabbitConnectionPool> CreateRabbitConnectionPoolAsync(RabbitSeasoning rabbitSeasoning)
-        {
-            RabbitConnectionPool rcp = new RabbitConnectionPool();
-            await rcp.Initialize(rabbitSeasoning);
-            return rcp;
-        }
-
-        private async Task Initialize(RabbitSeasoning rabbitSeasoning)
+        public async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
             if (_connectionFactory is null)
             {
@@ -44,6 +45,8 @@ namespace CookedRabbit.Core.Library.Pools
                 if (_connectionFactory is null) throw new ArgumentNullException("Connection factory is null.");
 
                 await CreateConnectionsAsync(rabbitSeasoning.ConnectionName);
+
+                IsInitialized = true;
             }
         }
 

@@ -48,11 +48,10 @@ namespace CookedRabbit.Library.Services
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
         /// <returns>A List&lt;int&gt; of the indices that failed to publish for calling service/methods to retry.</returns>
-        Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, ushort batchSize = 100, bool mandatory = false, IBasicProperties messageProperties = null);
+        Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100, bool mandatory = false, IBasicProperties messageProperties = null);
 
         /// <summary>
         /// Publishes many messages asynchronously in configurable batch sizes. High performance but experimental. Does not log exceptions.
-        /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
         /// <param name="exchangeName">The optional Exchange name.</param>
         /// <param name="routingKey">Either a topic/routing key or queue name.</param>
@@ -60,8 +59,8 @@ namespace CookedRabbit.Library.Services
         /// <param name="batchSize"></param>
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>A List&lt;int&gt; of the indices that failed to publish for calling service/methods to retry.</returns>
-        Task<List<int>> PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, ushort batchSize = 100, bool mandatory = false, IBasicProperties messageProperties = null);
+        /// <returns></returns>
+        Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100, bool mandatory = false, IBasicProperties messageProperties = null);
 
 
         /// <summary>
