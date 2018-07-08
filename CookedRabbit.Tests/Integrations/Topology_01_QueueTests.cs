@@ -12,7 +12,9 @@ namespace CookedRabbit.Tests.Integrations
         private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
-        private readonly string _testQueueName = "CookedRabbit.TopologyTestQueue";
+        private readonly string _testQueueName1 = "CookedRabbit.TopologyTestQueue1";
+        private readonly string _testQueueName2 = "CookedRabbit.TopologyTestQueue2";
+        private readonly string _testQueueName3 = "CookedRabbit.TopologyTestQueue3";
 
         // Test Setup
         public Topology_01_QueueTests()
@@ -29,7 +31,11 @@ namespace CookedRabbit.Tests.Integrations
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try
-            { _rabbitTopologyService.QueueDeleteAsync(_testQueueName).GetAwaiter().GetResult(); }
+            {
+                _rabbitTopologyService.QueueDeleteAsync(_testQueueName1).GetAwaiter().GetResult();
+                _rabbitTopologyService.QueueDeleteAsync(_testQueueName2).GetAwaiter().GetResult();
+                _rabbitTopologyService.QueueDeleteAsync(_testQueueName3).GetAwaiter().GetResult();
+            }
             catch { }
         }
 
@@ -38,7 +44,7 @@ namespace CookedRabbit.Tests.Integrations
         public void Queue_DeclareDelete()
         {
             // Arrange
-            var queueName = _testQueueName;
+            var queueName = _testQueueName1;
 
             // Act
             var createSuccess = _rabbitTopologyService.QueueDeclareAsync(queueName).GetAwaiter().GetResult();
@@ -54,7 +60,7 @@ namespace CookedRabbit.Tests.Integrations
         public async Task Queue_DeclarePublishDelete()
         {
             // Arrange
-            var queueName = _testQueueName;
+            var queueName = _testQueueName2;
             string exchangeName = string.Empty;
 
             // Act
@@ -79,7 +85,7 @@ namespace CookedRabbit.Tests.Integrations
         public async Task Queue_DeclarePublishGetDelete()
         {
             // Arrange
-            var queueName = _testQueueName;
+            var queueName = _testQueueName3;
             string exchangeName = string.Empty;
             var payload = await GetRandomByteArray(1000);
 
@@ -116,7 +122,11 @@ namespace CookedRabbit.Tests.Integrations
                 {
                     // Cleanup
                     try
-                    { _rabbitTopologyService.QueueDeleteAsync(_testQueueName).GetAwaiter().GetResult(); }
+                    {
+                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName1).GetAwaiter().GetResult();
+                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName2).GetAwaiter().GetResult();
+                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName3).GetAwaiter().GetResult();
+                    }
                     catch { }
 
                     _rabbitDeliveryService.Dispose(true);

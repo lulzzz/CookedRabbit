@@ -13,7 +13,9 @@ namespace CookedRabbit.Tests.Integrations
         private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
-        private readonly string _testQueueName = "CookedRabbit.TopologyTestQueue";
+        private readonly string _testQueueName1 = "CookedRabbit.TopologyTestQueue1";
+        private readonly string _testQueueName2 = "CookedRabbit.TopologyTestQueue2";
+        private readonly string _testQueueName3 = "CookedRabbit.TopologyTestQueue3";
         private readonly string _testExchangeName = "CookedRabbit.TopologyTestExchange";
 
         // Test Setup
@@ -34,7 +36,9 @@ namespace CookedRabbit.Tests.Integrations
 
             try
             {
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName, false, false).GetAwaiter().GetResult();
+                _rabbitTopologyService.QueueDeleteAsync(_testQueueName1, false, false).GetAwaiter().GetResult();
+                _rabbitTopologyService.QueueDeleteAsync(_testQueueName2, false, false).GetAwaiter().GetResult();
+                _rabbitTopologyService.QueueDeleteAsync(_testQueueName3, false, false).GetAwaiter().GetResult();
                 _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName, false).GetAwaiter().GetResult();
             }
             catch { }
@@ -45,8 +49,8 @@ namespace CookedRabbit.Tests.Integrations
         public async Task Exchange_DirectPublishGetDelete()
         {
             // Arrange
-            var queueName = _testQueueName;
-            var routingKey = _testQueueName;
+            var queueName = _testQueueName1;
+            var routingKey = _testQueueName1;
             var exchangeName = _testExchangeName;
             var payload = await GetRandomByteArray(1000);
 
@@ -84,10 +88,10 @@ namespace CookedRabbit.Tests.Integrations
         public async Task Exchange_FanoutPublishGetDelete()
         {
             // Arrange
-            var queueNameOne = $"{_testQueueName}.1";
-            var queueNameTwo = $"{_testQueueName}.2";
-            var queueNameThree = $"{_testQueueName}.3";
-            var routingKey = _testQueueName;
+            var queueNameOne = $"{_testQueueName2}.1";
+            var queueNameTwo = $"{_testQueueName2}.2";
+            var queueNameThree = $"{_testQueueName2}.3";
+            var routingKey = _testQueueName2;
             var exchangeName = _testExchangeName;
             var payload = await GetRandomByteArray(1000);
 
@@ -160,15 +164,15 @@ namespace CookedRabbit.Tests.Integrations
         public async Task Exchange_TopicPublishGetDelete()
         {
             // Arrange
-            var queueNameOne = $"{_testQueueName}.1";
-            var queueNameTwo = $"{_testQueueName}.2";
-            var queueNameThree = $"{_testQueueName}.3";
+            var queueNameOne = $"{_testQueueName3}.1";
+            var queueNameTwo = $"{_testQueueName3}.2";
+            var queueNameThree = $"{_testQueueName3}.3";
 
             var topicKeyOne = "#";
             var topicKeyTwo = "house.#";
             var topicKeyThree = "house.cat";
 
-            var routingKey = _testQueueName;
+            var routingKey = _testQueueName3;
             var exchangeName = _testExchangeName;
             var payload = await GetRandomByteArray(1000);
 
@@ -250,6 +254,15 @@ namespace CookedRabbit.Tests.Integrations
             {
                 if (disposing)
                 {
+                    try
+                    {
+                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName1, false, false).GetAwaiter().GetResult();
+                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName2, false, false).GetAwaiter().GetResult();
+                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName3, false, false).GetAwaiter().GetResult();
+                        _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName, false).GetAwaiter().GetResult();
+                    }
+                    catch { }
+
                     _rabbitDeliveryService.Dispose(true);
                     _rabbitTopologyService.Dispose(true);
                 }
