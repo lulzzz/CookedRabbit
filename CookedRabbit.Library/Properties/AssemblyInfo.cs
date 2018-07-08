@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("CookedRabbit.Library")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("CookedRabbit.Library")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("HouseofCat.io")]
 [assembly: AssemblyProduct("CookedRabbit.Library")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.5")]
-[assembly: AssemblyFileVersion("1.0.0.5")]
+[assembly: AssemblyVersion("1.0.0.8")]
+[assembly: AssemblyFileVersion("1.0.0.8")]

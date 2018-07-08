@@ -8,17 +8,13 @@ using System.Threading.Tasks;
 using static CookedRabbit.Core.Library.Utilities.LogStrings.GenericMessages;
 using static CookedRabbit.Core.Library.Utilities.LogStrings.RabbitServiceMessages;
 
-namespace CookedRabbit.Library.Services
+namespace CookedRabbit.Core.Library.Services
 {
     /// <summary>
     /// CookedRabbit service for creating Exchanges, Queues, and creating Bindings.
     /// </summary>
-    public class RabbitTopologyService : IRabbitTopologyService, IDisposable
+    public class RabbitTopologyService : RabbitBaseService, IRabbitTopologyService, IDisposable
     {
-        private readonly ILogger _logger;
-        private readonly IRabbitChannelPool _rcp = null;
-        private readonly RabbitSeasoning _seasoning = null; // Used for recovery later.
-
         /// <summary>
         /// CookedRabbit RabbitTopologyService constructor.
         /// </summary>
@@ -408,41 +404,6 @@ namespace CookedRabbit.Library.Services
             finally { _rcp.ReturnChannelToPool(channelPair); }
 
             return success;
-        }
-
-        #endregion
-
-        #region Error Handling Section
-
-        private async Task HandleError(Exception e, ulong channelId, params object[] args)
-        {
-            _rcp.FlagDeadChannel(channelId);
-            var errorMessage = string.Empty;
-
-            switch (e)
-            {
-                case RabbitMQ.Client.Exceptions.AlreadyClosedException ace:
-                    errorMessage = ClosedChannelMessage;
-                    break;
-                case RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies:
-                    errorMessage = RabbitExceptionMessage;
-                    break;
-                case Exception ex:
-                    errorMessage = UnknownExceptionMessage;
-                    break;
-                default: break;
-            }
-
-            if (_seasoning.WriteErrorsToILogger)
-            {
-                if (_logger is null)
-                { await Console.Out.WriteLineAsync($"{NullLoggerMessage} Exception:{e.Message}"); }
-                else
-                { _logger.LogError(e, errorMessage, args); }
-            }
-
-            if (_seasoning.WriteErrorsToConsole)
-            { await Console.Out.WriteLineAsync(e.Message); }
         }
 
         #endregion

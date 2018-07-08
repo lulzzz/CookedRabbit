@@ -64,20 +64,6 @@ namespace CookedRabbit.Core.Library.Services
 
 
         /// <summary>
-        /// Compresses the payload before doing performing similar steps to PublishAsync().
-        /// <para>Returns success or failure.</para>
-        /// </summary>
-        /// <param name="exchangeName">The optional Exchange name.</param>
-        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
-        /// <param name="payload"></param>
-        /// <param name="contentType"></param>
-        /// <param name="mandatory"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns>A bool indicating success or failure.</returns>
-        Task<bool> CompressAndPublishAsync(string exchangeName, string routingKey, byte[] payload, string contentType, bool mandatory = false, IBasicProperties messageProperties = null);
-
-
-        /// <summary>
         /// Get a BasicGetResult from a queue.
         /// </summary>
         /// <param name="queueName"></param>
@@ -128,15 +114,6 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="batchCount"></param>
         /// <returns>An AckableResult (CookedRabbit object).</returns>
         Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount);
-
-
-        /// <summary>
-        /// Gets a payload from a queue and decompresses.
-        /// <para>Returns a byte[] (decompressed).</para>
-        /// </summary>
-        /// <param name="queueName"></param>
-        /// <returns>A byte[] (decompressed).</returns>
-        Task<byte[]> GetAndDecompressAsync(string queueName);
 
 
         /// <summary>

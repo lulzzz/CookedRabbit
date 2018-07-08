@@ -5,16 +5,16 @@
     <Platforms>AnyCPU;x64</Platforms>
     <Company>HouseofCat.io</Company>
     <Description>CookedRabbit is a C# RabbitMQ wrapper for NetCore.</Description>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Copyright>Copyright © 2018</Copyright>
     <PackageLicenseUrl>https://github.com/thyams/CookedRabbit/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/thyams/CookedRabbit</PackageProjectUrl>
     <RepositoryUrl>https://github.com/thyams/CookedRabbit</RepositoryUrl>
     <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore Net</PackageTags>
     <PackageReleaseNotes>NuGet release of CookedRabbit NetCore Library.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.0.5</AssemblyVersion>
-    <FileVersion>1.0.0.5</FileVersion>
-    <Version>1.0.0.5</Version>
+    <AssemblyVersion>1.0.0.8</AssemblyVersion>
+    <FileVersion>1.0.0.8</FileVersion>
+    <Version>1.0.0.8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -35,7 +35,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="lz4net" Version="1.0.15.93" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
+    <PackageReference Include="Utf8Json" Version="1.3.7" />
+    <PackageReference Include="ZeroFormatter" Version="1.6.4" />
   </ItemGroup>
 
   <ItemGroup>

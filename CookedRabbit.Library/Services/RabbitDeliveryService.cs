@@ -7,25 +7,16 @@ using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using static CookedRabbit.Library.Utilities.LogStrings.GenericMessages;
-using static CookedRabbit.Library.Utilities.LogStrings.RabbitServiceMessages;
-using static CookedRabbit.Library.Utilities.Compression;
-using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Library.Services
 {
     /// <summary>
     /// CookedRabbit delivery service for delivering and receiving messages using RabbitMQ.
     /// </summary>
-    public class RabbitDeliveryService : IRabbitDeliveryService, IDisposable
+    public class RabbitDeliveryService : RabbitBaseService, IRabbitDeliveryService, IDisposable
     {
-        private readonly ILogger _logger;
-        private readonly IRabbitChannelPool _rcp = null;
-        private readonly RabbitSeasoning _seasoning = null; // Used for recovery later.
-
         /// <summary>
         /// CookedRabbit RabbitService constructor.
         /// </summary>
@@ -325,70 +316,6 @@ namespace CookedRabbit.Library.Services
 
             var failureList = failures.ToList();
             failureList.Sort();
-        }
-
-        #endregion
-
-        #region CompressAndPublishSection
-
-        /// <summary>
-        /// Compresses the payload before doing performing similar steps to PublishAsync().
-        /// <para>Returns success or failure.</para>
-        /// </summary>
-        /// <param name="exchangeName">The optional Exchange name.</param>
-        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
-        /// <param name="payload"></param>
-        /// <param name="contentType"></param>
-        /// <param name="mandatory"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns>A bool indicating success or failure.</returns>
-        public async Task<bool> CompressAndPublishAsync(string exchangeName, string routingKey, byte[] payload, string contentType,
-            bool mandatory = false, IBasicProperties messageProperties = null)
-        {
-            var compressionTask = CompressBytesWithGzipAsync(payload);
-
-            var success = false;
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-
-            try
-            {
-                if (messageProperties is null)
-                { messageProperties = channelPair.Channel.CreateBasicProperties(); }
-
-                messageProperties.ContentEncoding = ContentEncoding.Gzip.Description();
-                messageProperties.ContentType = contentType;
-
-                await compressionTask;
-                channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
-                    routingKey: routingKey,
-                    mandatory,
-                    basicProperties: messageProperties,
-                    body: compressionTask.Result);
-
-                success = true;
-            }
-            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
-            {
-                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
-            {
-                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (Exception e)
-            {
-                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-
-            _rcp.ReturnChannelToPool(channelPair);
-
-            return success;
         }
 
         #endregion
@@ -767,55 +694,6 @@ namespace CookedRabbit.Library.Services
 
         #endregion
 
-        #region GetAndDecompress Section
-
-        /// <summary>
-        /// Gets a payload from a queue and decompresses.
-        /// <para>Returns a byte[] (decompressed).</para>
-        /// </summary>
-        /// <param name="queueName"></param>
-        /// <returns>A byte[] (decompressed).</returns>
-        public async Task<byte[]> GetAndDecompressAsync(string queueName)
-        {
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-
-            BasicGetResult result = null;
-
-            try
-            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true); }
-            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
-            {
-                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
-            {
-                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (Exception e)
-            {
-                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-
-            _rcp.ReturnChannelToPool(channelPair);
-
-            byte[] output = result?.Body;
-            if (result != null)
-            {
-                if (result.BasicProperties.ContentEncoding == ContentEncoding.Gzip.Description())
-                { output = await DecompressBytesWithGzipAsync(result.Body); }
-            }
-
-            return output;
-        }
-
-        #endregion
-
         #region Consumer Section
 
         /// <summary>
@@ -916,44 +794,6 @@ namespace CookedRabbit.Library.Services
             finally { _rcp.ReturnChannelToPool(channelPair); }
 
             return messageCount;
-        }
-
-        #endregion
-
-        #region Error Handling Section
-
-        private async Task HandleError(Exception e, ulong channelId, params object[] args)
-        {
-            _rcp.FlagDeadChannel(channelId);
-            var errorMessage = string.Empty;
-
-            switch (e)
-            {
-                case RabbitMQ.Client.Exceptions.AlreadyClosedException ace:
-                    e = ace.Demystify();
-                    errorMessage = ClosedChannelMessage;
-                    break;
-                case RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies:
-                    e = rabbies.Demystify();
-                    errorMessage = RabbitExceptionMessage;
-                    break;
-                case Exception ex:
-                    e = ex.Demystify();
-                    errorMessage = UnknownExceptionMessage;
-                    break;
-                default: break;
-            }
-
-            if (_seasoning.WriteErrorsToILogger)
-            {
-                if (_logger is null)
-                { await Console.Out.WriteLineAsync($"{NullLoggerMessage} Exception:{e.Message}"); }
-                else
-                { _logger.LogError(e, errorMessage, args); }
-            }
-
-            if (_seasoning.WriteErrorsToConsole)
-            { await Console.Out.WriteLineAsync(e.Message); }
         }
 
         #endregion

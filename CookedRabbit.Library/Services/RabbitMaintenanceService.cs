@@ -1,25 +1,17 @@
 ﻿using CookedRabbit.Library.Models;
-using CookedRabbit.Library.Pools;
 using CookedRabbit.Library.Utilities;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using static CookedRabbit.Library.Utilities.LogStrings.GenericMessages;
-using static CookedRabbit.Library.Utilities.LogStrings.RabbitServiceMessages;
 
 namespace CookedRabbit.Library.Services
 {
     /// <summary>
     /// CookedRabbit service for doing on the fly of maintenance.
     /// </summary>
-    public class RabbitMaintenanceService : IRabbitMaintenanceService, IDisposable
+    public class RabbitMaintenanceService : RabbitBaseService, IRabbitMaintenanceService, IDisposable
     {
-        private readonly ILogger _logger;
-        private readonly IRabbitChannelPool _rcp = null;
-        private readonly RabbitSeasoning _seasoning = null; // Used for recovery later.
-
         /// <summary>
         /// CookedRabbit RabbitMaintenanceService constructor.
         /// </summary>
@@ -214,44 +206,6 @@ namespace CookedRabbit.Library.Services
 
             return success;
         }
-
-        #region Error Handling Section
-
-        private async Task HandleError(Exception e, ulong channelId, params object[] args)
-        {
-            _rcp.FlagDeadChannel(channelId);
-            var errorMessage = string.Empty;
-
-            switch (e)
-            {
-                case RabbitMQ.Client.Exceptions.AlreadyClosedException ace:
-                    e = ace.Demystify();
-                    errorMessage = ClosedChannelMessage;
-                    break;
-                case RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies:
-                    e = rabbies.Demystify();
-                    errorMessage = RabbitExceptionMessage;
-                    break;
-                case Exception ex:
-                    e = ex.Demystify();
-                    errorMessage = UnknownExceptionMessage;
-                    break;
-                default: break;
-            }
-
-            if (_seasoning.WriteErrorsToILogger)
-            {
-                if (_logger is null)
-                { await Console.Out.WriteLineAsync($"{NullLoggerMessage} Exception:{e.Message}"); }
-                else
-                { _logger.LogError(e, errorMessage, args); }
-            }
-
-            if (_seasoning.WriteErrorsToConsole)
-            { await Console.Out.WriteLineAsync(e.Message); }
-        }
-
-        #endregion
 
         #region Dispose Section
 

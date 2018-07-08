@@ -244,5 +244,39 @@ namespace CookedRabbit.Core.Library.Utilities
             [Description("header")]
             Header
         }
+
+        /// <summary>
+        /// CompressionMethod helps specify the compression method desired.
+        /// </summary>
+        public enum CompressionMethod
+        {
+            /// <summary>
+            /// Compression method using builtin .NET GzipStream.
+            /// </summary>
+            Gzip,
+            /// <summary>
+            /// Compression method using builtin .NET DeflateStream.
+            /// </summary>
+            Deflate,
+            /// <summary>
+            /// Compression method using LZ4NET.
+            /// </summary>
+            LZ4
+        }
+
+        /// <summary>
+        /// SerializationMethod helps specify the serialization method desired.
+        /// </summary>
+        public enum SerializationMethod
+        {
+            /// <summary>
+            /// Serialize object as Utf8Json.
+            /// </summary>
+            Utf8Json,
+            /// <summary>
+            /// Serialize object as ZeroFormat.
+            /// </summary>
+            ZeroFormat
+        }
     }
 }

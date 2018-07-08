@@ -5,8 +5,6 @@ using Newtonsoft.Json;
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using static CookedRabbit.Core.Demo.DemoHelper;
-using static CookedRabbit.Core.Library.Utilities.Enums;
 using static CookedRabbit.Core.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Core.Demo
@@ -16,7 +14,7 @@ namespace CookedRabbit.Core.Demo
         #region RabbitService Setup
 
         private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName, EnableDispatchConsumersAsync = false };
-        private static RabbitDeliveryService _rabbitService;
+        private static RabbitPerformanceService _rabbitPerformanceService;
         private static TestObject testObject = new TestObject();
         private static string _equalityCheck = string.Empty;
 
@@ -27,7 +25,7 @@ namespace CookedRabbit.Core.Demo
         public static async Task RunRabbitServiceCompressAndDecompressTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
+            _rabbitPerformanceService = new RabbitPerformanceService(_rabbitSeasoning);
 
             await RabbitService_SendMessageAsync();
             await RabbitService_ReceiveMessageAsync();
@@ -38,12 +36,12 @@ namespace CookedRabbit.Core.Demo
         {
             var payload = await GetAnObjectAsBytes();
 
-            await _rabbitService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.Utf8.Description()}");
+            //await _rabbitPerformanceService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.Utf8.Description()}");
         }
 
         public static async Task RabbitService_ReceiveMessageAsync()
         {
-            var result = await _rabbitService.GetAndDecompressAsync(queueName);
+            var result = new byte[0]; // await _rabbitPerformanceService.GetAndDecompressAsync(queueName);
 
             var jsonResult = Encoding.UTF8.GetString(result);
             var receivedObject = JsonConvert.DeserializeObject<TestObject>(jsonResult);

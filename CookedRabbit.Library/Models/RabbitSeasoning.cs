@@ -1,11 +1,32 @@
-﻿namespace CookedRabbit.Library.Models
+﻿using static CookedRabbit.Library.Utilities.Enums;
+
+namespace CookedRabbit.Library.Models
 {
     /// <summary>
-    /// Class to fully season Rabbits to your taste!
+    /// Class to fully season RabbitServices to your taste!
     /// </summary>
     public class RabbitSeasoning
     {
-        #region CookedRabbit RabbitService Configurable Settings
+        #region CookedRabbit PerformanceService Configurable Settings
+
+        /// <summary>
+        /// Convert object to JSON.
+        /// </summary>
+        public bool ConvertToJson { get; set; } = true;
+
+        /// <summary>
+        /// Enables the use of compression and decompression.
+        /// </summary>
+        public bool CompressionEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Sets the compression method when compression is used.
+        /// </summary>
+        public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
+
+        #endregion
+
+        #region CookedRabbit RabbitServices Configurable Settings
 
         /// <summary>
         /// Allows errors to be written to Console asynchornously. Will still write a simple message to console when ILogger is null and WriteErrorsToIlogger is true;
@@ -39,7 +60,7 @@
 
         #endregion
 
-        #region CookedRabbit RabbitService Pool Settings
+        #region CookedRabbit Pool Settings
 
         /// <summary>
         /// Configures the await Task.Delay(x ms) when Pool is out of channels (temporarily).

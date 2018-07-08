@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CookedRabbit.Library.Services
+namespace CookedRabbit.Core.Library.Services
 {
     /// <summary>
     /// CookedRabbit service for creating Exchanges, Queues, and creating Bindings.
