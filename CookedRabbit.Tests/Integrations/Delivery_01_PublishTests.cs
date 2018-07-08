@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Tests.UnitTests
+namespace CookedRabbit.Tests.Integrations
 {
     public class Delivery_01_PublishTests
     {
-        private readonly RabbitDeliveryService _rabbitService;
+        private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
         private readonly string _testQueueName = "CookedRabbit.RabbitServiceTestQueue";
@@ -26,7 +26,7 @@ namespace CookedRabbit.Tests.UnitTests
                 ThrowExceptions = false
             };
 
-            _rabbitService = new RabbitDeliveryService(_seasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try
@@ -38,7 +38,7 @@ namespace CookedRabbit.Tests.UnitTests
         }
 
         [Fact]
-        [Trait("Rabbit Delivery - Publish", "PublishAsync")]
+        [Trait("Rabbit Delivery", "Publish")]
         public async Task PublishAsync()
         {
             // Arrange
@@ -48,8 +48,8 @@ namespace CookedRabbit.Tests.UnitTests
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var messageCount = await _rabbitService.GetMessageCountAsync(queueName);
+            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -58,27 +58,7 @@ namespace CookedRabbit.Tests.UnitTests
         }
 
         [Fact]
-        [Trait("Rabbit Delivery - Publish", "PublishAndGetAsync")]
-        public async Task PublishAndGetAsync()
-        {
-            // Arrange
-            var queueName = _testQueueName;
-            var exchangeName = string.Empty;
-            var payload = await GetRandomByteArray(1000);
-
-            // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var result = await _rabbitService.GetAsync(queueName);
-
-            // Assert
-            Assert.True(createSuccess, "Queue was not created.");
-            Assert.True(publishSuccess, "Message failed to publish.");
-            Assert.True(result != null, "Result was null.");
-        }
-
-        [Fact]
-        [Trait("Rabbit Delivery - Publish", "PublishManyAsync")]
+        [Trait("Rabbit Delivery", "Publish")]
         public async Task PublishManyAsync()
         {
             // Arrange
@@ -89,8 +69,8 @@ namespace CookedRabbit.Tests.UnitTests
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var failures = await _rabbitService.PublishManyAsync(exchangeName, queueName, payloads, false, null);
-            var messageCount = await _rabbitService.GetMessageCountAsync(queueName);
+            var failures = await _rabbitDeliveryService.PublishManyAsync(exchangeName, queueName, payloads, false, null);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -99,7 +79,7 @@ namespace CookedRabbit.Tests.UnitTests
         }
 
         [Fact]
-        [Trait("Rabbit Delivery - Publish", "PublishManyAsBatchesAsync")]
+        [Trait("Rabbit Delivery", "Publish")]
         public async Task PublishManyAsBatchesAsync()
         {
             // Arrange
@@ -110,8 +90,8 @@ namespace CookedRabbit.Tests.UnitTests
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var failures = await _rabbitService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads, 7, false, null);
-            var messageCount = await _rabbitService.GetMessageCountAsync(queueName);
+            var failures = await _rabbitDeliveryService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads, 7, false, null);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -120,7 +100,7 @@ namespace CookedRabbit.Tests.UnitTests
         }
 
         [Fact]
-        [Trait("Rabbit Delivery - Publish", "PublishManyAsBatchesInParallelAsync")]
+        [Trait("Rabbit Delivery", "Publish")]
         public async Task PublishManyAsBatchesInParallelAsync()
         {
             // Arrange
@@ -131,8 +111,8 @@ namespace CookedRabbit.Tests.UnitTests
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            await _rabbitService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads, 10, false, null);
-            var messageCount = await _rabbitService.GetMessageCountAsync(queueName);
+            await _rabbitDeliveryService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads, 10, false, null);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");

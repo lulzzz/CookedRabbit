@@ -20,12 +20,12 @@ namespace CookedRabbit.Demo
         private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName };
 
         // Using RabbitService backed by a Channel Pool
-        public static RabbitDeliveryService _rabbitService;
+        public static RabbitDeliveryService _rabbitDeliveryService;
         public static Random rand = new Random();
 
         public static async Task RunRabbitServicePoolChannelTestAsync()
         {
-            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_SendMessagesForeverAsync(), RabbitService_ReceiveMessagesForeverAsync() });
         }
@@ -39,8 +39,8 @@ namespace CookedRabbit.Demo
             {
                 await Task.Delay(rand.Next(0, 2));
 
-                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(4000));
-                var task2 = _rabbitService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(4000));
+                var task1 = _rabbitDeliveryService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(4000));
+                var task2 = _rabbitDeliveryService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(4000));
 
                 await Task.WhenAll(new Task[] { task1, task2 });
 
@@ -55,7 +55,7 @@ namespace CookedRabbit.Demo
             {
                 await Task.Delay(rand.Next(0, 2));
 
-                var task1 = _rabbitService.GetManyAsync(queueName, 100);
+                var task1 = _rabbitDeliveryService.GetManyAsync(queueName, 100);
 
                 await Task.WhenAll(new Task[] { task1 });
             }
@@ -69,7 +69,7 @@ namespace CookedRabbit.Demo
 
         public static async Task RunRabbitServiceAccuracyTestAsync()
         {
-            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_ReceiveMessagesForeverWithAccuracyAsync(), RabbitService_SendMessagesForeverWithAccuracyAsync() });
         }
@@ -84,7 +84,7 @@ namespace CookedRabbit.Demo
                 var message = $"{helloWorld} {count}";
                 _accuracyCheck.TryAdd(message, false);
 
-                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
+                var task1 = _rabbitDeliveryService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
 
                 await Task.WhenAll(new Task[] { task1 });
 
@@ -98,9 +98,9 @@ namespace CookedRabbit.Demo
             {
                 //await Task.Delay(rand.Next(0, 2));  // Throttle Option
 
-                var task1 = _rabbitService.GetManyAsync(queueName, 100);
-                var task2 = _rabbitService.GetManyAsync(queueName, 100);
-                var task3 = _rabbitService.GetManyAsync(queueName, 100);
+                var task1 = _rabbitDeliveryService.GetManyAsync(queueName, 100);
+                var task2 = _rabbitDeliveryService.GetManyAsync(queueName, 100);
+                var task3 = _rabbitDeliveryService.GetManyAsync(queueName, 100);
 
                 await Task.WhenAll(new Task[] { task1, task2, task3 });
 
@@ -125,7 +125,7 @@ namespace CookedRabbit.Demo
 
         public static async Task RunRabbitServiceDelayAckTestAsync()
         {
-            _rabbitService = new RabbitDeliveryService(_rabbitSeasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_SendMessagesWithLimitWithAccuracyAsync(), RabbitService_ReceiveMessagesForeverDelayAckAsync() });
         }
@@ -140,7 +140,7 @@ namespace CookedRabbit.Demo
                 var message = $"{helloWorld} {count}";
                 _accuracyCheck.TryAdd(message, false);
 
-                var task1 = _rabbitService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
+                var task1 = _rabbitDeliveryService.PublishAsync(exchangeName, queueName, Encoding.UTF8.GetBytes(message));
 
                 await Task.WhenAll(new Task[] { task1 });
 
@@ -158,7 +158,7 @@ namespace CookedRabbit.Demo
 
                 try
                 {
-                    batchResult = await _rabbitService.GetManyWithManualAckAsync(queueName, 100);
+                    batchResult = await _rabbitDeliveryService.GetManyWithManualAckAsync(queueName, 100);
                 }
                 catch (Exception e) { await Console.Out.WriteLineAsync($"Error occurred: {e.Demystify().Message}"); }
 

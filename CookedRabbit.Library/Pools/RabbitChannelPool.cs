@@ -37,7 +37,8 @@ namespace CookedRabbit.Library.Pools
         public RabbitChannelPool() { }
 
         /// <summary>
-        /// Manually set the IRabbitConnectionPool for flexiblity in sharing the connection pool across services. If RabbitConnectionPool is not initialized, it will be here.
+        /// Manually set the IRabbitConnectionPool for flexiblity in sharing the connection pool across services.
+        /// <para>If RabbitConnectionPool is not initialized, it will be here.</para>
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <param name="rcp"></param>
@@ -49,6 +50,9 @@ namespace CookedRabbit.Library.Pools
             _rcp = rcp;
 
             if (!_rcp.IsInitialized)
+            { await _rcp.Initialize(rabbitSeasoning); }
+
+            if (!IsInitialized)
             { await Initialize(rabbitSeasoning); }
         }
 

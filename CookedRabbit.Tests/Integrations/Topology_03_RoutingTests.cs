@@ -10,7 +10,7 @@ namespace CookedRabbit.Tests.Integrations
 {
     public class Topology_03_RoutingTests : IDisposable
     {
-        private readonly RabbitDeliveryService _rabbitService;
+        private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
         private readonly string _testQueueName = "CookedRabbit.TopologyTestQueue";
@@ -29,7 +29,7 @@ namespace CookedRabbit.Tests.Integrations
                 ThrowExceptions = false
             };
 
-            _rabbitService = new RabbitDeliveryService(_seasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try
@@ -41,7 +41,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Exchange", "Exchange_DirectPublishGetDelete")]
+        [Trait("Rabbit Topology", "Routing")]
         public async Task Exchange_DirectPublishGetDelete()
         {
             // Arrange
@@ -54,9 +54,9 @@ namespace CookedRabbit.Tests.Integrations
             var createQueueSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
             var createExchangeSuccess = await _rabbitTopologyService.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct.Description());
             var bindQueueToExchangeSuccess = await _rabbitTopologyService.QueueBindToExchangeAsync(queueName, exchangeName, routingKey);
-            var publishSuccess = await _rabbitService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var messageCount = await _rabbitService.GetMessageCountAsync(queueName);
-            var result = await _rabbitService.GetAsync(queueName);
+            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var result = await _rabbitDeliveryService.GetAsync(queueName);
 
             // Assert
             Assert.True(createQueueSuccess, "Queue was not created.");
@@ -80,7 +80,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Exchange", "Exchange_FanoutPublishGetDelete")]
+        [Trait("Rabbit Topology", "Routing")]
         public async Task Exchange_FanoutPublishGetDelete()
         {
             // Arrange
@@ -102,15 +102,15 @@ namespace CookedRabbit.Tests.Integrations
             var bindQueueTwoToExchangeSuccess = await _rabbitTopologyService.QueueBindToExchangeAsync(queueNameTwo, exchangeName);
             var bindQueueThreeToExchangeSuccess = await _rabbitTopologyService.QueueBindToExchangeAsync(queueNameThree, exchangeName);
 
-            var publishSuccess = await _rabbitService.PublishAsync(exchangeName, string.Empty, payload, false, null);
+            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, string.Empty, payload, false, null);
 
-            var messageCountQueueOne = await _rabbitService.GetMessageCountAsync(queueNameOne);
-            var messageCountQueueTwo = await _rabbitService.GetMessageCountAsync(queueNameTwo);
-            var messageCountQueueThree = await _rabbitService.GetMessageCountAsync(queueNameThree);
+            var messageCountQueueOne = await _rabbitDeliveryService.GetMessageCountAsync(queueNameOne);
+            var messageCountQueueTwo = await _rabbitDeliveryService.GetMessageCountAsync(queueNameTwo);
+            var messageCountQueueThree = await _rabbitDeliveryService.GetMessageCountAsync(queueNameThree);
 
-            var resultOne = await _rabbitService.GetAsync(queueNameOne);
-            var resultTwo = await _rabbitService.GetAsync(queueNameTwo);
-            var resultThree = await _rabbitService.GetAsync(queueNameThree);
+            var resultOne = await _rabbitDeliveryService.GetAsync(queueNameOne);
+            var resultTwo = await _rabbitDeliveryService.GetAsync(queueNameTwo);
+            var resultThree = await _rabbitDeliveryService.GetAsync(queueNameThree);
 
             // Assert
             Assert.True(createQueueOneSuccess, "Queue one was not created.");
@@ -156,7 +156,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Exchange", "Exchange_TopicPublishGetDelete")]
+        [Trait("Rabbit Topology", "Routing")]
         public async Task Exchange_TopicPublishGetDelete()
         {
             // Arrange
@@ -183,17 +183,17 @@ namespace CookedRabbit.Tests.Integrations
             var bindQueueTwoToExchangeSuccess = await _rabbitTopologyService.QueueBindToExchangeAsync(queueNameTwo, exchangeName, topicKeyTwo);
             var bindQueueThreeToExchangeSuccess = await _rabbitTopologyService.QueueBindToExchangeAsync(queueNameThree, exchangeName, topicKeyThree);
 
-            var publishSuccessOne = await _rabbitService.PublishAsync(exchangeName, topicKeyOne, payload, false, null);
-            var publishSuccessTwo = await _rabbitService.PublishAsync(exchangeName, topicKeyTwo, payload, false, null);
-            var publishSuccessThree = await _rabbitService.PublishAsync(exchangeName, topicKeyThree, payload, false, null);
+            var publishSuccessOne = await _rabbitDeliveryService.PublishAsync(exchangeName, topicKeyOne, payload, false, null);
+            var publishSuccessTwo = await _rabbitDeliveryService.PublishAsync(exchangeName, topicKeyTwo, payload, false, null);
+            var publishSuccessThree = await _rabbitDeliveryService.PublishAsync(exchangeName, topicKeyThree, payload, false, null);
 
-            var messageCountQueueOne = await _rabbitService.GetMessageCountAsync(queueNameOne);
-            var messageCountQueueTwo = await _rabbitService.GetMessageCountAsync(queueNameTwo);
-            var messageCountQueueThree = await _rabbitService.GetMessageCountAsync(queueNameThree);
+            var messageCountQueueOne = await _rabbitDeliveryService.GetMessageCountAsync(queueNameOne);
+            var messageCountQueueTwo = await _rabbitDeliveryService.GetMessageCountAsync(queueNameTwo);
+            var messageCountQueueThree = await _rabbitDeliveryService.GetMessageCountAsync(queueNameThree);
 
-            var resultOne = await _rabbitService.GetAsync(queueNameOne);
-            var resultTwo = await _rabbitService.GetAsync(queueNameTwo);
-            var resultThree = await _rabbitService.GetAsync(queueNameThree);
+            var resultOne = await _rabbitDeliveryService.GetAsync(queueNameOne);
+            var resultTwo = await _rabbitDeliveryService.GetAsync(queueNameTwo);
+            var resultThree = await _rabbitDeliveryService.GetAsync(queueNameThree);
 
             // Assert
             Assert.True(createQueueOneSuccess, "Queue one was not created.");
@@ -250,7 +250,7 @@ namespace CookedRabbit.Tests.Integrations
             {
                 if (disposing)
                 {
-                    _rabbitService.Dispose(true);
+                    _rabbitDeliveryService.Dispose(true);
                     _rabbitTopologyService.Dispose(true);
                 }
 

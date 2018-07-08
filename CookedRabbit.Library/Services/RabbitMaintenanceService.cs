@@ -1,4 +1,5 @@
 ﻿using CookedRabbit.Library.Models;
+using CookedRabbit.Library.Pools;
 using CookedRabbit.Library.Utilities;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -12,6 +13,8 @@ namespace CookedRabbit.Library.Services
     /// </summary>
     public class RabbitMaintenanceService : RabbitBaseService, IRabbitMaintenanceService, IDisposable
     {
+        #region Constructor Section
+
         /// <summary>
         /// CookedRabbit RabbitMaintenanceService constructor.
         /// </summary>
@@ -23,6 +26,43 @@ namespace CookedRabbit.Library.Services
             _seasoning = rabbitSeasoning;
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
         }
+
+        /// <summary>
+        /// CookedRabbit RabbitMaintenanceService constructor.  Allows for the sharing of a channel pool. If channel is not initialized, it will automatically initialize in here.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <param name="rcp"></param>
+        /// <param name="logger"></param>
+        public RabbitMaintenanceService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rcp, ILogger logger = null)
+        {
+            _logger = logger;
+            _seasoning = rabbitSeasoning;
+            _rcp = rcp;
+
+            if (!_rcp.IsInitialized)
+            { _rcp.Initialize(rabbitSeasoning).GetAwaiter().GetResult(); }
+        }
+
+        /// <summary>
+        /// CookedRabbit RabbitTopologyService constructor. Allows for the sharing of a channel pool and connection pool.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <param name="rchanp"></param>
+        /// <param name="rconp"></param>
+        /// <param name="logger"></param>
+        public RabbitMaintenanceService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rchanp, IRabbitConnectionPool rconp, ILogger logger = null)
+        {
+            _logger = logger;
+            _seasoning = rabbitSeasoning;
+
+            rchanp.SetConnectionPoolAsync(rabbitSeasoning, rconp).GetAwaiter().GetResult();
+
+            _rcp = rchanp;
+        }
+
+        #endregion
+
+        #region Maintenance Section
 
         /// <summary>
         /// Empty/purge the queue.
@@ -206,6 +246,8 @@ namespace CookedRabbit.Library.Services
 
             return success;
         }
+
+        #endregion
 
         #region Dispose Section
 

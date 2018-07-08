@@ -10,11 +10,6 @@ namespace CookedRabbit.Core.Library.Models
         #region CookedRabbit PerformanceService Configurable Settings
 
         /// <summary>
-        /// Convert object to JSON.
-        /// </summary>
-        public bool ConvertToJson { get; set; } = true;
-
-        /// <summary>
         /// Enables the use of compression and decompression.
         /// </summary>
         public bool CompressionEnabled { get; set; } = true;
@@ -23,6 +18,11 @@ namespace CookedRabbit.Core.Library.Models
         /// Sets the compression method when compression is used.
         /// </summary>
         public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
+
+        /// <summary>
+        /// Sets the serialization method when serialization is used.
+        /// </summary>
+        public SerializationMethod SerializationMethod { get; set; } = SerializationMethod.ZeroFormat;
 
         #endregion
 

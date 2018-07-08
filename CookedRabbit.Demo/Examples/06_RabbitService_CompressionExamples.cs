@@ -36,12 +36,12 @@ namespace CookedRabbit.Demo
         {
             var payload = await GetAnObjectAsBytes();
 
-            //await _rabbitService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.Utf8.Description()}");
+            //await _rabbitDeliveryService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.Utf8.Description()}");
         }
 
         public static async Task RabbitService_ReceiveMessageAsync()
         {
-            var result = new byte[0]; // await _rabbitService.GetAndDecompressAsync(queueName);
+            var result = new byte[0]; // await _rabbitDeliveryService.GetAndDecompressAsync(queueName);
 
             var jsonResult = Encoding.UTF8.GetString(result);
             var receivedObject = JsonConvert.DeserializeObject<TestObject>(jsonResult);

@@ -17,6 +17,8 @@ namespace CookedRabbit.Library.Services
     /// </summary>
     public class RabbitDeliveryService : RabbitBaseService, IRabbitDeliveryService, IDisposable
     {
+        #region Constructor Section
+
         /// <summary>
         /// CookedRabbit RabbitService constructor.
         /// </summary>
@@ -61,6 +63,8 @@ namespace CookedRabbit.Library.Services
 
             _rcp = rchanp;
         }
+
+        #endregion
 
         #region BasicPublish Section
 
@@ -360,12 +364,11 @@ namespace CookedRabbit.Library.Services
         }
 
         /// <summary>
-        /// Get a List of BasicGetResult from a queue.
-        /// <para>Returns a List&lt;BasicGetResult&gt;.</para>
+        /// Get a List of BasicGetResult from a queue asynchronously up to the batch count.
         /// </summary>
-        /// <param name="queueName"></param>
-        /// <param name="batchCount"></param>
-        /// <returns>A List of BasicGetResult (RabbitMQ object).</returns>
+        /// <param name="queueName">The queue to get messages from.</param>
+        /// <param name="batchCount">Limits the number of results to acquire.</param>
+        /// <returns>A List of <see cref="RabbitMQ.Client.BasicGetResult"/>.</returns>
         public async Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount)
         {
             var rand = new Random();
@@ -437,6 +440,61 @@ namespace CookedRabbit.Library.Services
                     if (_seasoning.ThrottleFastBodyLoops)
                     { await Task.Delay(rand.Next(0, 2)); }
                 }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return results;
+        }
+
+        /// <summary>
+        /// Gets all messages from a queue asynchronously. Stops on empty queue or on first error.
+        /// </summary>
+        /// <param name="queueName">The queue to get messages from.</param>
+        /// <returns>A List of <see cref="RabbitMQ.Client.BasicGetResult"/>.</returns>
+        public async Task<List<BasicGetResult>> GetAllAsync(string queueName)
+        {
+            var rand = new Random();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var results = new List<BasicGetResult>();
+
+            while (true)
+            {
+                try
+                {
+                    var result = channelPair.Channel.BasicGet(queue: queueName, autoAck: true);
+                    if (result == null) //Empty Queue
+                    { break; }
+
+                    results.Add(result);
+                }
+                catch (Exception e) when (results.Count() > 0)
+                {
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+ 
+                    break; // Does not throw so you can use the results already found.
+                }
+                catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+                {
+                    await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                }
+                catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+                {
+                    await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                }
+                catch (Exception e)
+                {
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(rand.Next(0, 2)); }
             }
 
             _rcp.ReturnChannelToPool(channelPair);
@@ -713,7 +771,7 @@ namespace CookedRabbit.Library.Services
             if (_seasoning.EnableDispatchConsumersAsync)
             { throw new ArgumentException("EnableDispatchConsumerAsync is set to true, set it to false to get an regular Consumer."); }
 
-            var channel = await _rcp.GetTransientChannelAsync(enableAck: true);
+            var channel = await _rcp.GetTransientChannelAsync(enableAck: autoAck);
             if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
 
             var consumer = new EventingBasicConsumer(channel);
@@ -743,7 +801,7 @@ namespace CookedRabbit.Library.Services
             if (!_seasoning.EnableDispatchConsumersAsync)
             { throw new ArgumentException("EnableDispatchConsumerAsync is set to false, set it to true to get an AsyncConsumer."); }
 
-            var channel = await _rcp.GetTransientChannelAsync(enableAck: true);
+            var channel = await _rcp.GetTransientChannelAsync(enableAck: autoAck);
             if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
 
             var consumer = new AsyncEventingBasicConsumer(channel);

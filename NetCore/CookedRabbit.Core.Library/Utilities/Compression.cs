@@ -17,7 +17,7 @@ namespace CookedRabbit.Core.Library.Utilities
         /// <param name="input"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static async Task<byte[]> CompressAsync(byte[] input, CompressionMethod method = CompressionMethod.Gzip)
+        public static async Task<byte[]> CompressAsync(byte[] input, CompressionMethod method = CompressionMethod.LZ4)
         {
             byte[] output = null;
 
@@ -27,7 +27,7 @@ namespace CookedRabbit.Core.Library.Utilities
                     output = await CompressBytesWithGzipAsync(input);
                     break;
                 case CompressionMethod.Deflate:
-                    output = await CompressBytesWithGzipAsync(input);
+                    output = await CompressBytesWithDeflateAsync(input);
                     break;
                 case CompressionMethod.LZ4:
                     output = await CompressBytesWithLZ4Async(input);
@@ -54,7 +54,7 @@ namespace CookedRabbit.Core.Library.Utilities
                     output = await DecompressBytesWithGzipAsync(input);
                     break;
                 case CompressionMethod.Deflate:
-                    output = await DecompressBytesWithGzipAsync(input);
+                    output = await DecompressBytesWithDeflateAsync(input);
                     break;
                 case CompressionMethod.LZ4:
                     output = await DecompressBytesWithLZ4Async(input);

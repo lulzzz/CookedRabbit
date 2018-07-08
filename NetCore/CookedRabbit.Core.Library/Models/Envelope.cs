@@ -36,5 +36,14 @@ namespace CookedRabbit.Core.Library.Models
         /// Used to adjust Message Properties.
         /// </summary>
         public string MessageType { get; set; } = $"{ContentType.Json} {Charset.Utf8}";
+
+        /// <summary>
+        /// Allows an envelope to quickly create copies of itself.
+        /// </summary>
+        /// <returns></returns>
+        public Envelope Clone()
+        {
+            return (Envelope)MemberwiseClone();
+        }
     }
 }

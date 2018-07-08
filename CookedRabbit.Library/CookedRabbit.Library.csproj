@@ -147,12 +147,12 @@
     <Compile Include="Pools\RabbitChannelPool.cs" />
     <Compile Include="Pools\RabbitConnectionPool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\Interfaces\IRabbitPerformanceService.cs" />
+    <Compile Include="Services\Interfaces\IRabbitSerializeService.cs" />
     <Compile Include="Services\Interfaces\IRabbitMaintenanceService.cs" />
     <Compile Include="Services\Interfaces\IRabbitTopologyService.cs" />
     <Compile Include="Services\Interfaces\IRabbitDeliveryService.cs" />
     <Compile Include="Services\RabbitBaseService.cs" />
-    <Compile Include="Services\RabbitPerformanceService.cs" />
+    <Compile Include="Services\RabbitSerializeService.cs" />
     <Compile Include="Services\RabbitMaintenanceService.cs" />
     <Compile Include="Services\RabbitTopologyService.cs" />
     <Compile Include="Services\RabbitDeliveryService.cs" />

@@ -149,19 +149,22 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="IntegrationTests\Topology_01_QueueTests.cs" />
-    <Compile Include="IntegrationTests\Topology_03_RoutingTests.cs" />
-    <Compile Include="IntegrationTests\Topology_02_ExchangeTests.cs" />
+    <Compile Include="Integrations\Serialize_02_ZeroFormat_PublishGetTests.cs" />
+    <Compile Include="Integrations\Serialize_01_ZeroFormat_PublishGetTests.cs" />
+    <Compile Include="Integrations\Delivery_02_PublishGetTests.cs" />
+    <Compile Include="Integrations\Topology_01_QueueTests.cs" />
+    <Compile Include="Integrations\Topology_03_RoutingTests.cs" />
+    <Compile Include="Integrations\Topology_02_ExchangeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Helpers\TestHelper.cs" />
-    <Compile Include="IntegrationTests\Delivery_01_PublishTests.cs" />
+    <Compile Include="Helpers\TestHelperObject.cs" />
+    <Compile Include="Integrations\Delivery_01_PublishTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="IntegrationTests\!Readme.txt" />
+    <Content Include="Integrations\!Readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\xunit.analyzers.0.9.0\analyzers\dotnet\cs\xunit.analyzers.dll" />

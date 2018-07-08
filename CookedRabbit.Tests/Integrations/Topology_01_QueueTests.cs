@@ -9,7 +9,7 @@ namespace CookedRabbit.Tests.Integrations
 {
     public class Topology_01_QueueTests : IDisposable
     {
-        private readonly RabbitDeliveryService _rabbitService;
+        private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
         private readonly string _testQueueName = "CookedRabbit.TopologyTestQueue";
@@ -25,7 +25,7 @@ namespace CookedRabbit.Tests.Integrations
                 ChannelPoolCount = 1
             };
 
-            _rabbitService = new RabbitDeliveryService(_seasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try
@@ -34,7 +34,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Queue", "Queue_DeclareDelete")]
+        [Trait("Rabbit Topology", "Queue")]
         public void Queue_DeclareDelete()
         {
             // Arrange
@@ -50,7 +50,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Queue", "Queue_DeclarePublishDelete")]
+        [Trait("Rabbit Topology", "Queue")]
         public async Task Queue_DeclarePublishDelete()
         {
             // Arrange
@@ -59,7 +59,7 @@ namespace CookedRabbit.Tests.Integrations
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(1000), false, null);
+            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(1000), false, null);
             var deleteSuccess = await _rabbitTopologyService.QueueDeleteAsync(queueName, false, true);
 
             // Assert
@@ -75,7 +75,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Queue", "Queue_DeclarePublishGetDelete")]
+        [Trait("Rabbit Topology", "Queue")]
         public async Task Queue_DeclarePublishGetDelete()
         {
             // Arrange
@@ -85,8 +85,8 @@ namespace CookedRabbit.Tests.Integrations
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var result = await _rabbitService.GetAsync(queueName);
+            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+            var result = await _rabbitDeliveryService.GetAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -119,7 +119,7 @@ namespace CookedRabbit.Tests.Integrations
                     { _rabbitTopologyService.QueueDeleteAsync(_testQueueName).GetAwaiter().GetResult(); }
                     catch { }
 
-                    _rabbitService.Dispose(true);
+                    _rabbitDeliveryService.Dispose(true);
                     _rabbitTopologyService.Dispose(true);
                 }
 

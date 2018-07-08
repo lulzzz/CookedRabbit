@@ -9,7 +9,7 @@ namespace CookedRabbit.Tests.Integrations
 {
     public class Topology_02_ExchangeTests : IDisposable
     {
-        private readonly RabbitDeliveryService _rabbitService;
+        private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
         private readonly RabbitSeasoning _seasoning;
         private readonly string _testExchangeName = "CookedRabbit.TopologyTestExchange";
@@ -25,7 +25,7 @@ namespace CookedRabbit.Tests.Integrations
                 ChannelPoolCount = 1
             };
 
-            _rabbitService = new RabbitDeliveryService(_seasoning);
+            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
             _rabbitTopologyService = new RabbitTopologyService(_seasoning);
 
             try
@@ -34,7 +34,7 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Topology - Exchange", "Exchange_DeclareDelete")]
+        [Trait("Rabbit Topology", "Queue")]
         public async Task Exchange_DeclareDelete()
         {
             // Arrange
@@ -64,7 +64,7 @@ namespace CookedRabbit.Tests.Integrations
                     { _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName).GetAwaiter().GetResult(); }
                     catch { }
 
-                    _rabbitService.Dispose(true);
+                    _rabbitDeliveryService.Dispose(true);
                     _rabbitTopologyService.Dispose(true);
                 }
 

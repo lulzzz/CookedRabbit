@@ -63,22 +63,27 @@ namespace CookedRabbit.Library.Services
         Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100, bool mandatory = false, IBasicProperties messageProperties = null);
 
 
-
         /// <summary>
-        /// Get a BasicGetResult from a queue.
+        /// Get a BasicGetResult from a queue asynchronously.
         /// </summary>
         /// <param name="queueName"></param>
         /// <returns>Returns a BasicGetResult (RabbitMQ).</returns>
         Task<BasicGetResult> GetAsync(string queueName);
 
         /// <summary>
-        /// Get a List of BasicGetResult from a queue.
-        /// <para>Returns a List&lt;BasicGetResult&gt;.</para>
+        /// Get a List of BasicGetResult from a queue asynchronously up to the batch count.
         /// </summary>
-        /// <param name="queueName"></param>
-        /// <param name="batchCount"></param>
-        /// <returns>A List of BasicGetResult (RabbitMQ object).</returns>
+        /// <param name="queueName">The queue to get messages from.</param>
+        /// <param name="batchCount">Limits the number of results to acquire.</param>
+        /// <returns>A List of <see cref="RabbitMQ.Client.BasicGetResult"/>.</returns>
         Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount);
+
+        /// <summary>
+        /// Gets all messages from a queue asynchronously. Stops on empty queue or on first error.
+        /// </summary>
+        /// <param name="queueName">The queue to get messages from.</param>
+        /// <returns>A List of <see cref="RabbitMQ.Client.BasicGetResult"/>.</returns>
+        Task<List<BasicGetResult>> GetAllAsync(string queueName);
 
 
         /// <summary>
@@ -115,7 +120,6 @@ namespace CookedRabbit.Library.Services
         /// <param name="batchCount"></param>
         /// <returns>An AckableResult (CookedRabbit object).</returns>
         Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount);
-
 
 
         /// <summary>

@@ -22,7 +22,9 @@ namespace CookedRabbit.Library.Pools
         Task Initialize(RabbitSeasoning rabbitSeasoning);
 
         /// <summary>
-        /// Manually set the IRabbitConnectionPool for flexiblity in sharing the connection pool across services. If RabbitConnectionPool is not initialized, it will be here.
+        /// Manually set the IRabbitConnectionPool for flexiblity in sharing the connection pool across services.
+        /// <para>If RabbitConnectionPool is not initialized, it will be here.</para>
+        /// <para>If RabbitChannelPool (this) is not initialized, it will be here.</para>
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <param name="rcp"></param>
