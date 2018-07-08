@@ -74,7 +74,6 @@ namespace CookedRabbit.Core.Library.Services
 
         /// <summary>
         /// Publish messages asynchronously.
-        /// <para>Returns success or failure.</para>
         /// </summary>
         /// <param name="exchangeName">The optional Exchange name.</param>
         /// <param name="routingKey">Either a topic/routing key or queue name.</param>
@@ -95,6 +94,50 @@ namespace CookedRabbit.Core.Library.Services
                     mandatory,
                     basicProperties: messageProperties,
                     body: payload);
+
+                success = true;
+            }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+            {
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (Exception e)
+            {
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            finally { _rcp.ReturnChannelToPool(channelPair); }
+
+            return success;
+        }
+
+        /// <summary>
+        /// Publish messages asynchronously.
+        /// </summary>
+        /// <param name="envelope"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A bool indicating success or failure.</returns>
+        public async Task<bool> PublishAsync(Envelope envelope, IBasicProperties messageProperties = null)
+        {
+            var success = false;
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            try
+            {
+                channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                    routingKey: envelope.RoutingKey,
+                    mandatory: envelope.Mandatory,
+                    basicProperties: messageProperties,
+                    body: envelope.MessageBody);
 
                 success = true;
             }
@@ -183,8 +226,64 @@ namespace CookedRabbit.Core.Library.Services
         }
 
         /// <summary>
-        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
         /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
+        /// </summary>
+        /// <param name="envelopes"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsync(List<Envelope> envelopes, IBasicProperties messageProperties = null)
+        {
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var rand = new Random();
+            var count = 0;
+
+            foreach (var envelope in envelopes)
+            {
+                try
+                {
+                    channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                        routingKey: envelope.RoutingKey,
+                        mandatory: envelope.Mandatory,
+                        basicProperties: messageProperties,
+                        body: envelope.MessageBody);
+                }
+                catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+                {
+                    failures.Add(count);
+                    await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                }
+                catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+                {
+                    failures.Add(count);
+                    await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                }
+                catch (Exception e)
+                {
+                    failures.Add(count);
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                }
+
+                count++;
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
         /// </summary>
         /// <param name="exchangeName">The optional Exchange name.</param>
         /// <param name="routingKey">Either a topic/routing key or queue name.</param>
@@ -252,7 +351,73 @@ namespace CookedRabbit.Core.Library.Services
         }
 
         /// <summary>
-        /// Publishes many messages asynchronously in configurable batch sizes. High performance but experimental. Does not log exceptions.
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// </summary>
+        /// <param name="envelopes"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> envelopes, int batchSize = 100,
+            IBasicProperties messageProperties = null)
+        {
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var rand = new Random();
+            var count = 0;
+
+            while (envelopes.Any())
+            {
+                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
+                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
+                envelopes.RemoveRange(0, currentBatchSize);
+
+                foreach (var envelope in processingEnvelopes)
+                {
+                    try
+                    {
+                        channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                            routingKey: envelope.RoutingKey,
+                            mandatory: envelope.Mandatory,
+                            basicProperties: messageProperties,
+                            body: envelope.MessageBody);
+                    }
+                    catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+                    {
+                        failures.Add(count);
+                        await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        if (_seasoning.ThrowExceptions) { throw; }
+                    }
+                    catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+                    {
+                        failures.Add(count);
+                        await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        if (_seasoning.ThrowExceptions) { throw; }
+                    }
+                    catch (Exception e)
+                    {
+                        failures.Add(count);
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        if (_seasoning.ThrowExceptions) { throw; }
+                    }
+
+                    count++;
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// <para>NOTICE: High performance but experimental. Does not report failures.</para>
         /// </summary>
         /// <param name="exchangeName">The optional Exchange name.</param>
         /// <param name="routingKey">Either a topic/routing key or queue name.</param>
@@ -264,7 +429,6 @@ namespace CookedRabbit.Core.Library.Services
         public async Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
-            var failures = new ConcurrentBag<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
 
@@ -321,9 +485,76 @@ namespace CookedRabbit.Core.Library.Services
             }
 
             _rcp.ReturnChannelToPool(channelPair);
+        }
 
-            var failureList = failures.ToList();
-            failureList.Sort();
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// <para>NOTICE: High performance but experimental. Does not report failures.</para>
+        /// </summary>
+        /// <param name="envelopes"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns></returns>
+        public async Task PublishManyAsBatchesInParallelAsync(List<Envelope> envelopes, int batchSize = 100,
+            IBasicProperties messageProperties = null)
+        {
+            var failures = new ConcurrentBag<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var rand = new Random();
+
+            while (envelopes.Any())
+            {
+                var procCount = Environment.ProcessorCount;
+                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
+                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
+                envelopes.RemoveRange(0, currentBatchSize);
+
+                if (processingEnvelopes.Count() >= procCount)
+                {
+                    Parallel.ForEach(processingEnvelopes, new ParallelOptions { MaxDegreeOfParallelism = procCount },
+                        (envelope) =>
+                        {
+                            try
+                            {
+                                channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                                    routingKey: envelope.RoutingKey,
+                                    mandatory: envelope.Mandatory,
+                                    basicProperties: messageProperties,
+                                    body: envelope.MessageBody);
+                            }
+                            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
+                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                            catch (Exception)
+                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                        });
+
+                    if (_seasoning.ThrottleFastBodyLoops)
+                    { await Task.Delay(rand.Next(0, 2)); }
+                }
+                else
+                {
+                    foreach (var envelope in processingEnvelopes)
+                    {
+                        try
+                        {
+                            channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                                routingKey: envelope.RoutingKey,
+                                mandatory: envelope.Mandatory,
+                                basicProperties: messageProperties,
+                                body: envelope.MessageBody);
+                        }
+                        catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
+                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                        catch (Exception)
+                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                    }
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
         }
 
         #endregion
