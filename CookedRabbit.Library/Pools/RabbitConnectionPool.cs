@@ -38,11 +38,14 @@ namespace CookedRabbit.Library.Pools
         {
             if (_connectionFactory is null)
             {
-                _seasoning = rabbitSeasoning;
-                _connectionsToMaintain = rabbitSeasoning.ConnectionPoolCount;
-
                 _connectionFactory = await CreateConnectionFactoryAsync(rabbitSeasoning);
                 if (_connectionFactory is null) throw new ArgumentNullException("Connection factory is null.");
+            }
+
+            if (!IsInitialized)
+            {
+                _seasoning = rabbitSeasoning;
+                _connectionsToMaintain = rabbitSeasoning.ConnectionPoolCount;
 
                 await CreateConnectionsAsync(rabbitSeasoning.ConnectionName);
 

@@ -63,13 +63,13 @@ namespace CookedRabbit.Library.Pools
         /// <returns></returns>
         public async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
-            if (_rcp is null)
+            if (_rcp is null) _rcp = await Factories.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
+
+            if (!IsInitialized)
             {
                 _seasoning = rabbitSeasoning;
                 _channelsToMaintain = rabbitSeasoning.ChannelPoolCount;
                 _emptyPoolWaitTime = rabbitSeasoning.EmptyPoolWaitTime;
-
-                _rcp = await Factories.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
 
                 await CreatePoolChannels();
                 await CreatePoolChannelsWithManualAck();

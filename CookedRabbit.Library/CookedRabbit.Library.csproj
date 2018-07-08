@@ -156,6 +156,8 @@
     <Compile Include="Services\RabbitMaintenanceService.cs" />
     <Compile Include="Services\RabbitTopologyService.cs" />
     <Compile Include="Services\RabbitDeliveryService.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\Lambdas.cs" />
     <Compile Include="Utilities\Serialization.cs" />
     <Compile Include="Utilities\Compression.cs" />
     <Compile Include="Utilities\Enums.cs" />

@@ -5,7 +5,9 @@ using Newtonsoft.Json;
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using static CookedRabbit.Core.Library.Utilities.Enums;
 using static CookedRabbit.Core.Library.Utilities.RandomData;
+using static CookedRabbit.Core.Demo.DemoHelper;
 
 namespace CookedRabbit.Core.Demo
 {
@@ -14,7 +16,7 @@ namespace CookedRabbit.Core.Demo
         #region RabbitService Setup
 
         private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName, EnableDispatchConsumersAsync = false };
-        private static RabbitPerformanceService _rabbitPerformanceService;
+        private static RabbitSerializeService _rabbitSerializeService;
         private static TestObject testObject = new TestObject();
         private static string _equalityCheck = string.Empty;
 
@@ -25,7 +27,8 @@ namespace CookedRabbit.Core.Demo
         public static async Task RunRabbitServiceCompressAndDecompressTestAsync()
         {
             _rabbitSeasoning.EnableDispatchConsumersAsync = false;
-            _rabbitPerformanceService = new RabbitPerformanceService(_rabbitSeasoning);
+            _rabbitSeasoning.CompressionMethod = CompressionMethod.Gzip;
+            _rabbitSerializeService = new RabbitSerializeService(_rabbitSeasoning);
 
             await RabbitService_SendMessageAsync();
             await RabbitService_ReceiveMessageAsync();
@@ -35,13 +38,20 @@ namespace CookedRabbit.Core.Demo
         public static async Task RabbitService_SendMessageAsync()
         {
             var payload = await GetAnObjectAsBytes();
+            var envelope = new Envelope
+            {
+                ExchangeName = exchangeName,
+                RoutingKey = queueName,
+                MessageBody = payload,
+                MessageType = $"{ContentType.Json.Description()} {Charset.Utf8.Description()}"
+            };
 
-            //await _rabbitPerformanceService.CompressAndPublishAsync(exchangeName, queueName, payload, $"{ContentType.Json.Description()} {Charset.Utf8.Description()}");
+            await _rabbitSerializeService.CompressAndPublishAsync(envelope);
         }
 
         public static async Task RabbitService_ReceiveMessageAsync()
         {
-            var result = new byte[0]; // await _rabbitPerformanceService.GetAndDecompressAsync(queueName);
+            var result = await _rabbitSerializeService.GetAndDecompressAsync(queueName);
 
             var jsonResult = Encoding.UTF8.GetString(result);
             var receivedObject = JsonConvert.DeserializeObject<TestObject>(jsonResult);

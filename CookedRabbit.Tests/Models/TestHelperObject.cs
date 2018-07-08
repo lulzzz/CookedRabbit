@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CookedRabbit.Tests
+namespace CookedRabbit.Tests.Models
 {
     public class TestHelperObject
     {

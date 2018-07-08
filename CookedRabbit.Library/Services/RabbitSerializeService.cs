@@ -134,7 +134,10 @@ namespace CookedRabbit.Library.Services
         /// <returns>An object of type T.</returns>
         public async Task<T> GetAndDeserializeAsync<T>(string queueName)
         {
-            var data = (await GetAsync(queueName)).Body;
+            var result = (await GetAsync(queueName));
+            if (result is null) { return default; }
+
+            var data = result.Body;
 
             if (_seasoning.CompressionEnabled)
             { data = await DecompressAsync(data, _seasoning.CompressionMethod); }
@@ -156,12 +159,15 @@ namespace CookedRabbit.Library.Services
 
             foreach (var result in results)
             {
-                var data = result.Body;
+                if (result != null && result != default(BasicGetResult))
+                {
+                    var data = result.Body;
 
-                if (_seasoning.CompressionEnabled)
-                { data = await DecompressAsync(data, _seasoning.CompressionMethod); }
+                    if (_seasoning.CompressionEnabled)
+                    { data = await DecompressAsync(data, _seasoning.CompressionMethod); }
 
-                deserializedMessages.Add(await DeserializeAsync<T>(data, _seasoning.SerializationMethod));
+                    deserializedMessages.Add(await DeserializeAsync<T>(data, _seasoning.SerializationMethod));
+                }
             }
 
             return deserializedMessages;
@@ -175,7 +181,10 @@ namespace CookedRabbit.Library.Services
         /// <returns></returns>
         public async Task<byte[]> GetAndDecompressAsync(string queueName)
         {
-            var data = (await GetAsync(queueName)).Body;
+            var result = (await GetAsync(queueName));
+            if (result is null) { return null; }
+
+            var data = result.Body;
 
             if (_seasoning.CompressionEnabled)
             { data = await DecompressAsync(data, _seasoning.CompressionMethod); }
