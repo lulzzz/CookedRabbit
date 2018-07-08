@@ -18,6 +18,7 @@ namespace CookedRabbit.Tests.Integrations
         private readonly string _testQueueName3 = "CookedRabbit.TopologyTestQueue3";
         private readonly string _testExchangeName = "CookedRabbit.TopologyTestExchange";
 
+        // TODO: Convert Tests To Collections https://xunit.github.io/docs/shared-context.html#collection-fixture
         // Test Setup
         public Topology_03_RoutingTests()
         {
@@ -214,9 +215,9 @@ namespace CookedRabbit.Tests.Integrations
             Assert.True(publishSuccessTwo, "Message two failed to publish.");
             Assert.True(publishSuccessThree, "Message three failed to publish.");
 
-            Assert.True(messageCountQueueOne == 3, "Message was lost in routing to queue one.");
-            Assert.True(messageCountQueueTwo == 2, "Message was lost in routing to queue two.");
-            Assert.True(messageCountQueueThree == 1, "Message was lost in routing to queue three.");
+            Assert.True(messageCountQueueOne == 3, $"Message was lost in routing to queue one. Had {messageCountQueueOne} Expected {3}");
+            Assert.True(messageCountQueueTwo == 2, $"Message was lost in routing to queue two. Had {messageCountQueueTwo} Expected {2}");
+            Assert.True(messageCountQueueThree == 1, $"Message was lost in routing to queue three. Had {messageCountQueueThree} Expected {1}");
 
             Assert.False(resultOne is null, "Result one was null.");
             Assert.False(resultTwo is null, "Result two was null.");
