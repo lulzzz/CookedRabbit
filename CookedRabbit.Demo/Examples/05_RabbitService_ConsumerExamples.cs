@@ -14,7 +14,7 @@ namespace CookedRabbit.Demo
     {
         #region RabbitService w/ Accuracy & Delay Acknowledge Consumer
 
-        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName };
+        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHostName = "localhost", ConnectionName = Environment.MachineName };
         private static RabbitDeliveryService _rabbitDeliveryService;
         private static ConcurrentDictionary<string, bool> _accuracyCheck = new ConcurrentDictionary<string, bool>();
         private static EventingBasicConsumer consumer = null; // Sits and listens for messages

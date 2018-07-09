@@ -59,16 +59,40 @@ namespace CookedRabbit.Library.Pools
 
             try
             {
-                cf = new ConnectionFactory
+                if (rabbitSeasoning.UseUri)
                 {
-                    HostName = rabbitSeasoning.RabbitHost,
-                    AutomaticRecoveryEnabled = rabbitSeasoning.AutoRecovery,
-                    TopologyRecoveryEnabled = rabbitSeasoning.TopologyRecovery,
-                    NetworkRecoveryInterval = TimeSpan.FromSeconds(rabbitSeasoning.NetRecoveryTimeout),
-                    RequestedHeartbeat = rabbitSeasoning.HeartbeatInterval,
-                    RequestedChannelMax = rabbitSeasoning.MaxChannelsPerConnection,
-                    DispatchConsumersAsync = rabbitSeasoning.EnableDispatchConsumersAsync
-                };
+                    cf = new ConnectionFactory
+                    {
+                        Uri = rabbitSeasoning.Uri,
+                        AutomaticRecoveryEnabled = rabbitSeasoning.AutoRecovery,
+                        TopologyRecoveryEnabled = rabbitSeasoning.TopologyRecovery,
+                        NetworkRecoveryInterval = TimeSpan.FromSeconds(rabbitSeasoning.NetRecoveryTimeout),
+                        ContinuationTimeout = TimeSpan.FromSeconds(rabbitSeasoning.ContinuationTimeout),
+                        RequestedHeartbeat = rabbitSeasoning.HeartbeatInterval,
+                        RequestedChannelMax = rabbitSeasoning.MaxChannelsPerConnection,
+                        DispatchConsumersAsync = rabbitSeasoning.EnableDispatchConsumersAsync,
+                        UseBackgroundThreadsForIO = rabbitSeasoning.UseBackgroundThreadsForIO
+                    };
+                }
+                else
+                {
+                    cf = new ConnectionFactory
+                    {
+                        UserName = rabbitSeasoning.RabbitHostUser,
+                        Password = rabbitSeasoning.RabbitHostPassword,
+                        HostName = rabbitSeasoning.RabbitHostName,
+                        VirtualHost = rabbitSeasoning.RabbitVHost,
+                        Port = rabbitSeasoning.RabbitPort,
+                        AutomaticRecoveryEnabled = rabbitSeasoning.AutoRecovery,
+                        TopologyRecoveryEnabled = rabbitSeasoning.TopologyRecovery,
+                        NetworkRecoveryInterval = TimeSpan.FromSeconds(rabbitSeasoning.NetRecoveryTimeout),
+                        ContinuationTimeout = TimeSpan.FromSeconds(rabbitSeasoning.ContinuationTimeout),
+                        RequestedHeartbeat = rabbitSeasoning.HeartbeatInterval,
+                        RequestedChannelMax = rabbitSeasoning.MaxChannelsPerConnection,
+                        DispatchConsumersAsync = rabbitSeasoning.EnableDispatchConsumersAsync,
+                        UseBackgroundThreadsForIO = rabbitSeasoning.UseBackgroundThreadsForIO
+                    };
+                }
             }
             catch { cf = null; }
 
@@ -105,7 +129,8 @@ namespace CookedRabbit.Library.Pools
 
             try
             { connection = _connectionFactory.CreateConnection(connectionName); }
-            catch { } // TODO
+            catch
+            { throw; } // TODO: Add work here.
 
             return Task.FromResult(connection);
         }

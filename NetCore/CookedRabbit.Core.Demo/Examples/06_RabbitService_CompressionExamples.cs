@@ -15,7 +15,7 @@ namespace CookedRabbit.Core.Demo
     {
         #region RabbitService Setup
 
-        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHost = "localhost", ConnectionName = Environment.MachineName, EnableDispatchConsumersAsync = false };
+        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHostName = "localhost", ConnectionName = Environment.MachineName, EnableDispatchConsumersAsync = false };
         private static RabbitSerializeService _rabbitSerializeService;
         private static TestObject testObject = new TestObject();
         private static string _equalityCheck = string.Empty;

@@ -24,7 +24,7 @@ namespace CookedRabbit.Tests.Integrations
         {
             _seasoning = new RabbitSeasoning
             {
-                RabbitHost = "localhost",
+                RabbitHostName = "localhost",
                 ConnectionName = "RabbitSerializeServiceTest",
                 ConnectionPoolCount = 1,
                 ChannelPoolCount = 1,
