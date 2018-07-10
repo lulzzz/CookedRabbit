@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Tests.Integrations
+namespace CookedRabbit.Tests.Integration
 {
-    public class Delivery_02_PublishGetTests : IDisposable
+    public class Delivery_01_PublishTests : IDisposable
     {
         private readonly RabbitDeliveryService _rabbitDeliveryService;
         private readonly RabbitTopologyService _rabbitTopologyService;
@@ -16,9 +16,9 @@ namespace CookedRabbit.Tests.Integrations
         private readonly string _testQueueName2 = "CookedRabbit.DeliveryTestQueue2";
         private readonly string _testQueueName3 = "CookedRabbit.DeliveryTestQueue3";
         private readonly string _testQueueName4 = "CookedRabbit.DeliveryTestQueue4";
-        private readonly string _testExchangeName = "CookedRabbit.DeliveryTestExchange";
+        private readonly string _testExchangeName = "CookedRabbit.DeliveryServiceTestExchange";
 
-        public Delivery_02_PublishGetTests()
+        public Delivery_01_PublishTests()
         {
             _seasoning = new RabbitSeasoning
             {
@@ -45,8 +45,8 @@ namespace CookedRabbit.Tests.Integrations
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "PublishGet")]
-        public async Task PublishAndGetAsync()
+        [Trait("Rabbit Delivery", "Publish")]
+        public async Task PublishAsync()
         {
             // Arrange
             var queueName = _testQueueName1;
@@ -56,92 +56,74 @@ namespace CookedRabbit.Tests.Integrations
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var result = await _rabbitDeliveryService.GetAsync(queueName);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(publishSuccess, "Message failed to publish.");
-            Assert.True(result != null, "Result was null.");
+            Assert.True(messageCount > 0, "Message was lost in routing.");
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "PublishGet")]
-        public async Task PublishManyAndGetManyAsync()
+        [Trait("Rabbit Delivery", "Publish")]
+        public async Task PublishManyAsync()
         {
             // Arrange
-            var messageCount = 17;
+            var messagesToSend = 17;
             var queueName = _testQueueName2;
             var exchangeName = string.Empty;
-            var payloads = await CreatePayloadsAsync(messageCount);
+            var payloads = await CreatePayloadsAsync(messagesToSend);
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
             var failures = await _rabbitDeliveryService.PublishManyAsync(exchangeName, queueName, payloads, false, null);
-            var queueCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.Empty(failures);
-            Assert.True(queueCount == messageCount, "Messages were lost in routing.");
-
-            // Re-Act
-            var results = await _rabbitDeliveryService.GetManyAsync(queueName, messageCount);
-
-            // Re-Assert
-            Assert.True(results.Count == messageCount);
+            Assert.True(messageCount == messagesToSend, "Messages were lost in routing.");
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "PublishGet")]
+        [Trait("Rabbit Delivery", "Publish")]
         public async Task PublishManyAsBatchesAsync()
         {
             // Arrange
-            var messageCount = 111;
+            var messagesToSend = 111;
             var queueName = _testQueueName3;
             var exchangeName = string.Empty;
-            var payloads = await CreatePayloadsAsync(messageCount);
+            var payloads = await CreatePayloadsAsync(messagesToSend);
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
             var failures = await _rabbitDeliveryService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads, 7, false, null);
-            var queueCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.Empty(failures);
-            Assert.True(queueCount == messageCount, "Messages were lost in routing.");
-
-            // Re-Act
-            var results = await _rabbitDeliveryService.GetAllAsync(queueName);
-
-            // Re-Assert
-            Assert.True(results.Count == messageCount);
+            Assert.True(messageCount == messagesToSend, "Messages were lost in routing.");
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "PublishGet")]
+        [Trait("Rabbit Delivery", "Publish")]
         public async Task PublishManyAsBatchesInParallelAsync()
         {
             // Arrange
-            var messageCount = 100;
+            var messagesToSend = 100;
             var queueName = _testQueueName4;
             var exchangeName = string.Empty;
-            var payloads = await CreatePayloadsAsync(messageCount);
+            var payloads = await CreatePayloadsAsync(messagesToSend);
 
             // Act
             var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
             await _rabbitDeliveryService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads, 10, false, null);
-            var queueCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var messageCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
-            Assert.True(queueCount == messageCount, "Message were lost in routing.");
-
-            // Re-Act
-            var results = await _rabbitDeliveryService.GetAllAsync(queueName);
-
-            // Re-Assert
-            Assert.True(results.Count == messageCount);
+            Assert.True(messageCount == messagesToSend, "Message were lost in routing.");
         }
 
         #region Dispose Section

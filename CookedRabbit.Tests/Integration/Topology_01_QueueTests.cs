@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Tests.Integrations
+namespace CookedRabbit.Tests.Integration
 {
     public class Topology_01_QueueTests : IDisposable
     {

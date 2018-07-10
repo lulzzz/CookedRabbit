@@ -8,9 +8,9 @@ using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
 using static CookedRabbit.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Tests.Integrations
+namespace CookedRabbit.Tests.Integration
 {
-    public class Serialize_03_ZeroFormat_PublishGetTests : IDisposable
+    public class Serialize_02_ZeroFormat_PublishGetTests : IDisposable
     {
         private readonly IRabbitChannelPool _rchanp;
         private readonly IRabbitConnectionPool _rconp;
@@ -20,7 +20,7 @@ namespace CookedRabbit.Tests.Integrations
         private readonly string _testQueueName = "CookedRabbit.SerializeTestQueue";
         private readonly string _testExchangeName = "CookedRabbit.SerializeTestExchange";
 
-        public Serialize_03_ZeroFormat_PublishGetTests()
+        public Serialize_02_ZeroFormat_PublishGetTests()
         {
             _seasoning = new RabbitSeasoning
             {

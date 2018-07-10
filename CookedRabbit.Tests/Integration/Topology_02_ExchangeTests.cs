@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
 
-namespace CookedRabbit.Tests.Integrations
+namespace CookedRabbit.Tests.Integration
 {
     public class Topology_02_ExchangeTests : IDisposable
     {

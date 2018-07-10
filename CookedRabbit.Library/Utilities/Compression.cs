@@ -1,6 +1,8 @@
 ﻿using LZ4;
+using System;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using System.Threading.Tasks;
 using static CookedRabbit.Library.Utilities.Enums;
 
@@ -21,7 +23,7 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            switch(method)
+            switch (method)
             {
                 case CompressionMethod.Gzip:
                     output = await CompressBytesWithGzipAsync(input);
@@ -74,12 +76,12 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            using (MemoryStream memoryStream = new MemoryStream()) // Don't stack these usings, Gzip stream won't flush until dispose
+            using (var compressedStream = new MemoryStream())
             {
-                using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, false))
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress, false))
                 { await gzipStream.WriteAsync(input, 0, input.Length); }
 
-                output = memoryStream.ToArray();
+                output = compressedStream.ToArray();
             }
 
             return output;
@@ -92,20 +94,14 @@ namespace CookedRabbit.Library.Utilities
         /// <returns></returns>
         public static async Task<byte[]> DecompressBytesWithGzipAsync(byte[] input)
         {
-            byte[] output = null;
-
-            using (MemoryStream outboundStream = new MemoryStream()) // Don't stack this using, Gzip stream won't flush until dispose
+            using (var outputStream = new MemoryStream())
             {
-                using (MemoryStream memoryStream = new MemoryStream(input))
-                using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress, false))
-                {
-                    await gzipStream.CopyToAsync(outboundStream);
-                }
+                using (var compressedStream = new MemoryStream(input))
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress, false))
+                { await gzipStream.CopyToAsync(outputStream); }
 
-                output = outboundStream.ToArray();
+                return outputStream.ToArray();
             }
-
-            return output;
         }
 
         /// <summary>
@@ -117,9 +113,9 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            using (MemoryStream memoryStream = new MemoryStream()) // Don't stack these usings, Gzip stream won't flush until dispose
+            using (var memoryStream = new MemoryStream()) // Don't stack these usings, Gzip stream won't flush until dispose
             {
-                using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress, false))
+                using (var deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress, false))
                 { await deflateStream.WriteAsync(input, 0, input.Length); }
 
                 output = memoryStream.ToArray();
@@ -137,13 +133,11 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            using (MemoryStream outboundStream = new MemoryStream()) // Don't stack this using, Gzip stream won't flush until dispose
+            using (var outboundStream = new MemoryStream()) // Don't stack this using, Gzip stream won't flush until dispose
             {
-                using (MemoryStream memoryStream = new MemoryStream(input))
-                using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Decompress, false))
-                {
-                    await deflateStream.CopyToAsync(outboundStream);
-                }
+                using (var compressedStream = new MemoryStream(input))
+                using (var deflateStream = new DeflateStream(compressedStream, CompressionMode.Decompress, false))
+                { await deflateStream.CopyToAsync(outboundStream); }
 
                 output = outboundStream.ToArray();
             }
@@ -152,7 +146,7 @@ namespace CookedRabbit.Library.Utilities
         }
 
         /// <summary>
-        /// Compresses a byte[] with Deflate.
+        /// Compresses a byte[] with LZ4.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -160,19 +154,19 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            using (MemoryStream memoryStream = new MemoryStream()) // Don't stack these usings, Gzip stream won't flush until dispose
+            using (var outputStream = new MemoryStream())
             {
-                using (LZ4Stream lz4Stream = new LZ4Stream(memoryStream, CompressionMode.Decompress, LZ4StreamFlags.Default))
+                using (var lz4Stream = new LZ4Stream(outputStream, LZ4StreamMode.Compress))
                 { await lz4Stream.WriteAsync(input, 0, input.Length); }
 
-                output = memoryStream.ToArray();
+                output = outputStream.ToArray();
             }
 
             return output;
         }
 
         /// <summary>
-        /// Decompresses a byte[] with Deflate.
+        /// Decompresses a byte[] with LZ4.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -180,10 +174,10 @@ namespace CookedRabbit.Library.Utilities
         {
             byte[] output = null;
 
-            using (MemoryStream outboundStream = new MemoryStream()) // Don't stack this using, Gzip stream won't flush until dispose
+            using (var outboundStream = new MemoryStream()) // Don't stack this using, Gzip stream won't flush until dispose
             {
-                using (MemoryStream memoryStream = new MemoryStream(input))
-                using (LZ4Stream lz4Stream = new LZ4Stream(memoryStream, CompressionMode.Decompress, LZ4StreamFlags.Default))
+                using (var compressedStream = new MemoryStream(input))
+                using (var lz4Stream = new LZ4Stream(compressedStream, LZ4StreamMode.Decompress))
                 {
                     await lz4Stream.CopyToAsync(outboundStream);
                 }
@@ -192,6 +186,26 @@ namespace CookedRabbit.Library.Utilities
             }
 
             return output;
+        }
+
+        /// <summary>
+        /// Compresses a byte[] with LZ4.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static async Task<byte[]> WrapBytesWithLZ4Async(byte[] input)
+        {
+            return await Task.Run(() => { return LZ4Codec.Wrap(input); });
+        }
+
+        /// <summary>
+        /// Decompresses a byte[] with LZ4.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static async Task<byte[]> UnwrapBytesWithLZ4Async(byte[] input)
+        {
+            return await Task.Run(() => { return LZ4Codec.Unwrap(input); });
         }
     }
 }

@@ -24,7 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CookedRabbit.Core.Library" Version="1.0.0.11" />
+    <PackageReference Include="CookedRabbit.Core.Library" Version="1.0.0.12" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 

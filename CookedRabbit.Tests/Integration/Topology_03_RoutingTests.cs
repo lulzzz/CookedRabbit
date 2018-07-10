@@ -6,7 +6,7 @@ using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
 using static CookedRabbit.Library.Utilities.Enums;
 
-namespace CookedRabbit.Tests.Integrations
+namespace CookedRabbit.Tests.Integration
 {
     public class Topology_03_RoutingTests : IDisposable
     {
