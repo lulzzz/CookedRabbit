@@ -91,6 +91,24 @@ namespace CookedRabbit.Library.Utilities
         }
 
         /// <summary>
+        /// Serialize an object to a string with Utf8Json.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message"></param>
+        /// <returns>A json string.</returns>
+        public static async Task<string> SerializeToJsonAsync<T>(T message, bool makePretty = false)
+        {
+            return await Task.Run(() =>
+            {
+                var json = JsonSerializer.ToJsonString(message);
+
+                if (makePretty) { json = JsonSerializer.PrettyPrint(json); }
+
+                return json;
+            });
+        }
+
+        /// <summary>
         /// Deserialize an object with Utf8Json.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -99,6 +117,17 @@ namespace CookedRabbit.Library.Utilities
         public static async Task<T> DeserializeAsUtf8JsonFormatAsync<T>(byte[] input)
         {
             return await Task.Run(() => JsonSerializer.Deserialize<T>(input));
+        }
+
+        /// <summary>
+        /// Deserialize a json to an object with Utf8Json.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <returns>An object of type T</returns>
+        public static async Task<T> DeserializeJsonAsync<T>(string json)
+        {
+            return await Task.Run(() => JsonSerializer.Deserialize<T>(json));
         }
     }
 }

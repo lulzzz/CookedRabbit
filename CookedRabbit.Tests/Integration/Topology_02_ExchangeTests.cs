@@ -1,36 +1,19 @@
-﻿using CookedRabbit.Library.Models;
-using CookedRabbit.Library.Services;
-using System;
+﻿using CookedRabbit.Tests.Integration.Fixtures;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
+using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {
-    public class Topology_02_ExchangeTests : IDisposable
+    [Collection("IntegrationTests")]
+    public class Topology_02_ExchangeTests
     {
-        private readonly RabbitDeliveryService _rabbitDeliveryService;
-        private readonly RabbitTopologyService _rabbitTopologyService;
-        private readonly RabbitSeasoning _seasoning;
-        private readonly string _testExchangeName = "CookedRabbit.TopologyTestExchange";
+        private readonly IntegrationFixture _fixture;
 
-        // Test Setup
-        public Topology_02_ExchangeTests()
+        public Topology_02_ExchangeTests(IntegrationFixture fixture)
         {
-            _seasoning = new RabbitSeasoning
-            {
-                RabbitHostName = "localhost",
-                ConnectionName = "RabbitServiceTest",
-                ConnectionPoolCount = 1,
-                ChannelPoolCount = 1
-            };
-
-            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
-            _rabbitTopologyService = new RabbitTopologyService(_seasoning);
-
-            try
-            { _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName).GetAwaiter().GetResult(); }
-            catch { }
+            _fixture = fixture;
         }
 
         [Fact]
@@ -38,45 +21,15 @@ namespace CookedRabbit.Tests.Integration
         public async Task Exchange_DeclareDelete()
         {
             // Arrange
-            var exchangeName = _testExchangeName;
+            var exchangeName = $"{_fixture.TestExchangeName}.6111";
 
             // Act
-            var createSuccess = await _rabbitTopologyService.ExchangeDeclareAsync(_testExchangeName, ExchangeType.Direct.Description());
-            var deleteSuccess = await _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName);
+            var createSuccess = await _fixture.RabbitTopologyService.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct.Description());
+            var deleteSuccess = await _fixture.RabbitTopologyService.ExchangeDeleteAsync(exchangeName);
 
             // Assert
             Assert.True(createSuccess, "Exchange was not declared.");
             Assert.True(deleteSuccess, "Exchange was not deleted.");
         }
-
-        #region Dispose Section
-
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // Cleanup
-                    try
-                    { _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName).GetAwaiter().GetResult(); }
-                    catch { }
-
-                    _rabbitDeliveryService.Dispose(true);
-                    _rabbitTopologyService.Dispose(true);
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 }

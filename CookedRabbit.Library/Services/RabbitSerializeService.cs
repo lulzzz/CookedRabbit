@@ -253,7 +253,6 @@ namespace CookedRabbit.Library.Services
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var rand = new Random();
-            var count = 0;
 
             var messageProperties = channelPair.Channel.CreateBasicProperties();
 
@@ -275,27 +274,25 @@ namespace CookedRabbit.Library.Services
                 }
                 catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
                 {
-                    failures.Add(count);
+                    failures.Add(i);
                     await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                 }
                 catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                 {
-                    failures.Add(count);
+                    failures.Add(i);
                     await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                 }
                 catch (Exception e)
                 {
-                    failures.Add(count);
+                    failures.Add(i);
                     await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                 }
-
-                count++;
 
                 if (_seasoning.ThrottleFastBodyLoops)
                 { await Task.Delay(rand.Next(0, 2)); }
@@ -458,18 +455,21 @@ namespace CookedRabbit.Library.Services
                     await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
                 catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                 {
                     await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
                 catch (Exception e)
                 {
                     await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
 
                 if (_seasoning.ThrottleFastBodyLoops)

@@ -1,54 +1,30 @@
-﻿using CookedRabbit.Library.Models;
-using CookedRabbit.Library.Services;
-using System;
+﻿using CookedRabbit.Tests.Integration.Fixtures;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {
-    public class Topology_01_QueueTests : IDisposable
+    [Collection("IntegrationTests")]
+    public class Topology_01_QueueTests
     {
-        private readonly RabbitDeliveryService _rabbitDeliveryService;
-        private readonly RabbitTopologyService _rabbitTopologyService;
-        private readonly RabbitSeasoning _seasoning;
-        private readonly string _testQueueName1 = "CookedRabbit.TopologyTestQueue1";
-        private readonly string _testQueueName2 = "CookedRabbit.TopologyTestQueue2";
-        private readonly string _testQueueName3 = "CookedRabbit.TopologyTestQueue3";
+        private readonly IntegrationFixture _fixture;
 
-        // Test Setup
-        public Topology_01_QueueTests()
+        public Topology_01_QueueTests(IntegrationFixture fixture)
         {
-            _seasoning = new RabbitSeasoning
-            {
-                RabbitHostName = "localhost",
-                ConnectionName = "RabbitServiceTest",
-                ConnectionPoolCount = 1,
-                ChannelPoolCount = 1
-            };
-
-            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
-            _rabbitTopologyService = new RabbitTopologyService(_seasoning);
-
-            try
-            {
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName1).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName2).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName3).GetAwaiter().GetResult();
-            }
-            catch { }
+            _fixture = fixture;
         }
 
         [Fact]
         [Trait("Rabbit Topology", "Queue")]
-        public void Queue_DeclareDelete()
+        public async Task Queue_DeclareDelete()
         {
             // Arrange
-            var queueName = _testQueueName1;
+            var queueName = $"{_fixture.TestQueueName1}.5111";
 
             // Act
-            var createSuccess = _rabbitTopologyService.QueueDeclareAsync(queueName).GetAwaiter().GetResult();
-            var deleteSuccess = _rabbitTopologyService.QueueDeleteAsync(queueName).GetAwaiter().GetResult();
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not declared.");
@@ -60,24 +36,18 @@ namespace CookedRabbit.Tests.Integration
         public async Task Queue_DeclarePublishDelete()
         {
             // Arrange
-            var queueName = _testQueueName2;
+            var queueName = $"{_fixture.TestQueueName2}.5112";
             string exchangeName = string.Empty;
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(1000), false, null);
-            var deleteSuccess = await _rabbitTopologyService.QueueDeleteAsync(queueName, false, true);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(1000), false, null);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, true);
 
             // Assert
             Assert.True(createSuccess, "Queue was not declared.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.False(deleteSuccess, "Queue was deleted with a message inside.");
-
-            // Re-Act
-            deleteSuccess = await _rabbitTopologyService.QueueDeleteAsync(queueName, false, false);
-
-            // Re-Assert
-            Assert.True(deleteSuccess, "Queue was not deleted.");
         }
 
         [Fact]
@@ -85,14 +55,14 @@ namespace CookedRabbit.Tests.Integration
         public async Task Queue_DeclarePublishGetDelete()
         {
             // Arrange
-            var queueName = _testQueueName3;
+            var queueName = $"{_fixture.TestQueueName3}.5113";
             string exchangeName = string.Empty;
             var payload = await GetRandomByteArray(1000);
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var result = await _rabbitDeliveryService.GetAsync(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+            var result = await _fixture.RabbitDeliveryService.GetAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -103,45 +73,11 @@ namespace CookedRabbit.Tests.Integration
             var messageIdentical = await ByteArrayCompare(result.Body, payload);
 
             // Re-Act
-            var deleteSuccess = await _rabbitTopologyService.QueueDeleteAsync(queueName, false, false);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, false);
 
             // Re-Assert
             Assert.True(deleteSuccess, "Queue was not deleted.");
             Assert.True(messageIdentical, "Message received was not identical to published message.");
         }
-
-        #region Dispose Section
-
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // Cleanup
-                    try
-                    {
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName1).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName2).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName3).GetAwaiter().GetResult();
-                    }
-                    catch { }
-
-                    _rabbitDeliveryService.Dispose(true);
-                    _rabbitTopologyService.Dispose(true);
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 }

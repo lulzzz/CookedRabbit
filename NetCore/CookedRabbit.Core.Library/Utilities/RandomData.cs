@@ -80,7 +80,7 @@ namespace CookedRabbit.Core.Library.Utilities
             return Task.FromResult(input.SequenceEqual(comparator));
         }
 
-        private const string AllowedChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#@$^*()";
+        private const string AllowedChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
         /// <summary>
         /// Random string generator.
@@ -92,7 +92,7 @@ namespace CookedRabbit.Core.Library.Utilities
         {
             var t = await Task.Run(() =>
             {
-                var rand = new Random();
+                var rand = new Random((int)DateTime.Now.Ticks);
                 char[] chars = new char[maxLength];
                 int setLength = AllowedChars.Length;
 

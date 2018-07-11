@@ -9,10 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static CookedRabbit.Core.Library.Utilities.LogStrings.GenericMessages;
-using static CookedRabbit.Core.Library.Utilities.LogStrings.RabbitServiceMessages;
-using static CookedRabbit.Core.Library.Utilities.Compression;
-using static CookedRabbit.Core.Library.Utilities.Enums;
 
 namespace CookedRabbit.Core.Library.Services
 {
@@ -452,9 +448,7 @@ namespace CookedRabbit.Core.Library.Services
                                     basicProperties: messageProperties,
                                     body: payload);
                             }
-                            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
-                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                            catch (Exception)
+                            catch
                             { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                         });
 
@@ -473,9 +467,7 @@ namespace CookedRabbit.Core.Library.Services
                                 basicProperties: messageProperties,
                                 body: payload);
                         }
-                        catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
-                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                        catch (Exception)
+                        catch
                         { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                     }
                 }
@@ -714,18 +706,21 @@ namespace CookedRabbit.Core.Library.Services
                     await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
                 catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                 {
                     await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
                 catch (Exception e)
                 {
                     await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
 
                 if (_seasoning.ThrottleFastBodyLoops)

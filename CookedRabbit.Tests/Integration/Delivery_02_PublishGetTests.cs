@@ -1,5 +1,6 @@
 ﻿using CookedRabbit.Library.Models;
 using CookedRabbit.Library.Services;
+using CookedRabbit.Tests.Integration.Fixtures;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -7,41 +8,14 @@ using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {
-    public class Delivery_02_PublishGetTests : IDisposable
+    [Collection("IntegrationTests")]
+    public class Delivery_02_PublishGetTests
     {
-        private readonly RabbitDeliveryService _rabbitDeliveryService;
-        private readonly RabbitTopologyService _rabbitTopologyService;
-        private readonly RabbitSeasoning _seasoning;
-        private readonly string _testQueueName1 = "CookedRabbit.DeliveryTestQueue1";
-        private readonly string _testQueueName2 = "CookedRabbit.DeliveryTestQueue2";
-        private readonly string _testQueueName3 = "CookedRabbit.DeliveryTestQueue3";
-        private readonly string _testQueueName4 = "CookedRabbit.DeliveryTestQueue4";
-        private readonly string _testExchangeName = "CookedRabbit.DeliveryTestExchange";
+        private readonly IntegrationFixture _fixture;
 
-        public Delivery_02_PublishGetTests()
+        public Delivery_02_PublishGetTests(IntegrationFixture fixture)
         {
-            _seasoning = new RabbitSeasoning
-            {
-                RabbitHostName = "localhost",
-                ConnectionName = "RabbitServiceTest",
-                ConnectionPoolCount = 1,
-                ChannelPoolCount = 1,
-                ThrottleFastBodyLoops = false,
-                ThrowExceptions = false
-            };
-
-            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning);
-            _rabbitTopologyService = new RabbitTopologyService(_seasoning);
-
-            try
-            {
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName1, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName2, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName3, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName4, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName, false).GetAwaiter().GetResult();
-            }
-            catch { }
+            _fixture = fixture;
         }
 
         [Fact]
@@ -49,19 +23,25 @@ namespace CookedRabbit.Tests.Integration
         public async Task PublishAndGetAsync()
         {
             // Arrange
-            var queueName = _testQueueName1;
+            var queueName = $"{_fixture.TestQueueName1}.2111";
             var exchangeName = string.Empty;
             var payload = await GetRandomByteArray(1000);
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
-            var result = await _rabbitDeliveryService.GetAsync(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+            var result = await _fixture.RabbitDeliveryService.GetAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.True(result != null, "Result was null.");
+
+            // Re-Act
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
+
+            // Re-Assert
+            Assert.True(deleteSuccess, "Queue was not deleted.");
         }
 
         [Fact]
@@ -70,14 +50,14 @@ namespace CookedRabbit.Tests.Integration
         {
             // Arrange
             var messageCount = 17;
-            var queueName = _testQueueName2;
+            var queueName = $"{_fixture.TestQueueName2}.2222";
             var exchangeName = string.Empty;
             var payloads = await CreatePayloadsAsync(messageCount);
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var failures = await _rabbitDeliveryService.PublishManyAsync(exchangeName, queueName, payloads, false, null);
-            var queueCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var failures = await _fixture.RabbitDeliveryService.PublishManyAsync(exchangeName, queueName, payloads, false, null);
+            var queueCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -85,10 +65,12 @@ namespace CookedRabbit.Tests.Integration
             Assert.True(queueCount == messageCount, "Messages were lost in routing.");
 
             // Re-Act
-            var results = await _rabbitDeliveryService.GetManyAsync(queueName, messageCount);
+            var results = await _fixture.RabbitDeliveryService.GetManyAsync(queueName, messageCount);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Re-Assert
             Assert.True(results.Count == messageCount);
+            Assert.True(deleteSuccess, "Queue was not deleted.");
         }
 
         [Fact]
@@ -97,14 +79,14 @@ namespace CookedRabbit.Tests.Integration
         {
             // Arrange
             var messageCount = 111;
-            var queueName = _testQueueName3;
+            var queueName = $"{_fixture.TestQueueName3}.2333";
             var exchangeName = string.Empty;
             var payloads = await CreatePayloadsAsync(messageCount);
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var failures = await _rabbitDeliveryService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads, 7, false, null);
-            var queueCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var failures = await _fixture.RabbitDeliveryService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads, 7, false, null);
+            var queueCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
@@ -112,10 +94,12 @@ namespace CookedRabbit.Tests.Integration
             Assert.True(queueCount == messageCount, "Messages were lost in routing.");
 
             // Re-Act
-            var results = await _rabbitDeliveryService.GetAllAsync(queueName);
+            var results = await _fixture.RabbitDeliveryService.GetAllAsync(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Re-Assert
             Assert.True(results.Count == messageCount);
+            Assert.True(deleteSuccess, "Queue was not deleted.");
         }
 
         [Fact]
@@ -124,60 +108,26 @@ namespace CookedRabbit.Tests.Integration
         {
             // Arrange
             var messageCount = 100;
-            var queueName = _testQueueName4;
+            var queueName = $"{_fixture.TestQueueName4}.2444";
             var exchangeName = string.Empty;
             var payloads = await CreatePayloadsAsync(messageCount);
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            await _rabbitDeliveryService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads, 10, false, null);
-            var queueCount = await _rabbitDeliveryService.GetMessageCountAsync(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            await _fixture.RabbitDeliveryService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads, 10, false, null);
+            var queueCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(queueCount == messageCount, "Message were lost in routing.");
 
             // Re-Act
-            var results = await _rabbitDeliveryService.GetAllAsync(queueName);
+            var results = await _fixture.RabbitDeliveryService.GetAllAsync(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Re-Assert
             Assert.True(results.Count == messageCount);
+            Assert.True(deleteSuccess, "Queue was not deleted.");
         }
-
-        #region Dispose Section
-
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // Cleanup
-                    try
-                    {
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName1, false, false).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName2, false, false).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName3, false, false).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName4, false, false).GetAwaiter().GetResult();
-                        _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName, false).GetAwaiter().GetResult();
-                    }
-                    catch { }
-
-                    _rabbitDeliveryService.Dispose(true);
-                    _rabbitTopologyService.Dispose(true);
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 }

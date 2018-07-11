@@ -448,9 +448,7 @@ namespace CookedRabbit.Library.Services
                                     basicProperties: messageProperties,
                                     body: payload);
                             }
-                            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
-                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                            catch (Exception)
+                            catch
                             { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                         });
 
@@ -469,9 +467,7 @@ namespace CookedRabbit.Library.Services
                                 basicProperties: messageProperties,
                                 body: payload);
                         }
-                        catch (RabbitMQ.Client.Exceptions.AlreadyClosedException)
-                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                        catch (Exception)
+                        catch
                         { _rcp.FlagDeadChannel(channelPair.ChannelId); }
                     }
                 }
@@ -710,18 +706,21 @@ namespace CookedRabbit.Library.Services
                     await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
                 catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
                 {
                     await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
                 catch (Exception e)
                 {
                     await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
+                    else { break; }
                 }
 
                 if (_seasoning.ThrottleFastBodyLoops)

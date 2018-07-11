@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 using static CookedRabbit.Library.Utilities.Compression;
-using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Functional
 {

@@ -158,7 +158,10 @@
     <Compile Include="Functional\Compress_01_GZip_CompressDecompress.cs" />
     <Compile Include="Functional\Compress_02_Deflate_CompressDecompress.cs" />
     <Compile Include="Functional\Compress_03_LZ4_CompressDecompress.cs" />
+    <Compile Include="Functional\Serialize_01_Utf8Json_SerializeDeserializeTests.cs" />
+    <Compile Include="Functional\Serialize_02_Utf8Json_SerializeDeserializeTests.cs" />
     <Compile Include="Functional\Serialize_02_ZeroFormat_SerializeDeserializeTests.cs" />
+    <Compile Include="Integration\Fixtures\IntegrationFixture.cs" />
     <Compile Include="Models\ZeroTestHelperObject.cs" />
     <Compile Include="Functional\Serialize_01_ZeroFormat_SerializeDeserializeTests.cs" />
     <Compile Include="Integration\Serialize_02_ZeroFormat_PublishGetTests.cs" />

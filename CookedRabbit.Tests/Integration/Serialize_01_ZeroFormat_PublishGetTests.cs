@@ -1,62 +1,24 @@
 ﻿using AutoFixture;
 using CookedRabbit.Library.Models;
-using CookedRabbit.Library.Pools;
-using CookedRabbit.Library.Services;
+using CookedRabbit.Tests.Integration.Fixtures;
 using CookedRabbit.Tests.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
+using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {
-    public class Serialize_01_ZeroFormat_PublishGetTests : IDisposable
+    [Collection("IntegrationTests")]
+    public class Serialize_01_ZeroFormat_PublishGetTests
     {
-        private readonly IRabbitChannelPool _rchanp;
-        private readonly IRabbitConnectionPool _rconp;
-        private readonly RabbitDeliveryService _rabbitDeliveryService;
-        private readonly RabbitSerializeService _rabbitSerializeService;
-        private readonly RabbitTopologyService _rabbitTopologyService;
-        private readonly RabbitSeasoning _seasoning;
-        private readonly string _testQueueName1 = "CookedRabbit.SerializeTestQueue1";
-        private readonly string _testQueueName2 = "CookedRabbit.SerializeTestQueue2";
-        private readonly string _testQueueName3 = "CookedRabbit.SerializeTestQueue3";
-        private readonly string _testExchangeName = "CookedRabbit.SerializeTestExchange";
+        private readonly IntegrationFixture _fixture;
 
-        public Serialize_01_ZeroFormat_PublishGetTests()
+        public Serialize_01_ZeroFormat_PublishGetTests(IntegrationFixture fixture)
         {
-            _seasoning = new RabbitSeasoning
-            {
-                UseUri = true,
-                ConnectionName = "RabbitSerializeServiceTest",
-                ConnectionPoolCount = 1,
-                ChannelPoolCount = 1,
-                ThrottleFastBodyLoops = false,
-                ThrowExceptions = false,
-                SerializationMethod = SerializationMethod.ZeroFormat,
-                CompressionEnabled = false,
-                CompressionMethod = CompressionMethod.LZ4
-            };
-
-            _rchanp = new RabbitChannelPool();
-            _rconp = new RabbitConnectionPool();
-
-            _rchanp.SetConnectionPoolAsync(_seasoning, _rconp).GetAwaiter().GetResult();
-
-            _rabbitDeliveryService = new RabbitDeliveryService(_seasoning, _rchanp);
-            _rabbitSerializeService = new RabbitSerializeService(_seasoning, _rchanp);
-            _rabbitTopologyService = new RabbitTopologyService(_seasoning, _rchanp);
-
-            try
-            {
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName1, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName2, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.QueueDeleteAsync(_testQueueName3, false, false).GetAwaiter().GetResult();
-                _rabbitTopologyService.ExchangeDeleteAsync(_testExchangeName, false).GetAwaiter().GetResult();
-            }
-            catch { }
+            _fixture = fixture;
         }
 
         [Fact]
@@ -64,7 +26,7 @@ namespace CookedRabbit.Tests.Integration
         public async Task PublishExceptionAsync()
         {
             // Arrange
-            var queueName = _testQueueName1;
+            var queueName = $"{_fixture.TestQueueName1}.3111";
             var exchangeName = string.Empty;
 
             var testObject = new TestHelperObject
@@ -83,9 +45,15 @@ namespace CookedRabbit.Tests.Integration
             };
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             Assert.True(createSuccess, "Queue was not created.");
-            await Assert.ThrowsAsync<System.InvalidOperationException>(() => _rabbitSerializeService.SerializeAndPublishAsync(testObject, envelope));
+            await Assert.ThrowsAsync<System.InvalidOperationException>(() => _fixture.RabbitSerializeService.SerializeAndPublishAsync(testObject, envelope));
+
+            // Re-Act
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
+
+            // Re-Assert
+            Assert.True(deleteSuccess);
         }
 
         [Fact]
@@ -93,7 +61,7 @@ namespace CookedRabbit.Tests.Integration
         public async Task PublishAndGetAsync()
         {
             // Arrange
-            var queueName = _testQueueName2;
+            var queueName = $"{_fixture.TestQueueName2}.3112";
             var exchangeName = string.Empty;
 
             var testObject = new ZeroTestHelperObject
@@ -112,14 +80,20 @@ namespace CookedRabbit.Tests.Integration
             };
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var publishSuccess = await _rabbitSerializeService.SerializeAndPublishAsync(testObject, envelope);
-            var result = await _rabbitSerializeService.GetAndDeserializeAsync<ZeroTestHelperObject>(queueName);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var publishSuccess = await _fixture.RabbitSerializeService.SerializeAndPublishAsync(testObject, envelope);
+            var result = await _fixture.RabbitSerializeService.GetAndDeserializeAsync<ZeroTestHelperObject>(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.True(result != null, "Result was null.");
+
+            // Re-Act
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
+
+            // Re-Assert
+            Assert.True(deleteSuccess);
         }
 
         [Fact]
@@ -131,7 +105,7 @@ namespace CookedRabbit.Tests.Integration
             // Arrange
             var messageCount = 17;
             var messages = fixture.CreateMany<ZeroTestHelperObject>(messageCount).ToList();
-            var queueName = _testQueueName3;
+            var queueName = $"{_fixture.TestQueueName3}.3113";
             var exchangeName = string.Empty;
             var envelope = new Envelope
             {
@@ -142,49 +116,20 @@ namespace CookedRabbit.Tests.Integration
             };
 
             // Act
-            var createSuccess = await _rabbitTopologyService.QueueDeclareAsync(queueName);
-            var failures = await _rabbitSerializeService.SerializeAndPublishManyAsync(messages, envelope);
-            var results = await _rabbitSerializeService.GetAndDeserializeManyAsync<ZeroTestHelperObject>(queueName, messageCount);
+            var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
+            var failures = await _fixture.RabbitSerializeService.SerializeAndPublishManyAsync(messages, envelope);
+            var results = await _fixture.RabbitSerializeService.GetAndDeserializeManyAsync<ZeroTestHelperObject>(queueName, messageCount);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.Empty(failures);
             Assert.True(results.Count == messageCount, "Messages were lost.");
+
+            // Re-Act
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
+
+            // Re-Assert
+            Assert.True(deleteSuccess);
         }
-
-        #region Dispose Section
-
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // Cleanup
-                    try
-                    {
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName1).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName2).GetAwaiter().GetResult();
-                        _rabbitTopologyService.QueueDeleteAsync(_testQueueName3).GetAwaiter().GetResult();
-                    }
-                    catch { }
-
-                    _rabbitDeliveryService.Dispose(true);
-                    _rabbitSerializeService.Dispose(true);
-                    _rabbitTopologyService.Dispose(true);
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 }
