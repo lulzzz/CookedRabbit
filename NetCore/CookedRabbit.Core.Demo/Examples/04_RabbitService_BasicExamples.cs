@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Demo
     {
         #region RabbitService is a RabbitMQ Wrapper
 
-        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHostName = "localhost", ConnectionName = Environment.MachineName };
+        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning();
 
         // Using RabbitService backed by a Channel Pool
         public static RabbitDeliveryService _rabbitDeliveryService;
@@ -24,6 +24,8 @@ namespace CookedRabbit.Core.Demo
 
         public static async Task RunRabbitServicePoolChannelTestAsync()
         {
+            _rabbitSeasoning.FactorySettings.RabbitHostName = "localhost";
+            _rabbitSeasoning.PoolSettings.ConnectionName = Environment.MachineName;
             _rabbitDeliveryService = new RabbitDeliveryService(_rabbitSeasoning);
 
             await Task.WhenAll(new Task[] { RabbitService_SendMessagesForeverAsync(), RabbitService_ReceiveMessagesForeverAsync() });

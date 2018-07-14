@@ -4,6 +4,7 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CookedRabbit.Core.Library.Pools

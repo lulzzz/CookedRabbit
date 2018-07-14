@@ -36,6 +36,29 @@ namespace CookedRabbit.Core.Library.Utilities
         }
 
         /// <summary>
+        /// Take an object of type T and serialize to a string based on the serialization method.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message">The message to be serialized.</param>
+        /// <param name="serializationMethod">Specifies the serialization method.</param>
+        /// <param name="makePretty">Makes the string prettified (if useable).</param>
+        /// <returns>A string message in the format determined appropriate by the serialization method.</returns>
+        public static async Task<string> SerializeToStringAsync<T>(T message, SerializationMethod serializationMethod, bool makePretty = false)
+        {
+            var output = string.Empty;
+
+            switch (serializationMethod)
+            {
+                case SerializationMethod.JsonString:
+                    output = await SerializeToJsonAsync(message, makePretty);
+                    break;
+                default: break;
+            }
+
+            return output;
+        }
+
+        /// <summary>
         /// Deserialize byte[] into an object of type T.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -50,6 +73,24 @@ namespace CookedRabbit.Core.Library.Utilities
                     return await DeserializeAsUtf8JsonFormatAsync<T>(input);
                 case SerializationMethod.ZeroFormat:
                     return await DeserializeAsZeroFormatAsync<T>(input);
+                default:
+                    return default;
+            }
+        }
+
+        /// <summary>
+        /// Deserialize string into an object of type T based on the serialization method.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="serializationMethod"></param>
+        /// <returns></returns>
+        public static async Task<T> DeserializeStringAsync<T>(string input, SerializationMethod serializationMethod)
+        {
+            switch (serializationMethod)
+            {
+                case SerializationMethod.JsonString:
+                    return await DeserializeJsonAsync<T>(input);
                 default:
                     return default;
             }
@@ -84,7 +125,7 @@ namespace CookedRabbit.Core.Library.Utilities
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message"></param>
-        /// <returns>A byte[]</returns>
+        /// <returns></returns>
         public static async Task<byte[]> SerializeAsUtf8JsonFormatAsync<T>(T message)
         {
             return await Task.Run(() => JsonSerializer.Serialize(message));
@@ -95,6 +136,7 @@ namespace CookedRabbit.Core.Library.Utilities
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message"></param>
+        /// <param name="makePretty"></param>
         /// <returns>A json string.</returns>
         public static async Task<string> SerializeToJsonAsync<T>(T message, bool makePretty = false)
         {
@@ -123,7 +165,7 @@ namespace CookedRabbit.Core.Library.Utilities
         /// Deserialize a json to an object with Utf8Json.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
+        /// <param name="json"></param>
         /// <returns>An object of type T</returns>
         public static async Task<T> DeserializeJsonAsync<T>(string json)
         {

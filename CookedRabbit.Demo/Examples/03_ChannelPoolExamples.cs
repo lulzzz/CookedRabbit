@@ -12,10 +12,13 @@ namespace CookedRabbit.Demo
     {
         #region Demonstrating a Connection Pool
 
-        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning { RabbitHostName = "localhost", ConnectionName = Environment.MachineName };
+        private static readonly RabbitSeasoning _rabbitSeasoning = new RabbitSeasoning();
 
         public static async Task RunManualTransientChannelTestAsync()
         {
+            _rabbitSeasoning.FactorySettings.RabbitHostName = "localhost";
+            _rabbitSeasoning.PoolSettings.ConnectionName = Environment.MachineName;
+
             var rcp = await Factories.CreateRabbitConnectionPoolAsync(_rabbitSeasoning);
 
             var sendMessage = SendMessagesForeverAsync(rcp);

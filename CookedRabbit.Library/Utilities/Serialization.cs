@@ -125,7 +125,7 @@ namespace CookedRabbit.Library.Utilities
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message"></param>
-        /// <returns>A byte[]</returns>
+        /// <returns></returns>
         public static async Task<byte[]> SerializeAsUtf8JsonFormatAsync<T>(T message)
         {
             return await Task.Run(() => JsonSerializer.Serialize(message));
@@ -136,6 +136,7 @@ namespace CookedRabbit.Library.Utilities
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="message"></param>
+        /// <param name="makePretty"></param>
         /// <returns>A json string.</returns>
         public static async Task<string> SerializeToJsonAsync<T>(T message, bool makePretty = false)
         {
@@ -164,7 +165,7 @@ namespace CookedRabbit.Library.Utilities
         /// Deserialize a json to an object with Utf8Json.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="input"></param>
+        /// <param name="json"></param>
         /// <returns>An object of type T</returns>
         public static async Task<T> DeserializeJsonAsync<T>(string json)
         {

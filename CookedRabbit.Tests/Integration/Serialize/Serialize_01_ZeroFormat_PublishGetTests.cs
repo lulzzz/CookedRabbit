@@ -10,12 +10,12 @@ using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Tests.Integration
 {
-    [Collection("IntegrationTests")]
+    [Collection("IntegrationTests_Zero")]
     public class Serialize_01_ZeroFormat_PublishGetTests
     {
-        private readonly IntegrationFixture _fixture;
+        private readonly IntegrationFixture_Zero _fixture;
 
-        public Serialize_01_ZeroFormat_PublishGetTests(IntegrationFixture fixture)
+        public Serialize_01_ZeroFormat_PublishGetTests(IntegrationFixture_Zero fixture)
         {
             _fixture = fixture;
         }

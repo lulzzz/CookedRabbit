@@ -13,7 +13,7 @@ namespace CookedRabbit.Library.Models
         /// <summary>
         /// RabbitMQ option to enable SSL.
         /// <para>Set Cf_RabbitPort to 5671 as well as enabling this.</para>
-        /// <para>To configure client and server: <see cref="http://www.rabbitmq.com/ssl.html#configuring-dotnet"/></para>
+        /// <para>To configure client and server: http://www.rabbitmq.com/ssl.html#configuring-dotnet</para>
         /// </summary>
         public bool EnableSsl { get; set; } = false;
 

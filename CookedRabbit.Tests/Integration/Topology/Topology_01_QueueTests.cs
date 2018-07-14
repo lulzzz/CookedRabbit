@@ -5,12 +5,12 @@ using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {
-    [Collection("IntegrationTests")]
+    [Collection("IntegrationTests_Zero")]
     public class Topology_01_QueueTests
     {
-        private readonly IntegrationFixture _fixture;
+        private readonly IntegrationFixture_Zero _fixture;
 
-        public Topology_01_QueueTests(IntegrationFixture fixture)
+        public Topology_01_QueueTests(IntegrationFixture_Zero fixture)
         {
             _fixture = fixture;
         }

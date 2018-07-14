@@ -1,5 +1,5 @@
 # HouseofCat.io Presents
-## CookedRabbit (v1.0.0.13) [![AppVeyor](https://img.shields.io/appveyor/ci/houseofcat/cookedrabbit.svg?logo=appveyor)](https://ci.appveyor.com/project/houseofcat/cookedrabbit)
+## CookedRabbit (v1.0.0.14) [![AppVeyor](https://img.shields.io/appveyor/ci/houseofcat/cookedrabbit.svg?logo=appveyor)](https://ci.appveyor.com/project/houseofcat/cookedrabbit)
 #### CookedRabbit.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
 #### CookedRabbit.Core.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
 
@@ -37,6 +37,7 @@ Which leads me to the custom compiled RabbitMQ CookedRabbit uses and includes in
 ```
 
 CookedRabbit is in active rapid development.  
+CookedRabbit supports SSL/TLS.
 CookedRabbit supports LZ4 compression.  
 CookedRabbit supports Utf8Json and ZeroFormat serialization.  
 CookedRabbit provides async/await around RabbitMQ calls.  
@@ -111,11 +112,13 @@ Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyServi
  * ~~Add interfaces to the Pools.~~ Done, everything updated.
  * ~~More robust error handling.~~ Done, will continue pattern.
  * ~~Quality life tools such as compression etc.~~ Done, will add more.
- * Custom Connection (EventListener) wireups.
+ * Custom Connection model with EventListener wireups.
  * Disaster recovery & circuit break.
  * A ServiceBus-esque client.
  * Additional Demonstrations.
  * ~~Add Xunit test project.~~ Done, will add tests as I go!
+ * ~~Add autoscaling for ChannelPools.~~ Done, will tweak it as tests go on.
+ * ~~Add TLS/SSL support.~~ Done, will tweak it as issues arise.
 
 </p>
 </details>

@@ -59,8 +59,8 @@
     <Reference Include="Ben.Demystifier, Version=0.1.0.0, Culture=neutral, PublicKeyToken=a6d206e05440431a, processorArchitecture=MSIL">
       <HintPath>..\packages\Ben.Demystifier.0.1.1\lib\net45\Ben.Demystifier.dll</HintPath>
     </Reference>
-    <Reference Include="CookedRabbit.Library, Version=1.0.0.12, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\CookedRabbit.Library.1.0.0.13\lib\net472\CookedRabbit.Library.dll</HintPath>
+    <Reference Include="CookedRabbit.Library, Version=1.0.0.14, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\CookedRabbit.Library.1.0.0.14\lib\net472\CookedRabbit.Library.dll</HintPath>
     </Reference>
     <Reference Include="LZ4, Version=1.0.15.93, Culture=neutral, PublicKeyToken=62e1b5ec1eec9bdd, processorArchitecture=MSIL">
       <HintPath>..\packages\lz4net.1.0.15.93\lib\net4-client\LZ4.dll</HintPath>
@@ -93,7 +93,7 @@
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="RabbitMQ.Client, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\CookedRabbit.Library.1.0.0.13\lib\net472\RabbitMQ.Client.dll</HintPath>
+      <HintPath>..\packages\CookedRabbit.Library.1.0.0.14\lib\net472\RabbitMQ.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

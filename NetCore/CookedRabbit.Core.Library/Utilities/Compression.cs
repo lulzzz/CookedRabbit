@@ -32,6 +32,9 @@ namespace CookedRabbit.Core.Library.Utilities
                 case CompressionMethod.LZ4:
                     output = await CompressBytesWithLZ4Async(input);
                     break;
+                case CompressionMethod.LZ4Codec:
+                    output = await WrapBytesWithLZ4Async(input);
+                    break;
                 default: break;
             }
 
@@ -58,6 +61,9 @@ namespace CookedRabbit.Core.Library.Utilities
                     break;
                 case CompressionMethod.LZ4:
                     output = await DecompressBytesWithLZ4Async(input);
+                    break;
+                case CompressionMethod.LZ4Codec:
+                    output = await UnwrapBytesWithLZ4Async(input);
                     break;
                 default: break;
             }

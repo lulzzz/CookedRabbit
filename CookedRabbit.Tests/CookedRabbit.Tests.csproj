@@ -155,6 +155,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Fixtures\IntegrationFixture_Utf8.cs" />
     <Compile Include="Integration\AutoScaling\Scaling_01_ChannelPool.cs" />
     <Compile Include="Functional\Compression\Compress_01_GZip_CompressDecompress.cs" />
     <Compile Include="Functional\Compression\Compress_02_Deflate_CompressDecompress.cs" />
@@ -162,7 +163,7 @@
     <Compile Include="Functional\Serialization\Serialize_01_Utf8Json_SerializeDeserializeTests.cs" />
     <Compile Include="Functional\Serialization\Serialize_02_Utf8Json_SerializeDeserializeTests.cs" />
     <Compile Include="Functional\Serialization\Serialize_02_ZeroFormat_SerializeDeserializeTests.cs" />
-    <Compile Include="Fixtures\IntegrationFixture.cs" />
+    <Compile Include="Fixtures\IntegrationFixture_Zero.cs" />
     <Compile Include="Models\ZeroTestHelperObject.cs" />
     <Compile Include="Functional\Serialization\Serialize_01_ZeroFormat_SerializeDeserializeTests.cs" />
     <Compile Include="Integration\Serialize\Serialize_02_ZeroFormat_PublishGetTests.cs" />

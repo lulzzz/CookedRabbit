@@ -5,12 +5,12 @@ using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Functional.AutoScaling
 {
-    [Collection("IntegrationTests")]
+    [Collection("IntegrationTests_Zero")]
     public class Scaling_01_ChannelPool
     {
-        private readonly IntegrationFixture _fixture;
+        private readonly IntegrationFixture_Zero _fixture;
 
-        public Scaling_01_ChannelPool(IntegrationFixture fixture)
+        public Scaling_01_ChannelPool(IntegrationFixture_Zero fixture)
         {
             _fixture = fixture;
         }
