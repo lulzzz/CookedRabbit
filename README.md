@@ -123,7 +123,7 @@ Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyServi
 </p>
 </details>
 
-### Current Library Topology At A Glance
+### RabbitDeliveryService Topology At A Glance
 
 <details><summary>Click to show ASCII Art!</summary>
 <p>
