@@ -29,6 +29,11 @@ namespace CookedRabbit.Library.Services
         /// </summary>
         protected RabbitSeasoning _seasoning = null; // Used for recovery later.
 
+        /// <summary>
+        /// Used for throttling.
+        /// </summary>
+        protected Random Rand = new Random();
+
         #region Error Handling Section
 
         /// <summary>
@@ -71,7 +76,14 @@ namespace CookedRabbit.Library.Services
                 }
 
                 if (_seasoning.WriteErrorsToConsole)
-                { await Console.Out.WriteLineAsync(e.Message); }
+                {
+                    lock (Console.Out)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine(e.Message);
+                        Console.ResetColor();
+                    }
+                }
             }
         }
 

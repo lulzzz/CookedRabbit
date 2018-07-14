@@ -1,8 +1,7 @@
-﻿using CookedRabbit.Tests.Integration.Fixtures;
+﻿using CookedRabbit.Tests.Fixtures;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
-using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {

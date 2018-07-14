@@ -23,6 +23,8 @@ namespace CookedRabbit.Library.Utilities
         /// <returns>List of byte[] random bytes.</returns>
         public static async Task<List<byte[]>> CreatePayloadsAsync(int payloadCount, int payloadSizeInBytes = 1000)
         {
+            if (payloadSizeInBytes < 10) throw new ArgumentException($"Argument {nameof(payloadSizeInBytes)} can't be less than 10 bytes.");
+
             var byteList = new List<byte[]>();
 
             for (int i = 0; i < payloadCount; i++)
@@ -80,19 +82,18 @@ namespace CookedRabbit.Library.Utilities
             return Task.FromResult(input.SequenceEqual(comparator));
         }
 
-        private const string AllowedChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        private const string AllowedChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_-+=";
 
         /// <summary>
-        /// Random string generator.
+        /// Random asynchronous string generator.
         /// </summary>
         /// <param name="minLength"></param>
         /// <param name="maxLength"></param>
         /// <returns></returns>
-        public static async Task<string> RandomString(int minLength, int maxLength)
+        public static async Task<string> RandomStringAsync(int minLength, int maxLength)
         {
             var t = await Task.Run(() =>
             {
-                var rand = new Random((int)DateTime.Now.Ticks);
                 char[] chars = new char[maxLength];
                 int setLength = AllowedChars.Length;
 
@@ -107,6 +108,27 @@ namespace CookedRabbit.Library.Utilities
             });
 
             return t;
+        }
+
+        /// <summary>
+        /// Random string generator.
+        /// </summary>
+        /// <param name="minLength"></param>
+        /// <param name="maxLength"></param>
+        /// <returns></returns>
+        public static string RandomString(int minLength, int maxLength)
+        {
+            char[] chars = new char[maxLength];
+            int setLength = AllowedChars.Length;
+
+            int length = rand.Next(minLength, maxLength + 1);
+
+            for (int i = 0; i < length; ++i)
+            {
+                chars[i] = AllowedChars[rand.Next(setLength)];
+            }
+
+            return new string(chars, 0, length);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using CookedRabbit.Library.Models;
 using CookedRabbit.Library.Services;
-using CookedRabbit.Tests.Integration.Fixtures;
+using CookedRabbit.Tests.Fixtures;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -31,16 +31,12 @@ namespace CookedRabbit.Tests.Integration
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
             var result = await _fixture.RabbitDeliveryService.GetAsync(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.True(result != null, "Result was null.");
-
-            // Re-Act
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
-
-            // Re-Assert
             Assert.True(deleteSuccess, "Queue was not deleted.");
         }
 
@@ -57,18 +53,17 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var failures = await _fixture.RabbitDeliveryService.PublishManyAsync(exchangeName, queueName, payloads, false, null);
+
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             var queueCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
+            var results = await _fixture.RabbitDeliveryService.GetManyAsync(queueName, messageCount);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.Empty(failures);
             Assert.True(queueCount == messageCount, "Messages were lost in routing.");
-
-            // Re-Act
-            var results = await _fixture.RabbitDeliveryService.GetManyAsync(queueName, messageCount);
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
-
-            // Re-Assert
             Assert.True(results.Count == messageCount);
             Assert.True(deleteSuccess, "Queue was not deleted.");
         }
@@ -86,18 +81,17 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var failures = await _fixture.RabbitDeliveryService.PublishManyAsBatchesAsync(exchangeName, queueName, payloads, 7, false, null);
+
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             var queueCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
+            var results = await _fixture.RabbitDeliveryService.GetAllAsync(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.Empty(failures);
             Assert.True(queueCount == messageCount, "Messages were lost in routing.");
-
-            // Re-Act
-            var results = await _fixture.RabbitDeliveryService.GetAllAsync(queueName);
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
-
-            // Re-Assert
             Assert.True(results.Count == messageCount);
             Assert.True(deleteSuccess, "Queue was not deleted.");
         }
@@ -115,17 +109,16 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             await _fixture.RabbitDeliveryService.PublishManyAsBatchesInParallelAsync(exchangeName, queueName, payloads, 10, false, null);
+
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             var queueCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
+            var results = await _fixture.RabbitDeliveryService.GetAllAsync(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(queueCount == messageCount, "Message were lost in routing.");
-
-            // Re-Act
-            var results = await _fixture.RabbitDeliveryService.GetAllAsync(queueName);
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
-
-            // Re-Assert
             Assert.True(results.Count == messageCount);
             Assert.True(deleteSuccess, "Queue was not deleted.");
         }

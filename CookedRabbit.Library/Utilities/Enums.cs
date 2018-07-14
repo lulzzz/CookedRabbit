@@ -261,7 +261,11 @@ namespace CookedRabbit.Library.Utilities
             /// <summary>
             /// Compression method using LZ4NET.
             /// </summary>
-            LZ4
+            LZ4,
+            /// <summary>
+            /// Compression method using LZ4NET wrap/unwrap in the LZ4Codec.
+            /// </summary>
+            LZ4Codec
         }
 
         /// <summary>
@@ -269,6 +273,10 @@ namespace CookedRabbit.Library.Utilities
         /// </summary>
         public enum SerializationMethod
         {
+            /// <summary>
+            /// Serialize object as a string using Utf8Json.
+            /// </summary>
+            JsonString,
             /// <summary>
             /// Serialize object as Utf8Json.
             /// </summary>

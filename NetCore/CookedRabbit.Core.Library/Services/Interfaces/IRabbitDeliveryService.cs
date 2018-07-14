@@ -34,6 +34,13 @@ namespace CookedRabbit.Core.Library.Services
         Task<bool> PublishAsync(Envelope envelope, IBasicProperties messageProperties = null);
 
         /// <summary>
+        /// Publish messages asynchronously.
+        /// </summary>
+        /// <param name="envelope"></param>
+        /// <returns>A bool indicating success or failure.</returns>
+        Task<bool> PublishAsync(Envelope envelope);
+
+        /// <summary>
         /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
         /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
@@ -53,6 +60,13 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="messageProperties"></param>
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
         Task<List<int>> PublishManyAsync(List<Envelope> envelopes, IBasicProperties messageProperties = null);
+
+        /// <summary>
+        /// Publishes many messages asynchronously.
+        /// </summary>
+        /// <param name="letters"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        Task<List<int>> PublishManyAsync(List<Envelope> letters);
 
         /// <summary>
         /// Publishes many messages asynchronously in configurable batch sizes.
@@ -187,5 +201,17 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="queueName">The queue to check the message count.</param>
         /// <returns>A uint of the total messages in the queue.</returns>
         Task<uint> GetMessageCountAsync(string queueName);
+
+        /// <summary>
+        /// Get the number of times the channel pool autoscaled up.
+        /// </summary>
+        /// <returns></returns>
+        long GetAutoScalingIterationCount();
+
+        /// <summary>
+        /// Get the number of times the ackable channel pool autoscaled up.
+        /// </summary>
+        /// <returns></returns>
+        long GetAckableAutoScalingIterationCount();
     }
 }

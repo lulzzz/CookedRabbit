@@ -1,33 +1,11 @@
-﻿using System;
-using static CookedRabbit.Library.Utilities.Enums;
-
-namespace CookedRabbit.Library.Models
+﻿namespace CookedRabbit.Library.Models
 {
     /// <summary>
     /// Class to fully season RabbitServices to your taste!
     /// </summary>
     public class RabbitSeasoning
     {
-        #region CookedRabbit PerformanceService Configurable Settings
-
-        /// <summary>
-        /// Enables the use of compression and decompression.
-        /// </summary>
-        public bool CompressionEnabled { get; set; } = true;
-
-        /// <summary>
-        /// Sets the compression method when compression is used.
-        /// </summary>
-        public CompressionMethod CompressionMethod { get; set; } = CompressionMethod.LZ4;
-
-        /// <summary>
-        /// Sets the serialization method when serialization is used.
-        /// </summary>
-        public SerializationMethod SerializationMethod { get; set; } = SerializationMethod.ZeroFormat;
-
-        #endregion
-
-        #region CookedRabbit RabbitServices Configurable Settings
+        #region CookedRabbit Global Settings
 
         /// <summary>
         /// Allows errors to be written to Console asynchornously. Will still write a simple message to console when ILogger is null and WriteErrorsToIlogger is true;
@@ -40,14 +18,25 @@ namespace CookedRabbit.Library.Models
         public bool WriteErrorsToILogger { get; set; } = true;
 
         /// <summary>
-        /// Allows PublishMany to throttle Rand(0,2) milliseconds between publish. Highly recommended to keep system responsiveness high.
+        /// Allows any Publish that uses a loop to throttle Rand(0,2) milliseconds between publish.
+        /// <para>Highly recommended on multi-threaded systems to keep total system responsiveness high at the cost of individual thread throughput.</para>
         /// </summary>
         public bool ThrottleFastBodyLoops { get; set; } = true;
 
         /// <summary>
-        /// On exception throw to calling methods.
+        /// On exception, throw to calling methods.
         /// </summary>
-        public bool ThrowExceptions { get; set; } = false; 
+        public bool ThrowExceptions { get; set; } = false;
+
+        /// <summary>
+        /// On exception, break any batch operation. Recommended but not necessary. Superceded by ThrowExceptions.
+        /// </summary>
+        public bool BatchBreakOnException { get; set; } = true;
+
+        /// <summary>
+        /// On exception, break any batch operation. Recommended but not necessary.
+        /// </summary>
+        public bool BatchLogOnlyFirstException { get; set; } = true;
 
         /// <summary>
         /// RabbitMQ consumer parameters.
@@ -56,114 +45,30 @@ namespace CookedRabbit.Library.Models
 
         /// <summary>
         /// RabbitMQ consumer parameters.
+        /// <para>To fine tune, check consumer utilization located in RabbitMQ HTTP API management.</para>
         /// </summary>
         public ushort QosPrefetchCount { get; set; } = 120;
 
         #endregion
 
-        #region CookedRabbit Pool Settings
+        /// <summary>
+        /// Class to hold settings for Serialization.
+        /// </summary>
+        public SerializationSeasoning SerializeSettings { get; set; } = new SerializationSeasoning();
 
         /// <summary>
-        /// Configures the await Task.Delay(x ms) when Pool is out of channels (temporarily).
+        /// Class to hold settings for Channel/Connection pools.
         /// </summary>
-        public ushort EmptyPoolWaitTime { get; set; } = 100;
+        public PoolSeasoning PoolSettings { get; set; } = new PoolSeasoning();
 
         /// <summary>
-        /// Value to configure the Connection display names in RabbitMQ HTTP API.
+        /// Class to hold settings for ChannelFactory (RabbitMQ) settings.
         /// </summary>
-        public string ConnectionName { get; set; } = string.Empty;
+        public FactorySeasoning FactorySettings { get; set; } = new FactorySeasoning();
 
         /// <summary>
-        /// Number of connections to be created in the connection pool.
+        /// Class to hold settings for ChannelFactory/SSL (RabbitMQ) settings.
         /// </summary>
-        public ushort ConnectionPoolCount { get; set; } = 4;
-
-        /// <summary>
-        /// Number of channels to keep in each of the channel pools.
-        /// </summary>
-        public ushort ChannelPoolCount { get; set; } = 100;
-
-        #endregion
-
-        #region RabbitMQ Connection Factory Settings
-
-        /// <summary>
-        /// Indicates to CookedRabbit to use Uri based connection string.
-        /// </summary>
-        public bool UseUri { get; set; } = true;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) Uri connection string.
-        /// <para>amqp(s) : user : password @ machinename : port / vhost</para>
-        /// </summary>
-        public Uri Uri { get; set; } = new Uri("amqp://guest:guest@localhost:5672/");
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) server user name. Used if UseUri is false.
-        /// </summary>
-        public string RabbitHostUser { get; set; } = "guest";
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) server user password. Used if UseUri is false.
-        /// </summary>
-        public string RabbitHostPassword { get; set; } = "guest";
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) server vhost. Used if UseUri is false.
-        /// </summary>
-        public string RabbitVHost { get; set; } = "/";
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) node hostname. Used if UseUri is false.
-        /// </summary>
-        public string RabbitHostName { get; set; } = "localhost";
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) node port number (5671 is SSL). Used if UseUri is false.
-        /// </summary>
-        public int RabbitPort { get; set; } = 5672;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) max connection property.
-        /// </summary>
-        public ushort MaxChannelsPerConnection { get; set; } = 1000;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) timespan (in seconds) between heartbeats. More than two timeouts in a row trigger RabbitMQ AutoRecovery.
-        /// </summary>
-        public ushort HeartbeatInterval { get; set; } = 6;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) autorecovery property.
-        /// </summary>
-        public bool AutoRecovery { get; set; } = true;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) topology recovery property.
-        /// </summary>
-        public bool TopologyRecovery { get; set; } = true;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) net recovery property (seconds).
-        /// </summary>
-        public ushort NetRecoveryTimeout { get; set; } = 10;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) specify the timeout on protocol operations (seconds).
-        /// </summary>
-        public ushort ContinuationTimeout { get; set; } = 10;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) property to enable Async consumers. Can't be true and retrieve regular consumers.
-        /// </summary>
-        public bool EnableDispatchConsumersAsync { get; set; } = false;
-
-        /// <summary>
-        /// Channel Factory (RabbitMQ) specify the use of background threads for IO.
-        /// <para>Becareful with this - it might have unintended side effects.</para>
-        /// </summary>
-        public bool UseBackgroundThreadsForIO { get; set; } = false;
-
-        #endregion
+        public SslSeasoning SslSettings { get; set; } = new SslSeasoning();
     }
 }

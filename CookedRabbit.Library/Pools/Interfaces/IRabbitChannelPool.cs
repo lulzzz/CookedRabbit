@@ -32,6 +32,24 @@ namespace CookedRabbit.Library.Pools
         Task SetConnectionPoolAsync(RabbitSeasoning rabbitSeasoning, IRabbitConnectionPool rcp);
 
         /// <summary>
+        /// Gets the current channel count by reading the current ChannelId.
+        /// </summary>
+        /// <returns></returns>
+        ulong GetCurrentChannelCount();
+
+        /// <summary>
+        /// Gets the number of times AutoScaling was triggered in the channel pool.
+        /// </summary>
+        /// <returns></returns>
+        long GetChannelPoolAutoScalingIterationCount();
+
+        /// <summary>
+        /// Gets the number of times AutoScaling was triggered in the ackable channel pool.
+        /// </summary>
+        /// <returns></returns>
+        long GetAckableChannelPoolAutoScalingIterationCount();
+
+        /// <summary>
         /// Creates a transient (untracked) RabbitMQ channel. Closing/Disposal is the responsibility of the calling service.
         /// </summary>
         /// <param name="enableAck"></param>

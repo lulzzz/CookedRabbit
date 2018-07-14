@@ -15,7 +15,7 @@ namespace CookedRabbit.Library.Utilities
         /// <para>https://stackoverflow.com/questions/6582259/fast-creation-of-objects-instead-of-activator-createinstancetype</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public static class New<T>
+        public static class GenericNew<T>
         {
             /// <summary>
             /// Return a new GenericObject and cache the instantiation.

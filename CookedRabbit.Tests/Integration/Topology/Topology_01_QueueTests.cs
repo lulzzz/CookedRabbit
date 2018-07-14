@@ -1,4 +1,4 @@
-﻿using CookedRabbit.Tests.Integration.Fixtures;
+﻿using CookedRabbit.Tests.Fixtures;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
@@ -42,12 +42,19 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, await GetRandomByteArray(1000), false, null);
+
+            await Task.Delay(100);
+
             var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, true);
 
             // Assert
             Assert.True(createSuccess, "Queue was not declared.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.False(deleteSuccess, "Queue was deleted with a message inside.");
+
+            // Re-Act
+            deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, false);
+            Assert.True(deleteSuccess, "Queue failed to delete.");
         }
 
         [Fact]
@@ -62,20 +69,17 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+
+            await Task.Delay(100);
+
             var result = await _fixture.RabbitDeliveryService.GetAsync(queueName);
+            var messageIdentical = await ByteArrayCompare(result.Body, payload);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, false);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.True(result != null, "Result was null.");
-
-            // Re-Arrange
-            var messageIdentical = await ByteArrayCompare(result.Body, payload);
-
-            // Re-Act
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, false);
-
-            // Re-Assert
             Assert.True(deleteSuccess, "Queue was not deleted.");
             Assert.True(messageIdentical, "Message received was not identical to published message.");
         }

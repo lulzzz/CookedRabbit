@@ -36,6 +36,29 @@ namespace CookedRabbit.Library.Utilities
         }
 
         /// <summary>
+        /// Take an object of type T and serialize to a string based on the serialization method.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="message">The message to be serialized.</param>
+        /// <param name="serializationMethod">Specifies the serialization method.</param>
+        /// <param name="makePretty">Makes the string prettified (if useable).</param>
+        /// <returns>A string message in the format determined appropriate by the serialization method.</returns>
+        public static async Task<string> SerializeToStringAsync<T>(T message, SerializationMethod serializationMethod, bool makePretty = false)
+        {
+            var output = string.Empty;
+
+            switch (serializationMethod)
+            {
+                case SerializationMethod.JsonString:
+                    output = await SerializeToJsonAsync(message, makePretty);
+                    break;
+                default: break;
+            }
+
+            return output;
+        }
+
+        /// <summary>
         /// Deserialize byte[] into an object of type T.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -50,6 +73,24 @@ namespace CookedRabbit.Library.Utilities
                     return await DeserializeAsUtf8JsonFormatAsync<T>(input);
                 case SerializationMethod.ZeroFormat:
                     return await DeserializeAsZeroFormatAsync<T>(input);
+                default:
+                    return default;
+            }
+        }
+
+        /// <summary>
+        /// Deserialize string into an object of type T based on the serialization method.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="input"></param>
+        /// <param name="serializationMethod"></param>
+        /// <returns></returns>
+        public static async Task<T> DeserializeStringAsync<T>(string input, SerializationMethod serializationMethod)
+        {
+            switch (serializationMethod)
+            {
+                case SerializationMethod.JsonString:
+                    return await DeserializeJsonAsync<T>(input);
                 default:
                     return default;
             }

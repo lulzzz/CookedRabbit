@@ -4,6 +4,7 @@ using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CookedRabbit.Library.Pools
@@ -13,7 +14,9 @@ namespace CookedRabbit.Library.Pools
     /// </summary>
     public class RabbitChannelPool : IRabbitChannelPool
     {
-        private ulong _channelId = 0;
+        private readonly object _channeAddLock = new object();
+
+        private ulong _currentChannelId = 0;
         private ushort _channelsToMaintain = 100;
         private ushort _emptyPoolWaitTime = 100;
         private IRabbitConnectionPool _rcp = null;
@@ -23,6 +26,16 @@ namespace CookedRabbit.Library.Pools
         private ConcurrentBag<(ulong, IModel)> _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
         private RabbitSeasoning _seasoning = null; // Used if channels go null later.
+
+        #region AutoScaling Variables
+
+        private long _threshold = 4;
+        private long _hysteresisChannelPool = 0;
+        private long _scalingIncrementChannelPool = 0;
+        private long _hysteresisAckChannelPool = 0;
+        private long _scalingIncrementAckChannelPool = 0;
+
+        #endregion
 
         /// <summary>
         /// Check to see if the channel pool has already been initialized.
@@ -63,13 +76,17 @@ namespace CookedRabbit.Library.Pools
         /// <returns></returns>
         public async Task Initialize(RabbitSeasoning rabbitSeasoning)
         {
-            if (_rcp is null) _rcp = await Factories.CreateRabbitConnectionPoolAsync(rabbitSeasoning);
+            if (rabbitSeasoning is null) throw new ArgumentNullException(nameof(rabbitSeasoning));
+
+            _shutdown = false;
+            _seasoning = rabbitSeasoning;
+
+            if (_rcp is null) _rcp = await Factories.CreateRabbitConnectionPoolAsync(_seasoning);
 
             if (!IsInitialized)
             {
-                _seasoning = rabbitSeasoning;
-                _channelsToMaintain = rabbitSeasoning.ChannelPoolCount;
-                _emptyPoolWaitTime = rabbitSeasoning.EmptyPoolWaitTime;
+                _channelsToMaintain = rabbitSeasoning.PoolSettings.ChannelPoolCount;
+                _emptyPoolWaitTime = rabbitSeasoning.PoolSettings.EmptyPoolWaitTime;
 
                 await CreatePoolChannels();
                 await CreatePoolChannelsWithManualAck();
@@ -80,9 +97,12 @@ namespace CookedRabbit.Library.Pools
 
         private Task CreatePoolChannels()
         {
-            for (int i = 0; i < _channelsToMaintain; i++)
+            lock (_channeAddLock)
             {
-                _channelPool.Enqueue((_channelId++, _rcp.GetConnection().CreateModel()));
+                for (int i = 0; i < _channelsToMaintain; i++)
+                {
+                    _channelPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
+                }
             }
 
             return Task.CompletedTask;
@@ -90,12 +110,15 @@ namespace CookedRabbit.Library.Pools
 
         private Task CreatePoolChannelsWithManualAck()
         {
-            for (int i = 0; i < _channelsToMaintain; i++)
+            lock (_channeAddLock)
             {
-                var channel = _rcp.GetConnection().CreateModel();
-                channel.ConfirmSelect();
+                for (int i = 0; i < _channelsToMaintain; i++)
+                {
+                    var channel = _rcp.GetConnection().CreateModel();
+                    channel.ConfirmSelect();
 
-                _channelWithManualAckPool.Enqueue((_channelId++, channel));
+                    _channelWithManualAckPool.Enqueue((_currentChannelId++, channel));
+                }
             }
 
             return Task.CompletedTask;
@@ -104,6 +127,33 @@ namespace CookedRabbit.Library.Pools
         #endregion
 
         #region Channels & Maintenance Section
+
+        /// <summary>
+        /// Gets the current channel count by reading the current ChannelId.
+        /// </summary>
+        /// <returns></returns>
+        public ulong GetCurrentChannelCount()
+        {
+            return _currentChannelId;
+        }
+
+        /// <summary>
+        /// Gets the number of times AutoScaling was triggered in the channel pool.
+        /// </summary>
+        /// <returns></returns>
+        public long GetChannelPoolAutoScalingIterationCount()
+        {
+            return Interlocked.Read(ref _scalingIncrementChannelPool);
+        }
+
+        /// <summary>
+        /// Gets the number of times AutoScaling was triggered in the ackable channel pool.
+        /// </summary>
+        /// <returns></returns>
+        public long GetAckableChannelPoolAutoScalingIterationCount()
+        {
+            return Interlocked.Read(ref _scalingIncrementAckChannelPool);
+        }
 
         /// <summary>
         /// Creates a transient (untracked) RabbitMQ channel. Closing/Disposal is the responsibility of the calling service.
@@ -148,7 +198,7 @@ namespace CookedRabbit.Library.Pools
                     {
                         if (_flaggedAsDeadChannels.Contains(channelPair.ChannelId))
                         {
-                            // Create a new Channel
+                            // Replace channel with a new Channel, same Id.
                             channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
                             _channelPoolInUse.Add(channelPair);
 
@@ -156,7 +206,7 @@ namespace CookedRabbit.Library.Pools
                         }
                         else if (channelPair.Channel == null)
                         {
-                            // Create a new Channel
+                            // Replace channel with a new Channel, same Id.
                             channelPair = (channelPair.ChannelId, _rcp.GetConnection().CreateModel());
                             _channelPoolInUse.Add(channelPair);
                         }
@@ -167,8 +217,38 @@ namespace CookedRabbit.Library.Pools
                     }
                     else
                     {
-                        await Console.Out.WriteLineAsync($"No channels available sleeping for {_emptyPoolWaitTime}ms.");
-                        await Task.Delay(_emptyPoolWaitTime);
+                        if(_seasoning.PoolSettings.EnableAutoScaling)
+                        {
+                            // Read current hysteresis compare to threshold.
+                            var localHysteresis = Interlocked.Read(ref _hysteresisChannelPool);
+                            var localThreshold = Interlocked.Read(ref _threshold);
+
+                            // Time to add a new channel?
+                            if (localHysteresis >= localThreshold)
+                            {
+                                lock (_channeAddLock)
+                                {
+                                    try
+                                    {
+                                        _channelPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
+                                        Interlocked.Increment(ref _scalingIncrementChannelPool);
+
+                                        // Reset hysteresis back to zero.
+                                        Interlocked.Add(ref _hysteresisChannelPool, _hysteresisChannelPool * -1);
+                                    }
+                                    catch { }
+                                }
+                            }
+                            else // No.
+                            { Interlocked.Increment(ref _hysteresisChannelPool); }
+
+                            await Task.Delay(_emptyPoolWaitTime); // Always wait.
+                        }
+                        else
+                        {
+                            await Console.Out.WriteLineAsync($"No channels available sleeping for {_emptyPoolWaitTime}ms.");
+                            await Task.Delay(_emptyPoolWaitTime);
+                        }
                     }
                 }
 
@@ -217,7 +297,35 @@ namespace CookedRabbit.Library.Pools
                         keepLoopingUntilChannelAcquired = false;
                     }
                     else
-                    { await Task.Delay(100); }
+                    {
+                        if (_seasoning.PoolSettings.EnableAutoScaling)
+                        {
+                            // Read current hysteresis compare to threshold.
+                            var localHysteresis = Interlocked.Read(ref _hysteresisAckChannelPool);
+                            var localThreshold = Interlocked.Read(ref _threshold);
+
+                            // Time to add a new channel?
+                            if (localHysteresis >= localThreshold)
+                            {
+                                var channelId = (long)_currentChannelId;
+
+                                _channelWithManualAckPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
+                                Interlocked.Increment(ref _scalingIncrementAckChannelPool);
+
+                                // Reset hysteresis back to zero.
+                                Interlocked.Add(ref _hysteresisAckChannelPool, _hysteresisAckChannelPool * -1);
+                            }
+                            else // No.
+                            { Interlocked.Increment(ref _hysteresisAckChannelPool); }
+
+                            await Task.Delay(_emptyPoolWaitTime);
+                        }
+                        else
+                        {
+                            await Console.Out.WriteLineAsync($"No channels available sleeping for {_emptyPoolWaitTime}ms.");
+                            await Task.Delay(_emptyPoolWaitTime);
+                        }
+                    }
                 }
 
                 return channelPair;
@@ -282,6 +390,8 @@ namespace CookedRabbit.Library.Pools
 
         #region Shutdown Section
 
+        private readonly int _timeout = 10;
+        private readonly object _lockObj = new object();
         private bool _shutdown = false;
 
         /// <summary>
@@ -289,36 +399,44 @@ namespace CookedRabbit.Library.Pools
         /// </summary>
         public void Shutdown()
         {
-            if (!_shutdown)
+            if (Monitor.TryEnter(_lockObj, TimeSpan.FromSeconds(_timeout)))
             {
-                _shutdown = true;
-                foreach (var channelPair in _channelPool)
+                if (!_shutdown)
                 {
                     try
                     {
-                        channelPair.Item2.Close(200, "CookedRabbit shutting down.");
-                        channelPair.Item2.Dispose();
+                        _shutdown = true;
+
+                        foreach (var channelPair in _channelPool)
+                        {
+                            try
+                            {
+                                channelPair.Item2.Close(200, $"CookedRabbit channel (ChannelId:{channelPair.Item1}) shutting down.");
+                                channelPair.Item2.Dispose();
+                            }
+                            catch { }
+                        }
+
+                        _channelPool = new ConcurrentQueue<(ulong, IModel)>();
+                        _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
+
+                        foreach (var channelPair in _channelWithManualAckPool)
+                        {
+                            try
+                            {
+                                channelPair.Item2.Close(200, $"CookedRabbit ackable channel (ChannelId:{channelPair.Item1}) shutting down.");
+                                channelPair.Item2.Dispose();
+                            }
+                            catch { }
+                        }
+
+                        _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
+                        _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
+
+                        _rcp.Shutdown();
                     }
-                    catch { }
+                    finally { Monitor.Exit(_lockObj); }
                 }
-
-                _channelPool = new ConcurrentQueue<(ulong, IModel)>();
-                _channelPoolInUse = new ConcurrentBag<(ulong, IModel)>();
-
-                foreach (var channelPair in _channelWithManualAckPool)
-                {
-                    try
-                    {
-                        channelPair.Item2.Close(200, "CookedRabbit shutting down.");
-                        channelPair.Item2.Dispose();
-                    }
-                    catch { }
-                }
-
-                _channelWithManualAckPool = new ConcurrentQueue<(ulong, IModel)>();
-                _channelWithManualAckPoolInUse = new ConcurrentBag<(ulong, IModel)>();
-
-                _rcp.Shutdown();
             }
         }
 

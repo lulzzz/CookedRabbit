@@ -155,24 +155,25 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Functional\Compress_01_GZip_CompressDecompress.cs" />
-    <Compile Include="Functional\Compress_02_Deflate_CompressDecompress.cs" />
-    <Compile Include="Functional\Compress_03_LZ4_CompressDecompress.cs" />
-    <Compile Include="Functional\Serialize_01_Utf8Json_SerializeDeserializeTests.cs" />
-    <Compile Include="Functional\Serialize_02_Utf8Json_SerializeDeserializeTests.cs" />
-    <Compile Include="Functional\Serialize_02_ZeroFormat_SerializeDeserializeTests.cs" />
-    <Compile Include="Integration\Fixtures\IntegrationFixture.cs" />
+    <Compile Include="Integration\AutoScaling\Scaling_01_ChannelPool.cs" />
+    <Compile Include="Functional\Compression\Compress_01_GZip_CompressDecompress.cs" />
+    <Compile Include="Functional\Compression\Compress_02_Deflate_CompressDecompress.cs" />
+    <Compile Include="Functional\Compression\Compress_03_LZ4_CompressDecompress.cs" />
+    <Compile Include="Functional\Serialization\Serialize_01_Utf8Json_SerializeDeserializeTests.cs" />
+    <Compile Include="Functional\Serialization\Serialize_02_Utf8Json_SerializeDeserializeTests.cs" />
+    <Compile Include="Functional\Serialization\Serialize_02_ZeroFormat_SerializeDeserializeTests.cs" />
+    <Compile Include="Fixtures\IntegrationFixture.cs" />
     <Compile Include="Models\ZeroTestHelperObject.cs" />
-    <Compile Include="Functional\Serialize_01_ZeroFormat_SerializeDeserializeTests.cs" />
-    <Compile Include="Integration\Serialize_02_ZeroFormat_PublishGetTests.cs" />
-    <Compile Include="Integration\Serialize_01_ZeroFormat_PublishGetTests.cs" />
-    <Compile Include="Integration\Delivery_02_PublishGetTests.cs" />
-    <Compile Include="Integration\Topology_01_QueueTests.cs" />
-    <Compile Include="Integration\Topology_03_RoutingTests.cs" />
-    <Compile Include="Integration\Topology_02_ExchangeTests.cs" />
+    <Compile Include="Functional\Serialization\Serialize_01_ZeroFormat_SerializeDeserializeTests.cs" />
+    <Compile Include="Integration\Serialize\Serialize_02_ZeroFormat_PublishGetTests.cs" />
+    <Compile Include="Integration\Serialize\Serialize_01_ZeroFormat_PublishGetTests.cs" />
+    <Compile Include="Integration\Delivery\Delivery_02_PublishGetTests.cs" />
+    <Compile Include="Integration\Topology\Topology_01_QueueTests.cs" />
+    <Compile Include="Integration\Topology\Topology_03_RoutingTests.cs" />
+    <Compile Include="Integration\Topology\Topology_02_ExchangeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\TestHelperObject.cs" />
-    <Compile Include="Integration\Delivery_01_PublishTests.cs" />
+    <Compile Include="Integration\Delivery\Delivery_01_PublishTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -190,9 +191,7 @@
       <Name>CookedRabbit.Library</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="UnitTests\" />
-  </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

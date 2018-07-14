@@ -1,13 +1,12 @@
 ﻿using AutoFixture;
 using CookedRabbit.Library.Models;
-using CookedRabbit.Tests.Integration.Fixtures;
+using CookedRabbit.Tests.Fixtures;
 using CookedRabbit.Tests.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
-using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Integration
 {
@@ -46,13 +45,10 @@ namespace CookedRabbit.Tests.Integration
 
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
-            Assert.True(createSuccess, "Queue was not created.");
             await Assert.ThrowsAsync<System.InvalidOperationException>(() => _fixture.RabbitSerializeService.SerializeAndPublishAsync(testObject, envelope));
-
-            // Re-Act
             var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
-            // Re-Assert
+            Assert.True(createSuccess, "Queue was not created.");
             Assert.True(deleteSuccess);
         }
 
@@ -83,16 +79,12 @@ namespace CookedRabbit.Tests.Integration
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _fixture.RabbitSerializeService.SerializeAndPublishAsync(testObject, envelope);
             var result = await _fixture.RabbitSerializeService.GetAndDeserializeAsync<ZeroTestHelperObject>(queueName);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.True(result != null, "Result was null.");
-
-            // Re-Act
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
-
-            // Re-Assert
             Assert.True(deleteSuccess);
         }
 
@@ -119,16 +111,12 @@ namespace CookedRabbit.Tests.Integration
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var failures = await _fixture.RabbitSerializeService.SerializeAndPublishManyAsync(messages, envelope);
             var results = await _fixture.RabbitSerializeService.GetAndDeserializeManyAsync<ZeroTestHelperObject>(queueName, messageCount);
+            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
             // Assert
             Assert.True(createSuccess, "Queue was not created.");
             Assert.Empty(failures);
             Assert.True(results.Count == messageCount, "Messages were lost.");
-
-            // Re-Act
-            var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
-
-            // Re-Assert
             Assert.True(deleteSuccess);
         }
     }

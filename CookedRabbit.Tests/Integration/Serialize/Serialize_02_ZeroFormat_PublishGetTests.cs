@@ -1,4 +1,4 @@
-﻿using CookedRabbit.Tests.Integration.Fixtures;
+﻿using CookedRabbit.Tests.Fixtures;
 using Xunit;
 
 namespace CookedRabbit.Tests.Integration

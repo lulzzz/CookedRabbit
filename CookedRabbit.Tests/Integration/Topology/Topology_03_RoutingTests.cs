@@ -1,4 +1,4 @@
-﻿using CookedRabbit.Tests.Integration.Fixtures;
+﻿using CookedRabbit.Tests.Fixtures;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.Enums;
@@ -31,12 +31,14 @@ namespace CookedRabbit.Tests.Integration
             var createExchangeSuccess = await _fixture.RabbitTopologyService.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct.Description());
             var bindQueueToExchangeSuccess = await _fixture.RabbitTopologyService.QueueBindToExchangeAsync(queueName, exchangeName, routingKey);
             var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             var messageCount = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueName);
             var result = await _fixture.RabbitDeliveryService.GetAsync(queueName);
-
-            // Re-Act
             var deleteQueueSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName, false, false);
             var deleteExchangeSuccess = await _fixture.RabbitTopologyService.ExchangeDeleteAsync(_fixture.TestExchangeName);
+            var messageIdentical = await ByteArrayCompare(result.Body, payload);
 
             // Assert
             Assert.True(createQueueSuccess, "Queue was not created.");
@@ -45,11 +47,6 @@ namespace CookedRabbit.Tests.Integration
             Assert.True(publishSuccess, "Message failed to publish.");
             Assert.True(messageCount > 0, "Message was lost in routing.");
             Assert.False(result is null, "Result was null.");
-
-            // Re-Arrange
-            var messageIdentical = await ByteArrayCompare(result.Body, payload);
-
-            // Re-Assert
             Assert.True(deleteQueueSuccess, "Queue was not deleted.");
             Assert.True(deleteExchangeSuccess, "Exchange was not deleted.");
             Assert.True(messageIdentical, "Message received was not identical to published message.");
@@ -79,6 +76,8 @@ namespace CookedRabbit.Tests.Integration
 
             var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, string.Empty, payload, false, null);
 
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             var messageCountQueueOne = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueNameOne);
             var messageCountQueueTwo = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueNameTwo);
             var messageCountQueueThree = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueNameThree);
@@ -87,11 +86,14 @@ namespace CookedRabbit.Tests.Integration
             var resultTwo = await _fixture.RabbitDeliveryService.GetAsync(queueNameTwo);
             var resultThree = await _fixture.RabbitDeliveryService.GetAsync(queueNameThree);
 
-            // Re-Act
             var deleteQueueOneSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueNameOne, false, false);
             var deleteQueueTwoSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueNameTwo, false, false);
             var deleteQueueThreeSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueNameThree, false, false);
             var deleteExchangeSuccess = await _fixture.RabbitTopologyService.ExchangeDeleteAsync(exchangeName);
+
+            var messageOneIdentical = await ByteArrayCompare(resultOne.Body, payload);
+            var messageTwoIdentical = await ByteArrayCompare(resultTwo.Body, payload);
+            var messageThreeIdentical = await ByteArrayCompare(resultThree.Body, payload);
 
             // Assert
             Assert.True(createQueueOneSuccess, "Queue one was not created.");
@@ -106,6 +108,8 @@ namespace CookedRabbit.Tests.Integration
 
             Assert.True(publishSuccess, "Message failed to publish.");
 
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             Assert.True(messageCountQueueOne > 0, "Message was lost in routing to queue one.");
             Assert.True(messageCountQueueTwo > 0, "Message was lost in routing to queue two.");
             Assert.True(messageCountQueueThree > 0, "Message was lost in routing to queue three.");
@@ -114,12 +118,6 @@ namespace CookedRabbit.Tests.Integration
             Assert.False(resultTwo is null, "Result two was null.");
             Assert.False(resultThree is null, "Result three was null.");
 
-            // Re-Arrange
-            var messageOneIdentical = await ByteArrayCompare(resultOne.Body, payload);
-            var messageTwoIdentical = await ByteArrayCompare(resultTwo.Body, payload);
-            var messageThreeIdentical = await ByteArrayCompare(resultThree.Body, payload);
-
-            // Re-Assert
             Assert.True(deleteQueueOneSuccess, "Queue one was not deleted.");
             Assert.True(deleteQueueTwoSuccess, "Queue two was not deleted.");
             Assert.True(deleteQueueThreeSuccess, "Queue three was not deleted.");
@@ -161,6 +159,8 @@ namespace CookedRabbit.Tests.Integration
             var publishSuccessTwo = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, topicKeyTwo, payload, false, null);
             var publishSuccessThree = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, topicKeyThree, payload, false, null);
 
+            await Task.Delay(200); // Message count (server side) requires a delay for accuracy
+
             var messageCountQueueOne = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueNameOne);
             var messageCountQueueTwo = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueNameTwo);
             var messageCountQueueThree = await _fixture.RabbitDeliveryService.GetMessageCountAsync(queueNameThree);
@@ -169,11 +169,14 @@ namespace CookedRabbit.Tests.Integration
             var resultTwo = await _fixture.RabbitDeliveryService.GetAsync(queueNameTwo);
             var resultThree = await _fixture.RabbitDeliveryService.GetAsync(queueNameThree);
 
-            // Re-Act
             var deleteQueueOneSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueNameOne, false, false);
             var deleteQueueTwoSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueNameTwo, false, false);
             var deleteQueueThreeSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueNameThree, false, false);
             var deleteExchangeSuccess = await _fixture.RabbitTopologyService.ExchangeDeleteAsync(exchangeName);
+
+            var messageOneIdentical = await ByteArrayCompare(resultOne.Body, payload);
+            var messageTwoIdentical = await ByteArrayCompare(resultTwo.Body, payload);
+            var messageThreeIdentical = await ByteArrayCompare(resultThree.Body, payload);
 
             // Assert
             Assert.True(createQueueOneSuccess, "Queue one was not created.");
@@ -198,12 +201,6 @@ namespace CookedRabbit.Tests.Integration
             Assert.False(resultTwo is null, "Result two was null.");
             Assert.False(resultThree is null, "Result three was null.");
 
-            // Re-Arrange
-            var messageOneIdentical = await ByteArrayCompare(resultOne.Body, payload);
-            var messageTwoIdentical = await ByteArrayCompare(resultTwo.Body, payload);
-            var messageThreeIdentical = await ByteArrayCompare(resultThree.Body, payload);
-
-            // Re-Assert
             Assert.True(deleteQueueOneSuccess, "Queue one was not deleted.");
             Assert.True(deleteQueueTwoSuccess, "Queue two was not deleted.");
             Assert.True(deleteQueueThreeSuccess, "Queue three was not deleted.");

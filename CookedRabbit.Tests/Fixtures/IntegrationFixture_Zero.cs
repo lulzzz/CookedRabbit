@@ -3,15 +3,15 @@ using CookedRabbit.Library.Pools;
 using CookedRabbit.Library.Services;
 using System;
 using Xunit;
-using static CookedRabbit.Library.Utilities.RandomData;
+using static CookedRabbit.Library.Utilities.Enums;
 
-namespace CookedRabbit.Tests.Integration.Fixtures
+namespace CookedRabbit.Tests.Fixtures
 {
-    [CollectionDefinition("IntegrationTests")]
-    public class IntegrationCollection : ICollectionFixture<IntegrationFixture>
+    [CollectionDefinition("IntegrationTests_Zero")]
+    public class IntegrationCollection_Zero : ICollectionFixture<IntegrationFixture_Zero>
     { }
 
-    public class IntegrationFixture : IDisposable
+    public class IntegrationFixture_Zero : IDisposable
     {
         public RabbitDeliveryService RabbitDeliveryService { get; private set; }
         public RabbitTopologyService RabbitTopologyService { get; private set; }
@@ -23,23 +23,25 @@ namespace CookedRabbit.Tests.Integration.Fixtures
         public string TestQueueName4 { get; private set; } = "CookedRabbit.TestQueue4";
         public string TestExchangeName { get; private set; } = "CookedRabbit.TestExchange";
 
-        public IntegrationFixture()
+        public IntegrationFixture_Zero()
         {
             Seasoning = new RabbitSeasoning
             {
-                RabbitHostName = "localhost",
-                ConnectionName = "RabbitServiceTest",
-                ConnectionPoolCount = 1,
-                ChannelPoolCount = 4,
                 ThrottleFastBodyLoops = false,
                 ThrowExceptions = false
             };
+
+            Seasoning.SerializeSettings.SerializationMethod = SerializationMethod.ZeroFormat;
+            Seasoning.FactorySettings.RabbitHostName = "localhost";
+            Seasoning.PoolSettings.EnableAutoScaling = true;
+            Seasoning.PoolSettings.ConnectionName = "RabbitServiceTest";
+            Seasoning.PoolSettings.ConnectionPoolCount = 1;
+            Seasoning.PoolSettings.ChannelPoolCount = 2;
 
             var channelPool = new RabbitChannelPool();
             channelPool
                 .SetConnectionPoolAsync(Seasoning, new RabbitConnectionPool())
                 .GetAwaiter().GetResult();
-
 
             RabbitDeliveryService = new RabbitDeliveryService(Seasoning, channelPool);
             RabbitTopologyService = new RabbitTopologyService(Seasoning, channelPool);
