@@ -46,7 +46,8 @@ CookedRabbit services support an optional ILogger from Microsoft.Extensions.Logg
 CookedRabbit supports logic based customizations.  
 CookedRabbit has fairly decent commenting.  
 CookedRabbit has a generated Wiki.  
-CookedRabbit has a plethora of examples on how to use.  
+CookedRabbit has a plethora of examples on how to use in the Demo project, Tests project, and Benchmark project.  
+CookedRabbit has throughput benchmarks.  
 
 
 </p>
