@@ -123,7 +123,7 @@ Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyServi
 </p>
 </details>
 
-### Current Library Topology At A Glance
+### RabbitDeliveryService Topology At A Glance
 
 <details><summary>Click to show ASCII Art!</summary>
 <p>
@@ -199,34 +199,9 @@ Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyServi
     ║       ║                       ║                                               ║
     ║       ║                       ╚═══════════════════════════════════════════════╣
     ║       ║                                                                       ║
-    ╠════ » ╠══ » RabbitTopologyService : IRabbitTopologyService ═══════════════════╣
-    ║       ║       ║                                                               ║
-    ║       ║       ║ & RabbitChannelPool                                           ║
-    ║       ║       ║ & RabbitTopologySeasoning                                     ║
-    ║       ║       ║                                                               ║
-    ║       ║       ║ + QueueDeclareAsync                                           ║
-    ║       ║       ║ + QueueDeleteAsync                                            ║
-    ║       ║       ║ + QueueBindToExchangeAsync                                    ║
-    ║       ║       ║ + QueueUnbindToExchangeAsync                                  ║
-    ║       ║       ║                                                               ║
-    ║       ║       ║ + ExchangeDeclareAsync                                        ║
-    ║       ║       ║ + ExchangeDeleteAsync                                         ║
-    ║       ║       ║ + ExchangeBindToExchangeAsync                                 ║
-    ║       ║       ║ + ExchangeUnbindToExchangeAsync                               ║
-    ║       ║       ║                                                               ║
-    ║       ║       ╚═══════════════════════════════════════════════════════════════╣
-    ║       ║                                                                       ║
-    ╚════ » ╚══ » RabbitMaintenanceService : IRabbitMaintenanceService ═════════════╣
-                    ║                                                               ║
-                    ║ & RabbitChannelPool                                           ║
-                    ║ & RabbitTopologySeasoning                                     ║
-                    ║                                                               ║
-                    ║ + PurgeQueueAsync                                             ║
-                    ║ + TransferMessageAsync                                        ║
-                    ║ + TransferMessagesAsync                                       ║
-                    ║ + TransferAllMessagesAsync                                    ║
-                    ║                                                               ║
-                    ╚═══════════════════════════════════════════════════════════════╝
+    ╚═══════╚═══════════════════════════════════════════════════════════════════════╝
+
+To be continued on the wiki!
 ```
 
 Legend  
