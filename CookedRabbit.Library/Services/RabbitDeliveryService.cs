@@ -80,6 +80,8 @@ namespace CookedRabbit.Library.Services
         public async Task<bool> PublishAsync(string exchangeName, string routingKey, byte[] payload,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
+            if (payload is null) throw new ArgumentNullException(nameof(payload));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -112,6 +114,8 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PublishAsync(Envelope envelope, IBasicProperties messageProperties = null)
         {
+            if (envelope is null) throw new ArgumentNullException(nameof(envelope));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -143,6 +147,8 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PublishAsync(Envelope envelope)
         {
+            if (envelope is null) throw new ArgumentNullException(nameof(envelope));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -184,6 +190,8 @@ namespace CookedRabbit.Library.Services
         public async Task<List<int>> PublishManyAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
+            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var count = 0;
@@ -229,6 +237,8 @@ namespace CookedRabbit.Library.Services
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsync(List<Envelope> envelopes, IBasicProperties messageProperties = null)
         {
+            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var count = 0;
@@ -272,6 +282,8 @@ namespace CookedRabbit.Library.Services
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsync(List<Envelope> letters)
         {
+            if (letters is null) throw new ArgumentNullException(nameof(letters));
+
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -326,6 +338,8 @@ namespace CookedRabbit.Library.Services
         public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
+            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var count = 0;
@@ -379,6 +393,8 @@ namespace CookedRabbit.Library.Services
         public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> envelopes, int batchSize = 100,
             IBasicProperties messageProperties = null)
         {
+            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var count = 0;
@@ -436,6 +452,8 @@ namespace CookedRabbit.Library.Services
         public async Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
+            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             while (payloads.Any())
@@ -500,6 +518,8 @@ namespace CookedRabbit.Library.Services
         public async Task PublishManyAsBatchesInParallelAsync(List<Envelope> envelopes, int batchSize = 100,
             IBasicProperties messageProperties = null)
         {
+            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+
             var failures = new ConcurrentBag<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 

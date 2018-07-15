@@ -1,7 +1,4 @@
-﻿using CookedRabbit.Library.Models;
-using CookedRabbit.Library.Services;
-using CookedRabbit.Tests.Fixtures;
-using System;
+﻿using CookedRabbit.Tests.Fixtures;
 using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;

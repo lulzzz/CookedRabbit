@@ -35,7 +35,7 @@ namespace CookedRabbit.Library.Pools
         /// Gets the current channel count by reading the current ChannelId.
         /// </summary>
         /// <returns></returns>
-        ulong GetCurrentChannelCount();
+        long GetCurrentChannelCount();
 
         /// <summary>
         /// Gets the number of times AutoScaling was triggered in the channel pool.

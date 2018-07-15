@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static CookedRabbit.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Tests.Functional.AutoScaling
+namespace CookedRabbit.Tests.Integration
 {
     [Collection("IntegrationTests_Zero")]
     public class Scaling_01_ChannelPool

@@ -10,10 +10,6 @@ namespace CookedRabbit.Library.Utilities
     public static class RandomData
     {
         private static Random rand = new Random();
-        private static uint x;
-        private static uint y;
-        private static uint z;
-        private static uint w;
 
         /// <summary>
         /// Create a list of byte[] (default random data of 1KB each).
@@ -23,7 +19,7 @@ namespace CookedRabbit.Library.Utilities
         /// <returns>List of byte[] random bytes.</returns>
         public static async Task<List<byte[]>> CreatePayloadsAsync(int payloadCount, int payloadSizeInBytes = 1000)
         {
-            if (payloadSizeInBytes < 10) throw new ArgumentException($"Argument {nameof(payloadSizeInBytes)} can't be less than 10 bytes.");
+            if (payloadSizeInBytes < 100) throw new ArgumentException($"Argument {nameof(payloadSizeInBytes)} can't be less than 100 bytes.");
 
             var byteList = new List<byte[]>();
 
@@ -40,21 +36,22 @@ namespace CookedRabbit.Library.Utilities
         /// </summary>
         /// <param name="sizeInBytes">Specifies how many random bytes to create, defaults to 10,000.</param>
         /// <returns></returns>
-        public static async Task<byte[]> GetRandomByteArray(int sizeInBytes = 10000)
+        public static async Task<byte[]> GetRandomByteArray(int sizeInBytes = 1000)
         {
             var bytes = new byte[sizeInBytes];
 
-            x = (uint)rand.Next(0, 1000);
-            y = (uint)rand.Next(0, 1000);
-            z = (uint)rand.Next(0, 1000);
-            w = (uint)rand.Next(0, 1000);
-            await FillBuffer(bytes, 0, sizeInBytes);
+            var x = (uint)rand.Next(0, sizeInBytes - 1);
+            var y = (uint)rand.Next(0, sizeInBytes - 1);
+            var z = (uint)rand.Next(0, sizeInBytes - 1);
+            var w = (uint)rand.Next(0, sizeInBytes - 1);
+
+            await FillBuffer(bytes, 0, sizeInBytes, x, y, z, w);
 
             return bytes;
         }
 
         // Simple XorShift
-        private static Task FillBuffer(byte[] buffer, int offset, int offsetEnd)
+        private static Task FillBuffer(byte[] buffer, int offset, int offsetEnd, uint x, uint y, uint z, uint w)
         {
             while (offset < offsetEnd)
             {
