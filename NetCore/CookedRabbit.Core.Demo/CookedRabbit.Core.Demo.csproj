@@ -24,8 +24,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CookedRabbit.Core.Library" Version="1.0.0.15" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RabbitMQ.Client">
+      <HintPath>..\..\RabbitMQ\netstandard2.0\RabbitMQ.Client.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

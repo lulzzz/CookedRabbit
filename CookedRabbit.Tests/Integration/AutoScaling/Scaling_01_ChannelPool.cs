@@ -16,7 +16,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Rabbit Scaling", "AutoScaling ChannelPool")]
+        [Trait("Scaling", "AutoScaling ChannelPool")]
         public async Task TestingAutoScaleAsync()
         {
             // Arrange
@@ -27,7 +27,7 @@ namespace CookedRabbit.Tests.Integration
             var queueName4 = $"{_fixture.TestQueueName1}.Scaling4";
 
             var exchangeName = string.Empty;
-            var payloads = await CreatePayloadsAsync(messagesToSend, 40);
+            var payloads = await CreatePayloadsAsync(messagesToSend, 100);
 
             // Act
             var createSuccess1 = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName1);

@@ -6,10 +6,12 @@ using static CookedRabbit.Core.Demo.BatchSendExamples; // Simple but begining to
 using static CookedRabbit.Core.Demo.ChannelPoolExamples; // Complicated examples.
 using static CookedRabbit.Core.Demo.RabbitServiceExamples; // Complicated examples wrapped in a Service.
 using static CookedRabbit.Core.Demo.RabbitServiceConsumerExamples; // Complicated get many patterns made simple.
-using static CookedRabbit.Core.Demo.RabbitServiceCompressionExamples;
+using static CookedRabbit.Core.Demo.RabbitServiceCompressionExamples; // Simple Compression and Decompression.
+using static CookedRabbit.Core.Demo.RabbitServiceSerializationExamples;
 using static CookedRabbit.Core.Demo.DemoHelper;
+using System.Diagnostics;
 
-namespace CookedRabbit.Core.Demo
+namespace CookedRabbit.Demo
 {
     public class Program
     {
@@ -94,7 +96,10 @@ namespace CookedRabbit.Core.Demo
             //await RunRabbitServiceBatchPublishWithInParallelConsumerTestAsync();
 
             // Testing Simple Compress and Decompress
-            await RunRabbitServiceCompressAndDecompressTestAsync();
+            //await RunRabbitServiceCompressAndDecompressTestAsync();
+
+            // Testing ZeroFormat Serialize And Deserialzie
+            await RunRabbitServiceSerializeAndDeserializeTestAsync();
             await Console.In.ReadLineAsync();
         }
 

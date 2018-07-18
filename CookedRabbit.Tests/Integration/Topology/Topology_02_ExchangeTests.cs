@@ -16,7 +16,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Rabbit Topology", "Queue")]
+        [Trait("Topology", "Queue")]
         public async Task Exchange_DeclareDelete()
         {
             // Arrange

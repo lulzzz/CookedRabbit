@@ -59,11 +59,12 @@
     <Reference Include="Ben.Demystifier, Version=0.1.0.0, Culture=neutral, PublicKeyToken=a6d206e05440431a, processorArchitecture=MSIL">
       <HintPath>..\packages\Ben.Demystifier.0.1.1\lib\net45\Ben.Demystifier.dll</HintPath>
     </Reference>
-    <Reference Include="CookedRabbit.Library, Version=1.0.0.15, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\CookedRabbit.Library.1.0.0.15\lib\net472\CookedRabbit.Library.dll</HintPath>
-    </Reference>
     <Reference Include="LZ4, Version=1.0.15.93, Culture=neutral, PublicKeyToken=62e1b5ec1eec9bdd, processorArchitecture=MSIL">
       <HintPath>..\packages\lz4net.1.0.15.93\lib\net4-client\LZ4.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=1.1.16.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\RabbitMQ\net472\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Configuration, Version=2.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Configuration.2.1.1\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
@@ -92,12 +93,15 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RabbitMQ.Client, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\CookedRabbit.Library.1.0.0.15\lib\net472\RabbitMQ.Client.dll</HintPath>
+    <Reference Include="RabbitMQ.Client">
+      <HintPath>..\RabbitMQ\net472\RabbitMQ.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Reflection.TypeExtensions">
+      <HintPath>..\RabbitMQ\net472\System.Reflection.TypeExtensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.1\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
@@ -122,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Examples\00_ChannelExamples.cs" />
+    <Compile Include="Examples\07_RabbitService_SerializationExamples.cs" />
     <Compile Include="Examples\06_RabbitService_CompressionExamples.cs" />
     <Compile Include="Examples\05_RabbitService_ConsumerExamples.cs" />
     <Compile Include="Examples\04_RabbitService_BasicExamples.cs" />
@@ -129,6 +134,7 @@
     <Compile Include="Examples\02_BatchSendExamples.cs" />
     <Compile Include="Helpers\DemoHelper.cs" />
     <Compile Include="Examples\01_MemoryLeakExamples.cs" />
+    <Compile Include="Helpers\ZeroTestObject.cs" />
     <Compile Include="Helpers\TestObject.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -136,6 +142,12 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CookedRabbit.Library\CookedRabbit.Library.csproj">
+      <Project>{9b8fdf84-d866-4114-8b2a-78be8185e8a8}</Project>
+      <Name>CookedRabbit.Library</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -115,6 +115,7 @@ namespace CookedRabbit.Library.Services
         public async Task<bool> PublishAsync(Envelope envelope, IBasicProperties messageProperties = null)
         {
             if (envelope is null) throw new ArgumentNullException(nameof(envelope));
+            if (envelope.MessageBody is null) throw new ArgumentNullException(nameof(envelope.MessageBody));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -148,6 +149,7 @@ namespace CookedRabbit.Library.Services
         public async Task<bool> PublishAsync(Envelope envelope)
         {
             if (envelope is null) throw new ArgumentNullException(nameof(envelope));
+            if (envelope.MessageBody is null) throw new ArgumentNullException(nameof(envelope.MessageBody));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -178,400 +180,93 @@ namespace CookedRabbit.Library.Services
         }
 
         /// <summary>
-        /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
-        /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
+        /// Publish using BasicPublishBatch built-in to RabbitMQ 5.1.0+.
         /// </summary>
-        /// <param name="exchangeName">The optional Exchange name.</param>
-        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
+        /// <param name="exchangeName"></param>
+        /// <param name="routingKey"></param>
         /// <param name="payloads"></param>
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
-        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsync(string exchangeName, string routingKey, List<byte[]> payloads,
+        /// <returns>A bool indicating success or failure.</returns>
+        public async Task<bool> BasicPublishBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
             if (payloads is null) throw new ArgumentNullException(nameof(payloads));
 
-            var failures = new List<int>();
+            var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
 
-            foreach (var payload in payloads)
+            try
             {
-                try
+                var batch = channelPair.Channel.CreateBasicPublishBatch();
+
+                await Task.Run(() =>
                 {
-                    channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
-                        routingKey: routingKey,
-                        mandatory: mandatory,
-                        basicProperties: messageProperties,
-                        body: payload);
-                }
-                catch (Exception e)
-                {
-                    failures.Add(count);
+                    for (int i = 0; i < payloads.Count; i++)
+                    {
+                        batch.Add(exchangeName, routingKey, mandatory, messageProperties, payloads[i]);
+                    }
 
-                    if (_seasoning.BatchLogOnlyFirstException && failures.Count > 1)
-                    { await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId }); }
+                    batch.Publish();
+                });
 
-                    if (_seasoning.ThrowExceptions) { throw; }
-                    else if (_seasoning.BatchBreakOnException) { break; }
-                }
-
-                count++;
-
-                if (_seasoning.ThrottleFastBodyLoops)
-                { await Task.Delay(Rand.Next(0, 2)); }
+                success = true;
             }
+            catch (Exception e)
+            {
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
-            _rcp.ReturnChannelToPool(channelPair);
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            finally { _rcp.ReturnChannelToPool(channelPair); }
 
-            return failures;
+            return success;
         }
 
         /// <summary>
-        /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
-        /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
-        /// </summary>
-        /// <param name="envelopes"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsync(List<Envelope> envelopes, IBasicProperties messageProperties = null)
-        {
-            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
-
-            var failures = new List<int>();
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
-
-            foreach (var envelope in envelopes)
-            {
-                try
-                {
-                    channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
-                        routingKey: envelope.RoutingKey,
-                        mandatory: envelope.Mandatory,
-                        basicProperties: messageProperties,
-                        body: envelope.MessageBody);
-                }
-                catch (Exception e)
-                {
-                    failures.Add(count);
-
-                    if (_seasoning.BatchLogOnlyFirstException && failures.Count > 1)
-                    { await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId }); }
-
-                    if (_seasoning.ThrowExceptions) { throw; }
-                    else if (_seasoning.BatchBreakOnException) { break; }
-                }
-
-                count++;
-
-                if (_seasoning.ThrottleFastBodyLoops)
-                { await Task.Delay(Rand.Next(0, 2)); }
-            }
-
-            _rcp.ReturnChannelToPool(channelPair);
-
-            return failures;
-        }
-
-        /// <summary>
-        /// Publishes many messages asynchronously.
+        /// Publish using BasicPublishBatch built-in to RabbitMQ 5.1.0+.
         /// </summary>
         /// <param name="letters"></param>
-        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsync(List<Envelope> letters)
+        /// <returns>A bool indicating success or failure.</returns>
+        public async Task<bool> PublishBasicBatchAsync(List<Envelope> letters)
         {
             if (letters is null) throw new ArgumentNullException(nameof(letters));
 
-            var failures = new List<int>();
+            var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-
             var messageProperties = channelPair.Channel.CreateBasicProperties();
 
-            for (int i = 0; i < letters.Count; i++)
+            try
             {
-                if (i == 0)
+                var batch = channelPair.Channel.CreateBasicPublishBatch();
+
+                await Task.Run(() =>
                 {
-                    messageProperties.ContentEncoding = letters[i].ContentEncoding.Description();
-                    messageProperties.ContentType = letters[i].MessageType;
-                }
-
-                try
-                {
-                    channelPair.Channel.BasicPublish(exchange: letters[i].ExchangeName ?? string.Empty,
-                        routingKey: letters[i].RoutingKey,
-                        mandatory: letters[i].Mandatory,
-                        basicProperties: messageProperties,
-                        body: letters[i].MessageBody);
-                }
-                catch (Exception e)
-                {
-                    failures.Add(i);
-
-                    if (_seasoning.BatchLogOnlyFirstException && failures.Count > 1)
-                    { await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId }); }
-
-                    if (_seasoning.ThrowExceptions) { throw; }
-                    else if (_seasoning.BatchBreakOnException) { break; }
-                }
-
-                if (_seasoning.ThrottleFastBodyLoops)
-                { await Task.Delay(Rand.Next(0, 2)); }
-            }
-
-            _rcp.ReturnChannelToPool(channelPair);
-
-            return failures;
-        }
-
-        /// <summary>
-        /// Publishes many messages asynchronously in configurable batch sizes.
-        /// </summary>
-        /// <param name="exchangeName">The optional Exchange name.</param>
-        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
-        /// <param name="payloads"></param>
-        /// <param name="batchSize"></param>
-        /// <param name="mandatory"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
-            bool mandatory = false, IBasicProperties messageProperties = null)
-        {
-            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
-
-            var failures = new List<int>();
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
-
-            while (payloads.Any())
-            {
-                var currentBatchSize = payloads.Count > batchSize ? batchSize : payloads.Count;
-                var processingPayloads = payloads.Take(currentBatchSize).ToList();
-                payloads.RemoveRange(0, currentBatchSize);
-
-                foreach (var payload in processingPayloads)
-                {
-                    try
+                    for (int i = 0; i < letters.Count; i++)
                     {
-                        channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
-                            routingKey: routingKey,
-                            mandatory: mandatory,
-                            basicProperties: messageProperties,
-                            body: payload);
-                    }
-                    catch (Exception e)
-                    {
-                        failures.Add(count);
-
-                        if (_seasoning.BatchLogOnlyFirstException && failures.Count > 1)
-                        { await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId }); }
-
-                        if (_seasoning.ThrowExceptions) { throw; }
-                        else if (_seasoning.BatchBreakOnException) { break; }
-                    }
-
-                    count++;
-                }
-
-                if (_seasoning.ThrottleFastBodyLoops)
-                { await Task.Delay(Rand.Next(0, 2)); }
-            }
-
-            _rcp.ReturnChannelToPool(channelPair);
-
-            return failures;
-        }
-
-        /// <summary>
-        /// Publishes many messages asynchronously in configurable batch sizes.
-        /// </summary>
-        /// <param name="envelopes"></param>
-        /// <param name="batchSize"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> envelopes, int batchSize = 100,
-            IBasicProperties messageProperties = null)
-        {
-            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
-
-            var failures = new List<int>();
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
-
-            while (envelopes.Any())
-            {
-                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
-                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
-                envelopes.RemoveRange(0, currentBatchSize);
-
-                foreach (var envelope in processingEnvelopes)
-                {
-                    try
-                    {
-                        channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
-                            routingKey: envelope.RoutingKey,
-                            mandatory: envelope.Mandatory,
-                            basicProperties: messageProperties,
-                            body: envelope.MessageBody);
-                    }
-                    catch (Exception e)
-                    {
-                        failures.Add(count);
-
-                        if (_seasoning.BatchLogOnlyFirstException && failures.Count > 1)
-                        { await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId }); }
-
-                        if (_seasoning.ThrowExceptions) { throw; }
-                        else if (_seasoning.BatchBreakOnException) { break; }
-                    }
-
-                    count++;
-                }
-
-                if (_seasoning.ThrottleFastBodyLoops)
-                { await Task.Delay(Rand.Next(0, 2)); }
-            }
-
-            _rcp.ReturnChannelToPool(channelPair);
-
-            return failures;
-        }
-
-        /// <summary>
-        /// Publishes many messages asynchronously in configurable batch sizes.
-        /// <para>NOTICE: High performance but experimental. Does not report failures.</para>
-        /// </summary>
-        /// <param name="exchangeName">The optional Exchange name.</param>
-        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
-        /// <param name="payloads"></param>
-        /// <param name="batchSize"></param>
-        /// <param name="mandatory"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns></returns>
-        public async Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
-            bool mandatory = false, IBasicProperties messageProperties = null)
-        {
-            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
-
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-
-            while (payloads.Any())
-            {
-                var procCount = Environment.ProcessorCount;
-                var currentBatchSize = payloads.Count > batchSize ? batchSize : payloads.Count;
-                var processingPayloads = payloads.Take(currentBatchSize).ToList();
-                payloads.RemoveRange(0, currentBatchSize);
-
-                if (processingPayloads.Count() >= procCount)
-                {
-                    Parallel.ForEach(processingPayloads, new ParallelOptions { MaxDegreeOfParallelism = procCount },
-                        (payload) =>
+                        if (i == 0)
                         {
-                            try
-                            {
-                                channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
-                                    routingKey: routingKey,
-                                    mandatory,
-                                    basicProperties: messageProperties,
-                                    body: payload);
-                            }
-                            catch
-                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                        });
-
-                    if (_seasoning.ThrottleFastBodyLoops)
-                    { await Task.Delay(Rand.Next(0, 2)); }
-                }
-                else
-                {
-                    foreach (var payload in processingPayloads)
-                    {
-                        try
-                        {
-                            channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
-                                routingKey: routingKey,
-                                mandatory,
-                                basicProperties: messageProperties,
-                                body: payload);
+                            messageProperties.ContentEncoding = letters[i].ContentEncoding.Description();
+                            messageProperties.ContentType = letters[i].MessageType;
                         }
-                        catch
-                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+
+                        batch.Add(letters[i].ExchangeName, letters[i].RoutingKey, letters[i].Mandatory, messageProperties, letters[i].MessageBody);
                     }
-                }
 
-                if (_seasoning.ThrottleFastBodyLoops)
-                { await Task.Delay(Rand.Next(0, 2)); }
+                    batch.Publish();
+                });
+
+                success = true;
             }
-
-            _rcp.ReturnChannelToPool(channelPair);
-        }
-
-        /// <summary>
-        /// Publishes many messages asynchronously in configurable batch sizes.
-        /// <para>NOTICE: High performance but experimental. Does not report failures.</para>
-        /// </summary>
-        /// <param name="envelopes"></param>
-        /// <param name="batchSize"></param>
-        /// <param name="messageProperties"></param>
-        /// <returns></returns>
-        public async Task PublishManyAsBatchesInParallelAsync(List<Envelope> envelopes, int batchSize = 100,
-            IBasicProperties messageProperties = null)
-        {
-            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
-
-            var failures = new ConcurrentBag<int>();
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-
-            while (envelopes.Any())
+            catch (Exception e)
             {
-                var procCount = Environment.ProcessorCount;
-                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
-                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
-                envelopes.RemoveRange(0, currentBatchSize);
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
-                if (processingEnvelopes.Count() >= procCount)
-                {
-                    Parallel.ForEach(processingEnvelopes, new ParallelOptions { MaxDegreeOfParallelism = procCount },
-                        (envelope) =>
-                        {
-                            try
-                            {
-                                channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
-                                    routingKey: envelope.RoutingKey,
-                                    mandatory: envelope.Mandatory,
-                                    basicProperties: messageProperties,
-                                    body: envelope.MessageBody);
-                            }
-                            catch
-                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                        });
-
-                    if (_seasoning.ThrottleFastBodyLoops)
-                    { await Task.Delay(Rand.Next(0, 2)); }
-                }
-                else
-                {
-                    foreach (var envelope in processingEnvelopes)
-                    {
-                        try
-                        {
-                            channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
-                                routingKey: envelope.RoutingKey,
-                                mandatory: envelope.Mandatory,
-                                basicProperties: messageProperties,
-                                body: envelope.MessageBody);
-                        }
-                        catch
-                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
-                    }
-
-                    if (_seasoning.ThrottleFastBodyLoops)
-                    { await Task.Delay(Rand.Next(0, 2)); }
-                }
+                if (_seasoning.ThrowExceptions) { throw; }
             }
+            finally { _rcp.ReturnChannelToPool(channelPair); }
 
-            _rcp.ReturnChannelToPool(channelPair);
+            return success;
         }
 
         #endregion
@@ -748,6 +443,504 @@ namespace CookedRabbit.Library.Services
         }
 
         /// <summary>
+        /// Get an AckableResult from a queue.
+        /// <para>Returns a CookedRabbit AckableResult.</para>
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <returns>An AckableResult (CookedRabbit object).</returns>
+        public async Task<AckableResult> GetAckableAsync(string queueName)
+        {
+            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
+
+            BasicGetResult result = null;
+
+            try
+            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false); }
+            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
+            {
+                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
+            {
+                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+            catch (Exception e)
+            {
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+
+            _rcp.ReturnChannelToAckPool(channelPair);
+
+            return new AckableResult { Channel = channelPair.Channel, Results = new List<BasicGetResult>() { result } };
+        }
+
+        #endregion
+
+        #region Custom Batch Publish Section
+
+        /// <summary>
+        /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
+        /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
+        /// </summary>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
+        /// <param name="payloads"></param>
+        /// <param name="mandatory"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsync(string exchangeName, string routingKey, List<byte[]> payloads,
+            bool mandatory = false, IBasicProperties messageProperties = null)
+        {
+            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var count = 0;
+
+            foreach (var payload in payloads)
+            {
+                try
+                {
+                    channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                        routingKey: routingKey,
+                        mandatory: mandatory,
+                        basicProperties: messageProperties,
+                        body: payload);
+                }
+                catch (Exception e)
+                {
+                    failures.Add(count);
+
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                    else if (_seasoning.BatchBreakOnException) { break; }
+                }
+
+                count++;
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(Rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
+        /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
+        /// </summary>
+        /// <param name="envelopes"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsync(List<Envelope> envelopes, IBasicProperties messageProperties = null)
+        {
+            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var count = 0;
+
+            foreach (var envelope in envelopes)
+            {
+                try
+                {
+                    channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                        routingKey: envelope.RoutingKey,
+                        mandatory: envelope.Mandatory,
+                        basicProperties: messageProperties,
+                        body: envelope.MessageBody);
+                }
+                catch (Exception e)
+                {
+                    failures.Add(count);
+
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                    else if (_seasoning.BatchBreakOnException) { break; }
+                }
+
+                count++;
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(Rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously.
+        /// </summary>
+        /// <param name="letters"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsync(List<Envelope> letters)
+        {
+            if (letters is null) throw new ArgumentNullException(nameof(letters));
+
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            var messageProperties = channelPair.Channel.CreateBasicProperties();
+
+            for (int i = 0; i < letters.Count; i++)
+            {
+                if (i == 0)
+                {
+                    messageProperties.ContentEncoding = letters[i].ContentEncoding.Description();
+                    messageProperties.ContentType = letters[i].MessageType;
+                }
+
+                try
+                {
+                    channelPair.Channel.BasicPublish(exchange: letters[i].ExchangeName ?? string.Empty,
+                        routingKey: letters[i].RoutingKey,
+                        mandatory: letters[i].Mandatory,
+                        basicProperties: messageProperties,
+                        body: letters[i].MessageBody);
+                }
+                catch (Exception e)
+                {
+                    failures.Add(i);
+
+                    await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                    if (_seasoning.ThrowExceptions) { throw; }
+                    else if (_seasoning.BatchBreakOnException) { break; }
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(Rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// </summary>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
+        /// <param name="payloads"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="mandatory"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
+            bool mandatory = false, IBasicProperties messageProperties = null)
+        {
+            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var count = 0;
+
+            while (payloads.Any())
+            {
+                var currentBatchSize = payloads.Count > batchSize ? batchSize : payloads.Count;
+                var processingPayloads = payloads.Take(currentBatchSize).ToList();
+                payloads.RemoveRange(0, currentBatchSize);
+
+                foreach (var payload in processingPayloads)
+                {
+                    try
+                    {
+                        channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                            routingKey: routingKey,
+                            mandatory: mandatory,
+                            basicProperties: messageProperties,
+                            body: payload);
+                    }
+                    catch (Exception e)
+                    {
+                        failures.Add(count);
+
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        if (_seasoning.ThrowExceptions) { throw; }
+                        else if (_seasoning.BatchBreakOnException) { break; }
+                    }
+
+                    count++;
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(Rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// </summary>
+        /// <param name="envelopes"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
+        public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> envelopes, int batchSize = 100,
+            IBasicProperties messageProperties = null)
+        {
+            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+
+            var failures = new List<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            var count = 0;
+
+            while (envelopes.Any())
+            {
+                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
+                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
+                envelopes.RemoveRange(0, currentBatchSize);
+
+                foreach (var envelope in processingEnvelopes)
+                {
+                    try
+                    {
+                        channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                            routingKey: envelope.RoutingKey,
+                            mandatory: envelope.Mandatory,
+                            basicProperties: messageProperties,
+                            body: envelope.MessageBody);
+                    }
+                    catch (Exception e)
+                    {
+                        failures.Add(count);
+
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        if (_seasoning.ThrowExceptions) { throw; }
+                        else if (_seasoning.BatchBreakOnException) { break; }
+                    }
+
+                    count++;
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(Rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+
+            return failures;
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// <para>NOTICE: High performance but experimental. Does not report failures.</para>
+        /// </summary>
+        /// <param name="exchangeName">The optional Exchange name.</param>
+        /// <param name="routingKey">Either a topic/routing key or queue name.</param>
+        /// <param name="payloads"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="mandatory"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns></returns>
+        public async Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
+            bool mandatory = false, IBasicProperties messageProperties = null)
+        {
+            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            while (payloads.Any())
+            {
+                var procCount = Environment.ProcessorCount;
+                var currentBatchSize = payloads.Count > batchSize ? batchSize : payloads.Count;
+                var processingPayloads = payloads.Take(currentBatchSize).ToList();
+                payloads.RemoveRange(0, currentBatchSize);
+
+                if (processingPayloads.Count() >= procCount)
+                {
+                    Parallel.ForEach(processingPayloads, new ParallelOptions { MaxDegreeOfParallelism = procCount },
+                        (payload) =>
+                        {
+                            try
+                            {
+                                channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                                    routingKey: routingKey,
+                                    mandatory,
+                                    basicProperties: messageProperties,
+                                    body: payload);
+                            }
+                            catch
+                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                        });
+
+                    if (_seasoning.ThrottleFastBodyLoops)
+                    { await Task.Delay(Rand.Next(0, 2)); }
+                }
+                else
+                {
+                    foreach (var payload in processingPayloads)
+                    {
+                        try
+                        {
+                            channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
+                                routingKey: routingKey,
+                                mandatory,
+                                basicProperties: messageProperties,
+                                body: payload);
+                        }
+                        catch
+                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                    }
+                }
+
+                if (_seasoning.ThrottleFastBodyLoops)
+                { await Task.Delay(Rand.Next(0, 2)); }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+        }
+
+        /// <summary>
+        /// Publishes many messages asynchronously in configurable batch sizes.
+        /// <para>NOTICE: High performance but experimental. Does not report failures.</para>
+        /// </summary>
+        /// <param name="envelopes"></param>
+        /// <param name="batchSize"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns></returns>
+        public async Task PublishManyAsBatchesInParallelAsync(List<Envelope> envelopes, int batchSize = 100,
+            IBasicProperties messageProperties = null)
+        {
+            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+
+            var failures = new ConcurrentBag<int>();
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
+            while (envelopes.Any())
+            {
+                var procCount = Environment.ProcessorCount;
+                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
+                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
+                envelopes.RemoveRange(0, currentBatchSize);
+
+                if (processingEnvelopes.Count() >= procCount)
+                {
+                    Parallel.ForEach(processingEnvelopes, new ParallelOptions { MaxDegreeOfParallelism = procCount },
+                        (envelope) =>
+                        {
+                            try
+                            {
+                                channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                                    routingKey: envelope.RoutingKey,
+                                    mandatory: envelope.Mandatory,
+                                    basicProperties: messageProperties,
+                                    body: envelope.MessageBody);
+                            }
+                            catch
+                            { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                        });
+
+                    if (_seasoning.ThrottleFastBodyLoops)
+                    { await Task.Delay(Rand.Next(0, 2)); }
+                }
+                else
+                {
+                    foreach (var envelope in processingEnvelopes)
+                    {
+                        try
+                        {
+                            channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
+                                routingKey: envelope.RoutingKey,
+                                mandatory: envelope.Mandatory,
+                                basicProperties: messageProperties,
+                                body: envelope.MessageBody);
+                        }
+                        catch
+                        { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                    }
+
+                    if (_seasoning.ThrottleFastBodyLoops)
+                    { await Task.Delay(Rand.Next(0, 2)); }
+                }
+            }
+
+            _rcp.ReturnChannelToPool(channelPair);
+        }
+
+        #endregion
+
+        #region Custom Batch Get Section
+
+        /// <summary>
+        /// Get an AckableResult from a queue.
+        /// <para>Returns a CookedRabbit AckableResult.</para>
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="batchCount"></param>
+        /// <returns>An AckableResult (CookedRabbit object).</returns>
+        public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
+        {
+            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
+            var queueCount = 0U;
+            var resultCount = 0;
+            var results = new List<BasicGetResult>();
+
+            try { queueCount = channelPair.Channel.MessageCount(queueName); }
+            catch (Exception e)
+            {
+                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                if (_seasoning.ThrowExceptions) { throw; }
+            }
+
+            if (queueCount != 0)
+            {
+                while (queueCount > 0 && resultCount < batchCount)
+                {
+                    try
+                    {
+                        var result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false);
+                        if (result == null) //Empty Queue
+                        { break; }
+
+                        results.Add(result);
+                        resultCount++;
+                    }
+                    catch (Exception e) when (results.Count() > 0)
+                    {
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        // Does not throw to use the results already found.
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
+
+                        if (_seasoning.ThrowExceptions) { throw; }
+                        else if (_seasoning.BatchBreakOnException) { break; }
+                    }
+
+                    if (_seasoning.ThrottleFastBodyLoops)
+                    { await Task.Delay(Rand.Next(0, 2)); }
+                }
+            }
+
+            _rcp.ReturnChannelToAckPool(channelPair);
+
+            return new AckableResult { Channel = channelPair.Channel, Results = results };
+        }
+
+        /// <summary>
         /// Get a List of BasicGetResult from a queue.
         /// <para>Returns a ValueTuple(IModel, List&lt;BasicGetResult&gt;) (RabbitMQ objects).</para>
         /// </summary>
@@ -804,105 +997,6 @@ namespace CookedRabbit.Library.Services
             _rcp.ReturnChannelToAckPool(channelPair);
 
             return (channelPair.Channel, results);
-        }
-
-        /// <summary>
-        /// Get an AckableResult from a queue.
-        /// <para>Returns a CookedRabbit AckableResult.</para>
-        /// </summary>
-        /// <param name="queueName"></param>
-        /// <returns>An AckableResult (CookedRabbit object).</returns>
-        public async Task<AckableResult> GetAckableAsync(string queueName)
-        {
-            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
-
-            BasicGetResult result = null;
-
-            try
-            { result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false); }
-            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
-            {
-                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
-            {
-                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (Exception e)
-            {
-                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-
-            _rcp.ReturnChannelToAckPool(channelPair);
-
-            return new AckableResult { Channel = channelPair.Channel, Results = new List<BasicGetResult>() { result } };
-        }
-
-        /// <summary>
-        /// Get an AckableResult from a queue.
-        /// <para>Returns a CookedRabbit AckableResult.</para>
-        /// </summary>
-        /// <param name="queueName"></param>
-        /// <param name="batchCount"></param>
-        /// <returns>An AckableResult (CookedRabbit object).</returns>
-        public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
-        {
-            var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
-            var queueCount = 0U;
-            var resultCount = 0;
-            var results = new List<BasicGetResult>();
-
-            try { queueCount = channelPair.Channel.MessageCount(queueName); }
-            catch (Exception e)
-            {
-                await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-
-            if (queueCount != 0)
-            {
-                while (queueCount > 0 && resultCount < batchCount)
-                {
-                    try
-                    {
-                        var result = channelPair.Channel.BasicGet(queue: queueName, autoAck: false);
-                        if (result == null) //Empty Queue
-                        { break; }
-
-                        results.Add(result);
-                        resultCount++;
-                    }
-                    catch (Exception e) when (results.Count() > 0)
-                    {
-                        await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                        // Does not throw to use the results already found.
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        if (_seasoning.BatchLogOnlyFirstException && resultCount > 1)
-                        { await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId }); }
-
-                        if (_seasoning.ThrowExceptions) { throw; }
-                        else if (_seasoning.BatchBreakOnException) { break; }
-                    }
-
-                    if (_seasoning.ThrottleFastBodyLoops)
-                    { await Task.Delay(Rand.Next(0, 2)); }
-                }
-            }
-
-            _rcp.ReturnChannelToAckPool(channelPair);
-
-            return new AckableResult { Channel = channelPair.Channel, Results = results };
         }
 
         #endregion

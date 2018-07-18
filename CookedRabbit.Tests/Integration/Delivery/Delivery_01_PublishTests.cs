@@ -16,7 +16,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "Publish")]
+        [Trait("Delivery", "Publish")]
         public async Task PublishAsync()
         {
             // Arrange

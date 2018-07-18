@@ -10,7 +10,7 @@
         /// <summary>
         /// Allows errors to be written to Console asynchornously. Will still write a simple message to console when ILogger is null and WriteErrorsToIlogger is true;
         /// </summary>
-        public bool WriteErrorsToConsole { get; set; } = true;
+        public bool WriteErrorsToConsole { get; set; } = false;
 
         /// <summary>
         /// Allows errors to be passed to an ILogger. Will write to ILogger if it is null;
@@ -32,11 +32,6 @@
         /// On exception, break any batch operation. Recommended but not necessary. Superceded by ThrowExceptions.
         /// </summary>
         public bool BatchBreakOnException { get; set; } = true;
-
-        /// <summary>
-        /// On exception, break any batch operation. Recommended but not necessary.
-        /// </summary>
-        public bool BatchLogOnlyFirstException { get; set; } = true;
 
         /// <summary>
         /// RabbitMQ consumer parameters.
