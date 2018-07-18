@@ -41,7 +41,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "Publish")]
+        [Trait("Delivery", "Publish")]
         public async Task PublishManyAsync()
         {
             // Arrange
@@ -67,7 +67,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "Publish")]
+        [Trait("Delivery", "Publish")]
         public async Task PublishManyAsBatchesAsync()
         {
             // Arrange
@@ -93,7 +93,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Rabbit Delivery", "Publish")]
+        [Trait("Delivery", "Publish")]
         public async Task PublishManyAsBatchesInParallelAsync()
         {
             // Arrange
