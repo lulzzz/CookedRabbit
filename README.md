@@ -1,4 +1,7 @@
 # [HouseofCat.io](https://houseofcat.io/) Presents
+
+<p align="center"><img src="https://s33.postimg.cc/ns4ssipbz/COOKEDRABBIT_Readme_1.jpg"></p>
+
 ## CookedRabbit (v1.0.0.16) [![AppVeyor](https://img.shields.io/appveyor/ci/houseofcat/cookedrabbit.svg?logo=appveyor)](https://ci.appveyor.com/project/houseofcat/cookedrabbit)
 #### CookedRabbit.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
 #### CookedRabbit.Core.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
@@ -214,3 +217,5 @@ Legend
 
 </p>
 </details>
+
+<p align="center"><img src="https://s33.postimg.cc/tt2hpn1of/COOKEDRABBIT_Readme_2.jpg"></p>
