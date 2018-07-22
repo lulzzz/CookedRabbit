@@ -10,7 +10,7 @@ namespace CookedRabbit.Core.Benchmark
     {
         public static async Task Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<Publish>();
+            var summary = BenchmarkRunner.Run<Payloads>();
             await Console.In.ReadLineAsync();
         }
     }

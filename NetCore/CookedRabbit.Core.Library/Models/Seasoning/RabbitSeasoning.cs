@@ -1,4 +1,4 @@
-﻿namespace CookedRabbit.Library.Models
+﻿namespace CookedRabbit.Core.Library.Models
 {
     /// <summary>
     /// Class to fully season RabbitServices to your taste!
@@ -8,17 +8,17 @@
         #region CookedRabbit Global Settings
 
         /// <summary>
-        /// Allows errors to be written to Console asynchornously. Will still write a simple message to console when ILogger is null and WriteErrorsToIlogger is true;
+        /// Allows errors to be written to Console asynchronously. Will still write a simple message to console when ILogger is null and WriteErrorsToIlogger is true.
         /// </summary>
         public bool WriteErrorsToConsole { get; set; } = false;
 
         /// <summary>
-        /// Allows errors to be passed to an ILogger. Will write to ILogger if it is null;
+        /// Allows errors to be passed to an ILogger. Will write to Console if this is property is true but Logger is null.
         /// </summary>
         public bool WriteErrorsToILogger { get; set; } = true;
 
         /// <summary>
-        /// Allows any Publish that uses a loop to throttle Rand(0,2) milliseconds between publish.
+        /// Allows any Publish that uses a loop to throttle Rand(0,2) milliseconds between rapid publishes.
         /// <para>Highly recommended on multi-threaded systems to keep total system responsiveness high at the cost of individual thread throughput.</para>
         /// </summary>
         public bool ThrottleFastBodyLoops { get; set; } = true;
@@ -65,5 +65,10 @@
         /// Class to hold settings for ChannelFactory/SSL (RabbitMQ) settings.
         /// </summary>
         public SslSeasoning SslSettings { get; set; } = new SslSeasoning();
+
+        /// <summary>
+        /// Class to hold settings for Maintenance and RabbitMQ HTTP API settings.
+        /// </summary>
+        public MaintenanceSeasoning MaintenanceSeasoning { get; set; } = new MaintenanceSeasoning();
     }
 }

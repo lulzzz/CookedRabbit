@@ -30,7 +30,7 @@ namespace CookedRabbit.Library.Models
 
         /// <summary>
         /// Thread safe boolean to enable/disable AutoScaling.
-        /// <para>When enabled, a thead safe hysteresis check is used to slowly add channels to the pool to relieve available channel congestion.</para>
+        /// <para>When enabled, a thead safe hysteresis check is used to slowly add channels to the pool to relieve non-available channel congestion.</para>
         /// </summary>
         public bool EnableAutoScaling
         {

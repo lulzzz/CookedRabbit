@@ -12,9 +12,9 @@
     <RepositoryUrl>https://github.com/thyams/CookedRabbit</RepositoryUrl>
     <PackageTags>C# RabbitMQ Cooked Rabbit CookedRabbit NetCore Net</PackageTags>
     <PackageReleaseNotes>NuGet release of CookedRabbit NetCore Library.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.0.15</AssemblyVersion>
+    <AssemblyVersion>1.0.0.17</AssemblyVersion>
     <FileVersion>1.0.0.156</FileVersion>
-    <Version>1.0.0.16</Version>
+    <Version>1.0.0.17</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

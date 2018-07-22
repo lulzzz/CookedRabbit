@@ -45,7 +45,7 @@ namespace CookedRabbit.Core.Tests.Fixtures
             seasoning.PoolSettings.EmptyPoolWaitTime = 10;
             seasoning.PoolSettings.WriteSleepNoticeToConsole = false;
             seasoning.PoolSettings.ConnectionPoolCount = 4;
-            seasoning.PoolSettings.ChannelPoolCount = 16;
+            seasoning.PoolSettings.ChannelPoolCount = 4;
 
             var channelPool = new RabbitChannelPool();
             channelPool.Initialize(seasoning).GetAwaiter().GetResult();
@@ -55,7 +55,6 @@ namespace CookedRabbit.Core.Tests.Fixtures
             MaintenanceService = new RabbitMaintenanceService(seasoning, channelPool);
 
             TopologyService.QueueDeclareAsync(QueueName).GetAwaiter().GetResult();
-
             Payloads = CreatePayloadsAsync(MessagesToSend, MessageSize).GetAwaiter().GetResult();
         }
 

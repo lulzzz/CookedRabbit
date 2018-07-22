@@ -12,7 +12,7 @@ using static CookedRabbit.Library.Utilities.Serialization;
 namespace CookedRabbit.Library.Services
 {
     /// <summary>
-    /// CookedRabbit service for opinionated performance serialize and deserialize options.
+    /// CookedRabbit service for opinionated performance serialize and deserialize options. Inherits from RabbitDeliveryService.
     /// </summary>
     public class RabbitSerializeService : RabbitDeliveryService, IRabbitSerializeService, IDisposable
     {
@@ -31,7 +31,7 @@ namespace CookedRabbit.Library.Services
         }
 
         /// <summary>
-        /// CookedRabbit RabbitSerializeService constructor.  Allows for the sharing of a channel pool. If channel is not initialized, it will automatically initialize in here.
+        /// CookedRabbit RabbitSerializeService constructor. Allows for the sharing of a channel pool. If channel pool is not initialized, it will automatically initialize in here.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <param name="rcp"></param>

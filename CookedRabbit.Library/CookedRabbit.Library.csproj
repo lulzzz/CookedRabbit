@@ -137,14 +137,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bus\Interfaces\IRabbitBus.cs" />
-    <Compile Include="Bus\RabbitBus.cs" />
+    <Compile Include="Models\Burrow\RabbitBurrow.cs" />
     <Compile Include="Models\Envelope.cs" />
-    <Compile Include="Models\SerializationSeasoning.cs" />
-    <Compile Include="Models\SslSeasoning.cs" />
-    <Compile Include="Models\FactorySeasoning.cs" />
-    <Compile Include="Models\PoolSeasoning.cs" />
-    <Compile Include="Models\RabbitSeasoning.cs" />
+    <Compile Include="Models\Seasoning\MaintenanceSeasoning.cs" />
+    <Compile Include="Models\Seasoning\SerializationSeasoning.cs" />
+    <Compile Include="Models\Seasoning\SslSeasoning.cs" />
+    <Compile Include="Models\Seasoning\FactorySeasoning.cs" />
+    <Compile Include="Models\Seasoning\PoolSeasoning.cs" />
+    <Compile Include="Models\Seasoning\RabbitSeasoning.cs" />
     <Compile Include="Models\AckableResult.cs" />
     <Compile Include="Pools\Interfaces\IRabbitConnectionPool.cs" />
     <Compile Include="Pools\Interfaces\IRabbitChannelPool.cs" />

@@ -32,7 +32,7 @@ namespace CookedRabbit.Core.Library.Services
         }
 
         /// <summary>
-        /// CookedRabbit RabbitDeliveryService constructor.  Allows for the sharing of a channel pool. If channel is not initialized, it will automatically initialize in here.
+        /// CookedRabbit RabbitDeliveryService constructor. Allows for the sharing of a channel pool. If channel pool is not initialized, it will automatically initialize in here.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
         /// <param name="rcp"></param>
