@@ -62,7 +62,7 @@ CookedRabbit has throughput benchmarks.
 #### Configuring RabbitMQ Server First (if running Local)
 To run .Demo locally, have Erlang 20.3 and Server RabbitMQ v3.7.x installed locally and running first.
 Use the HTTP API management from RabbitMQ to verify communication is occurring.
-The WarmupAsync() will create the queue '001' to work with, if it doesn't exist, and send/receive a test message.
+The Demo project calls WarmupAsync() will create the queue '001' to work with, if it doesn't exist, and send/receive a test messages.
 
 Developed/Tested On
 
@@ -134,9 +134,10 @@ Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyServi
     ║
     ║ Your Business Logic
     ║
-    ╠══ » RabbbitBus() ═════════════════════════════════════════════════════════════╗
+    ╠══ » RabbbitBurrow ════════════════════════════════════════════════════════════╗
     ║       ║                                                                       ║
-    ║       ║ - Exception Handling                                                  ║
+    ║       ║ & RabbitSerializeService : RabbitDeliveryService                      ║
+    ║       ║ & RabbitMaintenanceService : RabbitTopologyService                    ║
     ║       ║ - Circuit Breaker                                                     ║
     ║       ║ - Abstraction                                                         ║
     ║       ║                                                                       ║

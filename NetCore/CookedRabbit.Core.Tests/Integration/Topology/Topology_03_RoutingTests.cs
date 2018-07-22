@@ -17,7 +17,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Topology", "Routing")]
+        [Trait("NetCore Topology", "Routing")]
         public async Task Exchange_DirectPublishGetDelete()
         {
             // Arrange
@@ -53,7 +53,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Topology", "Routing")]
+        [Trait("NetCore Topology", "Routing")]
         public async Task Exchange_FanoutPublishGetDelete()
         {
             // Arrange
@@ -129,7 +129,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Topology", "Routing")]
+        [Trait("NetCore Topology", "Routing")]
         public async Task Exchange_TopicPublishGetDelete()
         {
             // Arrange

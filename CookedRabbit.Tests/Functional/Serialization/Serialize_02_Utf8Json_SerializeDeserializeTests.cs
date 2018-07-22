@@ -13,7 +13,7 @@ namespace CookedRabbit.Tests.Functional
     public class Serialize_02_Utf8Json_SerializeDeserializeTests
     {
         [Fact]
-        [Trait("Serialize", "Utf8Json Compression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json Compression SerializeDeserialize")]
         public async Task SerializeAsync()
         {
             // Arrange
@@ -33,7 +33,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json Compression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json Compression SerializeDeserialize")]
         public async Task SerializeDeserializeAsync()
         {
             // Arrange
@@ -68,7 +68,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json Compression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json Compression SerializeDeserialize")]
         public async Task SerializeDeserializeManyAsync()
         {
             // Arrange

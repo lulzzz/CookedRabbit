@@ -69,6 +69,6 @@
         /// <summary>
         /// Class to hold settings for Maintenance and RabbitMQ HTTP API settings.
         /// </summary>
-        public MaintenanceSeasoning MaintenanceSeasoning { get; set; } = new MaintenanceSeasoning();
+        public MaintenanceSeasoning MaintenanceSettings { get; set; } = new MaintenanceSeasoning();
     }
 }

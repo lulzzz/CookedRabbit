@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Scaling", "AutoScaling ChannelPool")]
+        [Trait("NetCore Scaling", "AutoScaling ChannelPool")]
         public async Task TestingAutoScaleAsync()
         {
             // Arrange

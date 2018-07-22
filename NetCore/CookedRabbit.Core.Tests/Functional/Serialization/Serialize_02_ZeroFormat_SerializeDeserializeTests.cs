@@ -13,7 +13,7 @@ namespace CookedRabbit.Core.Tests.Functional
     public class Serialize_02_ZeroFormat_SerializeDeserializeTests
     {
         [Fact]
-        [Trait("Core Serialize", "ZeroFormat Compression SerializeDeserialize")]
+        [Trait("NetCore Serialize", "ZeroFormat Compression SerializeDeserialize")]
         public async Task SerializeAsync()
         {
             // Arrange
@@ -33,7 +33,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Serialize", "ZeroFormat Compression SerializeDeserialize")]
+        [Trait("NetCore Serialize", "ZeroFormat Compression SerializeDeserialize")]
         public async Task SerializeDeserializeAsync()
         {
             // Arrange
@@ -68,7 +68,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Serialize", "ZeroFormat Compression SerializeDeserialize")]
+        [Trait("NetCore Serialize", "ZeroFormat Compression SerializeDeserialize")]
         public async Task SerializeDeserializeManyAsync()
         {
             // Arrange

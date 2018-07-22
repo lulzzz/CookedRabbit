@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Topology", "Queue")]
+        [Trait("NetCore Topology", "Queue")]
         public async Task Exchange_DeclareDelete()
         {
             // Arrange

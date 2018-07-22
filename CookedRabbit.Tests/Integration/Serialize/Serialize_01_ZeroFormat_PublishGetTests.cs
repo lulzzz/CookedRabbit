@@ -21,7 +21,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
         public async Task PublishExceptionAsync()
         {
             // Arrange
@@ -53,7 +53,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
         public async Task PublishAndGetAsync()
         {
             // Arrange
@@ -89,7 +89,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
         public async Task PublishManyAndGetManyAsync()
         {
             var fixture = new Fixture();

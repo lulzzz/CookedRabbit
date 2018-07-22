@@ -4,7 +4,7 @@ using Xunit;
 
 namespace CookedRabbit.Core.Tests.Integration.Benchmark
 {
-    [Collection("BenchmarkFixture")]
+    [Collection("Benchmark")]
     public class Benchmark_01_Publish
     {
         private readonly BenchmarkFixture _fixture;
@@ -15,7 +15,7 @@ namespace CookedRabbit.Core.Tests.Integration.Benchmark
         }
 
         [Fact]
-        [Trait("Core Benchmark", "PublishMany")]
+        [Trait("NetCore Benchmark", "PublishMany")]
         public async Task TestingAutoScaleAsync()
         {
             await _fixture.DeliveryService.PublishManyAsync(_fixture.ExchangeName, _fixture.QueueName, _fixture.Payloads, false, null);

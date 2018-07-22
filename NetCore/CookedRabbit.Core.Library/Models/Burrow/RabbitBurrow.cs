@@ -1,5 +1,4 @@
-﻿using CookedRabbit.Core.Library.Models;
-using CookedRabbit.Core.Library.Pools;
+﻿using CookedRabbit.Core.Library.Pools;
 using CookedRabbit.Core.Library.Services;
 using CookedRabbit.Core.Library.Utilities;
 using Microsoft.Extensions.Logging;
@@ -16,11 +15,11 @@ namespace CookedRabbit.Core.Library.Models
         /// <summary>
         /// CookedRabbit RabbitSerializeService for Serilization, Compression, and Delivery methods.
         /// </summary>
-        public IRabbitSerializeService Transmission;
+        public RabbitSerializeService Transmission;
         /// <summary>
         /// CookedRabbit RabbitMaintenanceService for Queue/Exchange Management and Topology methods.
         /// </summary>
-        public IRabbitMaintenanceService Maintenance;
+        public RabbitMaintenanceService Maintenance;
 
         /// <summary>
         /// CookedRabbit RabbitBurrow constructor.

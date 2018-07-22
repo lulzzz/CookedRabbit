@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "Publish")]
+        [Trait("NetCore Delivery", "Publish")]
         public async Task PublishAsync()
         {
             // Arrange
@@ -41,7 +41,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "Publish")]
+        [Trait("NetCore Delivery", "Publish")]
         public async Task PublishManyAsync()
         {
             // Arrange
@@ -67,7 +67,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "Publish")]
+        [Trait("NetCore Delivery", "Publish")]
         public async Task PublishManyAsBatchesAsync()
         {
             // Arrange
@@ -93,7 +93,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "Publish")]
+        [Trait("NetCore Delivery", "Publish")]
         public async Task PublishManyAsBatchesInParallelAsync()
         {
             // Arrange

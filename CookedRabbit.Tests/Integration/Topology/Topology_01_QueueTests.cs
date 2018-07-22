@@ -16,7 +16,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Topology", "Queue")]
+        [Trait("Net Topology", "Queue")]
         public async Task Queue_DeclareDelete()
         {
             // Arrange
@@ -32,7 +32,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Topology", "Queue")]
+        [Trait("Net Topology", "Queue")]
         public async Task Queue_DeclarePublishDelete()
         {
             // Arrange
@@ -58,7 +58,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Topology", "Queue")]
+        [Trait("Net Topology", "Queue")]
         public async Task Queue_DeclarePublishGetDelete()
         {
             // Arrange

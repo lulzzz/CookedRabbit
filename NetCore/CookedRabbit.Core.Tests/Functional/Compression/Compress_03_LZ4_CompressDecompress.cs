@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Compress", "LZ4 CompressDecompress")]
+        [Trait("NetCore Compress", "LZ4 CompressDecompress")]
         public async Task WrapAsync()
         {
             // Act
@@ -32,7 +32,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Compress", "LZ4 CompressDecompress")]
+        [Trait("NetCore Compress", "LZ4 CompressDecompress")]
         public async Task WrapUnwrapAsync()
         {
             // Act
@@ -56,7 +56,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Compress", "LZ4 CompressDecompress")]
+        [Trait("NetCore Compress", "LZ4 CompressDecompress")]
         public async Task CompressAsync()
         {
             // Act
@@ -72,7 +72,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Compress", "LZ4 CompressDecompress")]
+        [Trait("NetCore Compress", "LZ4 CompressDecompress")]
         public async Task CompressDecompressAsync()
         {
             // Act

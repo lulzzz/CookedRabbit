@@ -31,8 +31,8 @@ namespace CookedRabbit.Core.Library.Services
             _seasoning = rabbitSeasoning;
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
 
-            if (_seasoning.MaintenanceSeasoning.EnablePingPong)
-            { _pingPong = PingPongAsync(_seasoning.MaintenanceSeasoning.PingPongQueueName, _cancellationTokenSource.Token); }
+            if (_seasoning.MaintenanceSettings.EnablePingPong)
+            { _pingPong = PingPongAsync(_seasoning.MaintenanceSettings.PingPongQueueName, _cancellationTokenSource.Token); }
         }
 
         /// <summary>
@@ -50,8 +50,8 @@ namespace CookedRabbit.Core.Library.Services
             if (!_rcp.IsInitialized)
             { _rcp.Initialize(rabbitSeasoning).GetAwaiter().GetResult(); }
 
-            if (_seasoning.MaintenanceSeasoning.EnablePingPong)
-            { _pingPong = PingPongAsync(_seasoning.MaintenanceSeasoning.PingPongQueueName, _cancellationTokenSource.Token); }
+            if (_seasoning.MaintenanceSettings.EnablePingPong)
+            { _pingPong = PingPongAsync(_seasoning.MaintenanceSettings.PingPongQueueName, _cancellationTokenSource.Token); }
         }
 
         /// <summary>
@@ -72,8 +72,8 @@ namespace CookedRabbit.Core.Library.Services
             rchanp.SetConnectionPoolAsync(rabbitSeasoning, rconp).GetAwaiter().GetResult();
             _rcp = rchanp;
 
-            if (_seasoning.MaintenanceSeasoning.EnablePingPong)
-            { _pingPong = PingPongAsync(_seasoning.MaintenanceSeasoning.PingPongQueueName, _cancellationTokenSource.Token); }
+            if (_seasoning.MaintenanceSettings.EnablePingPong)
+            { _pingPong = PingPongAsync(_seasoning.MaintenanceSettings.PingPongQueueName, _cancellationTokenSource.Token); }
         }
 
         #endregion
@@ -276,18 +276,22 @@ namespace CookedRabbit.Core.Library.Services
 
             while (!token.IsCancellationRequested)
             {
-                await Task.Delay(_seasoning.MaintenanceSeasoning.PingPongTime);
+                await Task.Delay(_seasoning.MaintenanceSettings.PingPongTime);
                 sw = Stopwatch.StartNew();
 
                 if (!queueDeclared) { queueDeclared = await QueueDeclareAsync(queueName); }
                 var testSuccess = await PublishTestMessageAsync(queueName);
+
+                sw.Stop();
+                await Task.Delay(10); // Allow Server Side Routing.
+                sw.Start();
 
                 if (testSuccess)
                 {
                     var payload = await GetTestMessageAsync(queueName);
                     sw.Stop();
 
-                    if (payload != null && payload.Equals(_testPayload))
+                    if (payload != null)
                     {
                         // Record successful Result
                         if (Monitor.TryEnter(_timesLock, TimeSpan.FromSeconds(_timeout)))
@@ -319,24 +323,21 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A ValueTuple(int, double). It indicates the number of failed ping pongs (misses) and the average response time.</returns>
         public (int Misses, double AverageResponseTime) GetAverageResponseTimes()
         {
-            if (!_seasoning.MaintenanceSeasoning.EnablePingPong) throw new Exception("Can't get average ping pong results if it is not enabled.");
+            if (!_seasoning.MaintenanceSettings.EnablePingPong) throw new Exception("Can't get average ping pong results if it is not enabled.");
 
             (int Misses, double AverageResponseTime) result = (0, 0.0d);
 
             if (Monitor.TryEnter(_timesLock, TimeSpan.FromSeconds(_timeout)))
             {
-                if (_times.Length == 0)
+                for (int i = 0; i < _times.Length; i++)
                 {
-                    for (int i = 0; i < _times.Length; i++)
-                    {
-                        if (_times[i] is null) { result.Misses++; }
-                        else { result.AverageResponseTime += (double)_times[i]; }
-                    }
+                    if (_times[i] is null) { result.Misses++; }
+                    else { result.AverageResponseTime += (double)_times[i]; }
+                }
 
-                    if (_times.Length != result.Misses)
-                    {
-                        result.AverageResponseTime = result.AverageResponseTime / (_times.Length - result.Misses);
-                    }
+                if (_times.Length != result.Misses)
+                {
+                    result.AverageResponseTime = result.AverageResponseTime / (_times.Length - result.Misses);
                 }
 
                 Monitor.Exit(_timesLock);

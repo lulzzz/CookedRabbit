@@ -156,6 +156,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Fixtures\BenchmarkFixture.cs" />
+    <Compile Include="Fixtures\StandardFixture.cs" />
     <Compile Include="Fixtures\IntegrationFixture_Utf8.cs" />
     <Compile Include="Integration\AutoScaling\Scaling_01_ChannelPool.cs" />
     <Compile Include="Functional\Compression\Compress_01_GZip_CompressDecompress.cs" />
@@ -166,6 +167,7 @@
     <Compile Include="Functional\Serialization\Serialize_02_ZeroFormat_SerializeDeserializeTests.cs" />
     <Compile Include="Fixtures\IntegrationFixture_Zero.cs" />
     <Compile Include="Integration\Benchmark\Benchmark_01_Publish.cs" />
+    <Compile Include="Integration\Maintenance\Maintenance_01_PingPongTest.cs" />
     <Compile Include="Models\ZeroTestHelperObject.cs" />
     <Compile Include="Functional\Serialization\Serialize_01_ZeroFormat_SerializeDeserializeTests.cs" />
     <Compile Include="Integration\Serialize\Serialize_02_ZeroFormat_PublishGetTests.cs" />

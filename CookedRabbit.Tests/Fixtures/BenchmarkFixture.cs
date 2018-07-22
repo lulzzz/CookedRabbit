@@ -8,7 +8,7 @@ using static CookedRabbit.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Tests.Fixtures
 {
-    [CollectionDefinition("BenchmarkFixture")]
+    [CollectionDefinition("Benchmark")]
     public class BenchmarkCollection : ICollectionFixture<BenchmarkFixture>
     { }
 

@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Compress", "GZip CompressDecompress")]
+        [Trait("NetCore Compress", "GZip CompressDecompress")]
         public async Task CompressAsync()
         {
             // Act
@@ -33,7 +33,7 @@ namespace CookedRabbit.Core.Tests.Functional
         }
 
         [Fact]
-        [Trait("Core Compress", "GZip CompressDecompress")]
+        [Trait("NetCore Compress", "GZip CompressDecompress")]
         public async Task CompressDecompressAsync()
         {
             // Act

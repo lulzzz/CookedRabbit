@@ -12,7 +12,7 @@ namespace CookedRabbit.Tests.Functional
     public class Serialize_01_Utf8Json_SerializeDeserializeTests
     {
         [Fact]
-        [Trait("Serialize", "Utf8Json NoCompression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json NoCompression SerializeDeserialize")]
         public async Task SerializeAsync()
         {
             // Arrange
@@ -31,7 +31,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json NoCompression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json NoCompression SerializeDeserialize")]
         public async Task SerializeAsJsonAsync()
         {
             // Arrange
@@ -50,7 +50,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json NoCompression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json NoCompression SerializeDeserialize")]
         public async Task SerializeDeserializeAsync()
         {
             // Arrange
@@ -74,7 +74,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json NoCompression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json NoCompression SerializeDeserialize")]
         public async Task SerializeAsJsonAndDeserializeAsync()
         {
             // Arrange
@@ -98,7 +98,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json NoCompression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json NoCompression SerializeDeserialize")]
         public async Task SerializeDeserializeManyAsync()
         {
             // Arrange
@@ -134,7 +134,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Serialize", "Utf8Json NoCompression SerializeDeserialize")]
+        [Trait("Net Serialize", "Utf8Json NoCompression SerializeDeserialize")]
         public async Task SerializeDeserializeManyAsJsonAsync()
         {
             // Arrange

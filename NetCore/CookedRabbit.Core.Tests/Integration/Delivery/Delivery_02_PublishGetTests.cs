@@ -16,7 +16,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "PublishGet")]
+        [Trait("NetCore Delivery", "PublishGet")]
         public async Task PublishAndGetAsync()
         {
             // Arrange
@@ -27,6 +27,7 @@ namespace CookedRabbit.Core.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _fixture.RabbitDeliveryService.PublishAsync(exchangeName, queueName, payload, false, null);
+            await Task.Delay(10);
             var result = await _fixture.RabbitDeliveryService.GetAsync(queueName);
             var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
@@ -38,7 +39,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "PublishGet")]
+        [Trait("NetCore Delivery", "PublishGet")]
         public async Task PublishManyAndGetManyAsync()
         {
             // Arrange
@@ -66,7 +67,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "PublishGet")]
+        [Trait("NetCore Delivery", "PublishGet")]
         public async Task PublishManyAsBatchesAsync()
         {
             // Arrange
@@ -94,7 +95,7 @@ namespace CookedRabbit.Core.Tests.Integration
         }
 
         [Fact]
-        [Trait("Core Delivery", "PublishGet")]
+        [Trait("NetCore Delivery", "PublishGet")]
         public async Task PublishManyAsBatchesInParallelAsync()
         {
             // Arrange

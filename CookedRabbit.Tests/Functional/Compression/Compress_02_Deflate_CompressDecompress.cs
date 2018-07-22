@@ -16,7 +16,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Compress", "Deflate CompressDecompress")]
+        [Trait("Net Compress", "Deflate CompressDecompress")]
         public async Task CompressAsync()
         {
             // Act
@@ -33,7 +33,7 @@ namespace CookedRabbit.Tests.Functional
         }
 
         [Fact]
-        [Trait("Compress", "Deflate CompressDecompress")]
+        [Trait("Net Compress", "Deflate CompressDecompress")]
         public async Task CompressDecompressAsync()
         {
             // Act
