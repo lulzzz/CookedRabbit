@@ -1,6 +1,6 @@
 <p align="center"><img src="https://s33.postimg.cc/g8pyewwm7/COOKEDRABBIT_1.jpg"></p>
 
-## CookedRabbit (v1.0.0.17) [![AppVeyor](https://img.shields.io/appveyor/ci/houseofcat/cookedrabbit.svg?logo=appveyor)](https://ci.appveyor.com/project/houseofcat/cookedrabbit)
+## CookedRabbit (v1.0.0.18) [![AppVeyor](https://img.shields.io/appveyor/ci/houseofcat/cookedrabbit.svg?logo=appveyor)](https://ci.appveyor.com/project/houseofcat/cookedrabbit)
 #### CookedRabbit.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
 #### CookedRabbit.Core.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
 
