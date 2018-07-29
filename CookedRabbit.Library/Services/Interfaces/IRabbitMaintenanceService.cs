@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Library.Services
 {
@@ -39,5 +40,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="targetQueueName">The destination queue.</param>
         /// <returns>A bool indicating success or failure.</returns>
         Task<bool> TransferAllMessagesAsync(string originQueueName, string targetQueueName);
+
+        Task<T> Api_GetAsync<T>(RabbitApiTarget rabbitApiTarget);
     }
 }

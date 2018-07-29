@@ -59,10 +59,15 @@ namespace CookedRabbit.Library.Utilities
                 uint t = x ^ (x << 11);
                 x = y; y = z; z = w;
                 w = w ^ (w >> 19) ^ (t ^ (t >> 8));
-                buffer[offset++] = (byte)(w & mask);
-                buffer[offset++] = (byte)((w >> 8) & mask);
-                buffer[offset++] = (byte)((w >> 16) & mask);
-                buffer[offset++] = (byte)((w >> 24) & mask);
+
+                if (buffer.Length < offset - 5)
+                {
+                    buffer[offset++] = (byte)(w & mask);
+                    buffer[offset++] = (byte)((w >> 8) & mask);
+                    buffer[offset++] = (byte)((w >> 16) & mask);
+                    buffer[offset++] = (byte)((w >> 24) & mask);
+                }
+                else { break; }
             }
 
             return Task.CompletedTask;

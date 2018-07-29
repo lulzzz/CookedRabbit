@@ -501,9 +501,8 @@ namespace CookedRabbit.Library.Services
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
 
-            foreach (var payload in payloads)
+            for (int i = 0; i < payloads.Count; i++)
             {
                 try
                 {
@@ -511,19 +510,17 @@ namespace CookedRabbit.Library.Services
                         routingKey: routingKey,
                         mandatory: mandatory,
                         basicProperties: messageProperties,
-                        body: payload);
+                        body: payloads[i]);
                 }
                 catch (Exception e)
                 {
-                    failures.Add(count);
+                    failures.Add(i);
 
                     await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                     else if (_seasoning.BatchBreakOnException) { break; }
                 }
-
-                count++;
 
                 if (_seasoning.ThrottleFastBodyLoops)
                 { await Task.Delay(Rand.Next(0, 2)); }
@@ -538,38 +535,35 @@ namespace CookedRabbit.Library.Services
         /// Publishes many messages asynchronously. When payload count exceeds a certain threshold (determined by your systems performance) consider using PublishManyInBatchesAsync().
         /// <para>Returns a List of the indices that failed to publish for calling service/methods to retry.</para>
         /// </summary>
-        /// <param name="envelopes"></param>
+        /// <param name="letters"></param>
         /// <param name="messageProperties"></param>
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsync(List<Envelope> envelopes, IBasicProperties messageProperties = null)
+        public async Task<List<int>> PublishManyAsync(List<Envelope> letters, IBasicProperties messageProperties = null)
         {
-            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+            if (letters is null) throw new ArgumentNullException(nameof(letters));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
 
-            foreach (var envelope in envelopes)
+            for (int i = 0; i < letters.Count; i++)
             {
                 try
                 {
-                    channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
-                        routingKey: envelope.RoutingKey,
-                        mandatory: envelope.Mandatory,
+                    channelPair.Channel.BasicPublish(exchange: letters[i].ExchangeName ?? string.Empty,
+                        routingKey: letters[i].RoutingKey,
+                        mandatory: letters[i].Mandatory,
                         basicProperties: messageProperties,
-                        body: envelope.MessageBody);
+                        body: letters[i].MessageBody);
                 }
                 catch (Exception e)
                 {
-                    failures.Add(count);
+                    failures.Add(i);
 
                     await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                     if (_seasoning.ThrowExceptions) { throw; }
                     else if (_seasoning.BatchBreakOnException) { break; }
                 }
-
-                count++;
 
                 if (_seasoning.ThrottleFastBodyLoops)
                 { await Task.Delay(Rand.Next(0, 2)); }
@@ -646,7 +640,6 @@ namespace CookedRabbit.Library.Services
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-            var count = 0;
 
             while (payloads.Any())
             {
@@ -654,7 +647,7 @@ namespace CookedRabbit.Library.Services
                 var processingPayloads = payloads.Take(currentBatchSize).ToList();
                 payloads.RemoveRange(0, currentBatchSize);
 
-                foreach (var payload in processingPayloads)
+                for (int i = 0; i < processingPayloads.Count; i++)
                 {
                     try
                     {
@@ -662,19 +655,17 @@ namespace CookedRabbit.Library.Services
                             routingKey: routingKey,
                             mandatory: mandatory,
                             basicProperties: messageProperties,
-                            body: payload);
+                            body: processingPayloads[i]);
                     }
                     catch (Exception e)
                     {
-                        failures.Add(count);
+                        failures.Add(i);
 
                         await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });
 
                         if (_seasoning.ThrowExceptions) { throw; }
                         else if (_seasoning.BatchBreakOnException) { break; }
                     }
-
-                    count++;
                 }
 
                 if (_seasoning.ThrottleFastBodyLoops)
@@ -689,34 +680,34 @@ namespace CookedRabbit.Library.Services
         /// <summary>
         /// Publishes many messages asynchronously in configurable batch sizes.
         /// </summary>
-        /// <param name="envelopes"></param>
+        /// <param name="letters"></param>
         /// <param name="batchSize"></param>
         /// <param name="messageProperties"></param>
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
-        public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> envelopes, int batchSize = 100,
+        public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> letters, int batchSize = 100,
             IBasicProperties messageProperties = null)
         {
-            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+            if (letters is null) throw new ArgumentNullException(nameof(letters));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var count = 0;
 
-            while (envelopes.Any())
+            while (letters.Any())
             {
-                var currentBatchSize = envelopes.Count > batchSize ? batchSize : envelopes.Count;
-                var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
-                envelopes.RemoveRange(0, currentBatchSize);
+                var currentBatchSize = letters.Count > batchSize ? batchSize : letters.Count;
+                var processingLetters = letters.Take(currentBatchSize).ToList();
+                letters.RemoveRange(0, currentBatchSize);
 
-                foreach (var envelope in processingEnvelopes)
+                for (int i = 0; i < processingLetters.Count; i++)
                 {
                     try
                     {
-                        channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
-                            routingKey: envelope.RoutingKey,
-                            mandatory: envelope.Mandatory,
+                        channelPair.Channel.BasicPublish(exchange: letters[i].ExchangeName ?? string.Empty,
+                            routingKey: letters[i].RoutingKey,
+                            mandatory: letters[i].Mandatory,
                             basicProperties: messageProperties,
-                            body: envelope.MessageBody);
+                            body: letters[i].MessageBody);
                     }
                     catch (Exception e)
                     {

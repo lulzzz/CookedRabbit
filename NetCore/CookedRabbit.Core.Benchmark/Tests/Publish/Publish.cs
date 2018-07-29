@@ -1,13 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Attributes.Jobs;
 using CookedRabbit.Core.Library.Models;
-using CookedRabbit.Core.Library.Pools;
 using CookedRabbit.Core.Library.Services;
+using CookedRabbit.Core.Library.Utilities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static CookedRabbit.Core.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Core.Benchmark
+namespace CookedRabbit.Core.Benchmark.Tests
 {
     [CoreJob]
     public class Publish
@@ -21,9 +21,13 @@ namespace CookedRabbit.Core.Benchmark
         private string QueueName = string.Empty;
         private string ExchangeName = string.Empty;
 
-        private bool FirstRun = true;
+        [Params(1, 5, 10)]
+        public int MessagesToSend { get; set; }
+        [Params(100, 200, 500)]
+        public int MessageSizes { get; set; }
 
-        private async Task Setup(int messagesToSend, int messageSizes)
+        [IterationSetup]
+        public void IterationSetup()
         {
             QueueName = "CookedRabbit.Benchmark.Scaling";
             ExchangeName = string.Empty;
@@ -44,31 +48,28 @@ namespace CookedRabbit.Core.Benchmark
             seasoning.PoolSettings.ConnectionPoolCount = 4;
             seasoning.PoolSettings.ChannelPoolCount = 16;
 
-            var channelPool = new RabbitChannelPool();
-            await channelPool.Initialize(seasoning);
+            var channelPool = Factories.CreateRabbitChannelPoolAsync(seasoning).GetAwaiter().GetResult();
 
             _deliveryService = new RabbitDeliveryService(seasoning, channelPool);
             _topologyService = new RabbitTopologyService(seasoning, channelPool);
             _maintenanceService = new RabbitMaintenanceService(seasoning, channelPool);
 
-            await _topologyService.QueueDeclareAsync(QueueName);
+            _topologyService.QueueDeclareAsync(QueueName).GetAwaiter().GetResult();
+            _maintenanceService.PurgeQueueAsync(QueueName).GetAwaiter().GetResult();
 
-            Payloads = await CreatePayloadsAsync(messagesToSend, messageSizes);
+            Payloads = CreatePayloadsAsync(MessagesToSend, MessageSizes).GetAwaiter().GetResult();
+        }
 
-            FirstRun = false;
+        [IterationCleanup]
+        public void IterationCleanup()
+        {
+            _maintenanceService.PurgeQueueAsync(QueueName).GetAwaiter().GetResult();
         }
 
         [Benchmark]
-        [Arguments(10, 100), Arguments(50, 100), Arguments(100, 100)]
-        [Arguments(10, 200), Arguments(50, 200), Arguments(100, 200)]
-        [Arguments(10, 500), Arguments(50, 500), Arguments(100, 500)]
-        [Arguments(10, 1000), Arguments(50, 1000), Arguments(100, 1000)]
-        public async Task Benchmark_Delivery_PublishManyAsync(int messagesToSend, int messageSizes)
+        public async Task Benchmark_Delivery_PublishManyAsync()
         {
-            if (FirstRun) { await Setup(messagesToSend, messageSizes); }
-
-            var success = await _deliveryService.PublishManyAsync(ExchangeName, QueueName, Payloads, false, null);
-            await _maintenanceService.PurgeQueueAsync(QueueName);
+            await _deliveryService.PublishManyAsync(ExchangeName, QueueName, Payloads, false, null);
         }
     }
 }

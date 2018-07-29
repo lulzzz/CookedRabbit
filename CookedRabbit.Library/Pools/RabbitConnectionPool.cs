@@ -122,12 +122,12 @@ namespace CookedRabbit.Library.Pools
                 }
                 catch (ArgumentNullException ane)
                 {
-                    if (_seasoning.WriteErrorsToConsole) { await Console.Out.WriteLineAsync(ane.Demystify().Message); }
+                    if (_seasoning.WriteErrorsToConsole) { await Console.Out.WriteLineAsync(ane.Message); }
                     throw; // Non Optional Throw
                 }
                 catch (RabbitMQ.Client.Exceptions.BrokerUnreachableException bue)
                 {
-                    if (_seasoning.WriteErrorsToConsole) { await Console.Out.WriteLineAsync(bue.Demystify().Message); }
+                    if (_seasoning.WriteErrorsToConsole) { await Console.Out.WriteLineAsync(bue.Message); }
                     throw; // Non Optional Throw
                 }
             }
@@ -164,6 +164,19 @@ namespace CookedRabbit.Library.Pools
             }
 
             return connection;
+        }
+
+        /// <summary>
+        /// Primarily used for testing purposes, manually closes the connections in the underneath ConnectionPool.
+        /// </summary>
+        public void CloseConnections()
+        {
+            foreach (var connection in _connectionPool)
+            {
+                try
+                { connection.Close(200, "Manual close initiated."); }
+                catch { }
+            }
         }
 
         #region Shutdown Section

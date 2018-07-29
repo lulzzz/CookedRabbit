@@ -1,12 +1,11 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Validators;
-using System.Linq;
 
-namespace CookedRabbit.Core.Benchmark.Misc
+namespace CookedRabbit.Core.Benchmark.Configs
 {
-    public class DebugConfig : ManualConfig
+    public class NonJitOptimzationConfig : ManualConfig
     {
-        public DebugConfig()
+        public NonJitOptimzationConfig()
         {
             Add(JitOptimizationsValidator.DontFailOnError); // ALLOW NON-OPTIMIZED DLLS
         }

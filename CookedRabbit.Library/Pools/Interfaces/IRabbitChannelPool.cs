@@ -90,6 +90,11 @@ namespace CookedRabbit.Library.Pools
         bool ReturnChannelToAckPool((ulong ChannelId, IModel Channel) ChannelPair);
 
         /// <summary>
+        /// Primarily used for testing purposes, manually closes the connections in the underneath ConnectionPool.
+        /// </summary>
+        void CloseConnections();
+
+        /// <summary>
         /// RabbitChannelPool shutdown method closes all channels, disposes each model, and refreshes the objects in memory.
         /// </summary>
         void Shutdown();

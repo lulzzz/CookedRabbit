@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using static CookedRabbit.Core.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Core.Benchmark.AutoScale
+namespace CookedRabbit.Core.Benchmark.Tests
 {
     [MarkdownExporter, CoreJob]
     public class AutoScaleBenchmark

@@ -5,8 +5,14 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using System;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static CookedRabbit.Core.Library.Utilities.ApiHelpers;
+using static CookedRabbit.Core.Library.Utilities.Enums;
+using static CookedRabbit.Core.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Core.Library.Services
 {
@@ -16,6 +22,7 @@ namespace CookedRabbit.Core.Library.Services
     public class RabbitMaintenanceService : RabbitTopologyService, IRabbitMaintenanceService, IDisposable
     {
         private readonly Task _pingPong = Task.CompletedTask;
+        private readonly HttpClient _httpClient = null;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         #region Constructor Section
@@ -32,7 +39,10 @@ namespace CookedRabbit.Core.Library.Services
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
 
             if (_seasoning.MaintenanceSettings.EnablePingPong)
-            { _pingPong = PingPongAsync(_seasoning.MaintenanceSettings.PingPongQueueName, _cancellationTokenSource.Token); }
+            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
+
+            if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
+            { _httpClient = CreateHttpClient(); }
         }
 
         /// <summary>
@@ -51,7 +61,10 @@ namespace CookedRabbit.Core.Library.Services
             { _rcp.Initialize(rabbitSeasoning).GetAwaiter().GetResult(); }
 
             if (_seasoning.MaintenanceSettings.EnablePingPong)
-            { _pingPong = PingPongAsync(_seasoning.MaintenanceSettings.PingPongQueueName, _cancellationTokenSource.Token); }
+            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
+
+            if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
+            { _httpClient = CreateHttpClient(); }
         }
 
         /// <summary>
@@ -73,7 +86,10 @@ namespace CookedRabbit.Core.Library.Services
             _rcp = rchanp;
 
             if (_seasoning.MaintenanceSettings.EnablePingPong)
-            { _pingPong = PingPongAsync(_seasoning.MaintenanceSettings.PingPongQueueName, _cancellationTokenSource.Token); }
+            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
+
+            if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
+            { _httpClient = CreateHttpClient(); }
         }
 
         #endregion
@@ -344,6 +360,67 @@ namespace CookedRabbit.Core.Library.Services
             }
 
             return result;
+        }
+
+        #endregion
+
+        #region Api Section
+
+        public async Task<T> Api_GetAsync<T>(RabbitApiTarget rabbitApiTarget)
+        {
+            var path = CreateApiBasePath();
+            var request = CreateRequest(path, rabbitApiTarget.Description(), HttpMethod.Get);
+            var response = await _httpClient.SendAsync(request);
+
+            string content = null;
+            if (response.IsSuccessStatusCode)
+            { content = await response.Content.ReadAsStringAsync(); }
+
+            T result = default;
+            if (content != null)
+            { result = Utf8Json.JsonSerializer.Deserialize<T>(content); }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private HttpClient CreateHttpClient()
+        {
+            var httpClient = new HttpClient(
+                new HttpClientHandler
+                {
+                    Credentials =
+                    new NetworkCredential(
+                        _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserName,
+                        _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserPassword)
+                })
+            {
+                Timeout = TimeSpan.FromSeconds(60)
+            };
+
+            return httpClient;
+        }
+
+        private string CreateApiBasePath()
+        {
+            var sb = new StringBuilder();
+            if (_seasoning.MaintenanceSettings.ApiSettings.UseSsl)
+            {
+                sb.Append("https://");
+            }
+            else
+            {
+                sb.Append("http://");
+            }
+
+            sb.Append(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiHostName);
+            sb.Append(':');
+            sb.Append(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiPort);
+            sb.Append("/api");
+            return sb.ToString();
         }
 
         #endregion

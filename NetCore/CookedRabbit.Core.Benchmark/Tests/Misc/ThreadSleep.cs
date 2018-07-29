@@ -1,9 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
 using System.Threading;
 
-namespace CookedRabbit.Core.Benchmark
+namespace CookedRabbit.Core.Benchmark.Tests
 {
-    public class Sleep
+    public class ThreadSleep
     {
         [Benchmark]
         public void Time50() => Thread.Sleep(50);

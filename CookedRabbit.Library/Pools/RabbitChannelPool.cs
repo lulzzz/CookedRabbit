@@ -223,7 +223,7 @@ namespace CookedRabbit.Library.Pools
                     }
                     else
                     {
-                        if(_seasoning.PoolSettings.EnableAutoScaling)
+                        if (_seasoning.PoolSettings.EnableAutoScaling)
                         {
                             var currentScaledChannelCount = Interlocked.Read(ref _scalingIncrementChannelPool);
                             var maxScaledChannelCount = Interlocked.Read(ref _maxAutoScaleChannels);
@@ -411,6 +411,11 @@ namespace CookedRabbit.Library.Pools
             }
 
             return success;
+        }
+
+        public void CloseConnections()
+        {
+            _rcp.CloseConnections();
         }
 
         #endregion

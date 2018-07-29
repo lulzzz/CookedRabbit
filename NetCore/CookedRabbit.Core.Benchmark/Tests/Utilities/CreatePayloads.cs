@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using static CookedRabbit.Core.Library.Utilities.RandomData;
 
-namespace CookedRabbit.Core.Benchmark.Misc
+namespace CookedRabbit.Core.Benchmark.Tests
 {
     public class Payloads
     {

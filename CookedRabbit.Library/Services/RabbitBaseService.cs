@@ -88,5 +88,14 @@ namespace CookedRabbit.Library.Services
         }
 
         #endregion
+
+        #region Connection Section
+
+        public void CloseConnections()
+        {
+            _rcp.CloseConnections();
+        }
+
+        #endregion
     }
 }

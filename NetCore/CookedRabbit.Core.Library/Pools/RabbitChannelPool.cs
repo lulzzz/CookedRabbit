@@ -413,6 +413,11 @@ namespace CookedRabbit.Core.Library.Pools
             return success;
         }
 
+        public void CloseConnections()
+        {
+            _rcp.CloseConnections();
+        }
+
         #endregion
 
         #region Shutdown Section

@@ -14,7 +14,7 @@ namespace CookedRabbit.Core.Library.Services
     /// <summary>
     /// CookedRabbit service for opinionated performance serialize and deserialize options. Inherits from RabbitDeliveryService.
     /// </summary>
-    public class RabbitSerializeService : RabbitDeliveryService, IRabbitSerializeService, IRabbitDeliveryService, IDisposable
+    public class RabbitSerializeService : RabbitDeliveryService, IRabbitSerializeService, IDisposable
     {
         #region Constructors
 

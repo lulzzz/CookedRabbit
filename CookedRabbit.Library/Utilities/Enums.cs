@@ -286,5 +286,11 @@ namespace CookedRabbit.Library.Utilities
             /// </summary>
             ZeroFormat
         }
+
+        public enum RabbitApiTarget
+        {
+            [Description("connections")]
+            Connections
+        }
     }
 }

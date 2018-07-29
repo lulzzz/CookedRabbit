@@ -165,6 +165,19 @@ namespace CookedRabbit.Core.Library.Pools
             return connection;
         }
 
+        /// <summary>
+        /// Primarily used for testing purposes, manually closes the connections in the underneath ConnectionPool.
+        /// </summary>
+        public void CloseConnections()
+        {
+            foreach (var connection in _connectionPool)
+            {
+                try
+                { connection.Close(200, "Manual close initiated."); }
+                catch { }
+            }
+        }
+
         #region Shutdown Section
 
         private readonly int _timeout = 10;
