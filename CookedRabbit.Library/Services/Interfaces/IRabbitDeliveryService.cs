@@ -124,7 +124,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
         /// <returns>A bool indicating success or failure.</returns>
-        Task<bool> BasicPublishBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
+        Task<bool> PublishBasicBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null);
 
         /// <summary>

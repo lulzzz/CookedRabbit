@@ -188,7 +188,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="mandatory"></param>
         /// <param name="messageProperties"></param>
         /// <returns>A bool indicating success or failure.</returns>
-        public async Task<bool> BasicPublishBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
+        public async Task<bool> PublishBasicBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
             if (payloads is null) throw new ArgumentNullException(nameof(payloads));
@@ -747,8 +747,6 @@ namespace CookedRabbit.Library.Services
         {
             if (payloads is null) throw new ArgumentNullException(nameof(payloads));
 
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
-
             while (payloads.Any())
             {
                 var procCount = Environment.ProcessorCount;
@@ -761,6 +759,7 @@ namespace CookedRabbit.Library.Services
                     Parallel.ForEach(processingPayloads, new ParallelOptions { MaxDegreeOfParallelism = procCount },
                         (payload) =>
                         {
+                            var channelPair = _rcp.GetPooledChannelPairAsync().GetAwaiter().GetResult();
                             try
                             {
                                 channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
@@ -771,6 +770,9 @@ namespace CookedRabbit.Library.Services
                             }
                             catch
                             { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                            finally
+                            { _rcp.ReturnChannelToPool(channelPair); }
+
                         });
 
                     if (_seasoning.ThrottleFastBodyLoops)
@@ -780,6 +782,8 @@ namespace CookedRabbit.Library.Services
                 {
                     foreach (var payload in processingPayloads)
                     {
+                        var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+
                         try
                         {
                             channelPair.Channel.BasicPublish(exchange: exchangeName ?? string.Empty,
@@ -790,14 +794,14 @@ namespace CookedRabbit.Library.Services
                         }
                         catch
                         { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                        finally
+                        { _rcp.ReturnChannelToPool(channelPair); }
                     }
                 }
 
                 if (_seasoning.ThrottleFastBodyLoops)
                 { await Task.Delay(Rand.Next(0, 2)); }
             }
-
-            _rcp.ReturnChannelToPool(channelPair);
         }
 
         /// <summary>
@@ -814,7 +818,6 @@ namespace CookedRabbit.Library.Services
             if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
 
             var failures = new ConcurrentBag<int>();
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             while (envelopes.Any())
             {
@@ -823,13 +826,15 @@ namespace CookedRabbit.Library.Services
                 var processingEnvelopes = envelopes.Take(currentBatchSize).ToList();
                 envelopes.RemoveRange(0, currentBatchSize);
 
-                if (processingEnvelopes.Count() >= procCount)
+                if (processingEnvelopes.Count >= procCount)
                 {
                     Parallel.ForEach(processingEnvelopes, new ParallelOptions { MaxDegreeOfParallelism = procCount },
                         (envelope) =>
                         {
+                            var channelPair = _rcp.GetPooledChannelPairAsync().GetAwaiter().GetResult();
                             try
                             {
+
                                 channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
                                     routingKey: envelope.RoutingKey,
                                     mandatory: envelope.Mandatory,
@@ -838,6 +843,8 @@ namespace CookedRabbit.Library.Services
                             }
                             catch
                             { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                            finally
+                            { _rcp.ReturnChannelToPool(channelPair); }
                         });
 
                     if (_seasoning.ThrottleFastBodyLoops)
@@ -847,6 +854,7 @@ namespace CookedRabbit.Library.Services
                 {
                     foreach (var envelope in processingEnvelopes)
                     {
+                        var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
                         try
                         {
                             channelPair.Channel.BasicPublish(exchange: envelope.ExchangeName ?? string.Empty,
@@ -857,14 +865,14 @@ namespace CookedRabbit.Library.Services
                         }
                         catch
                         { _rcp.FlagDeadChannel(channelPair.ChannelId); }
+                        finally
+                        { _rcp.ReturnChannelToPool(channelPair); }
                     }
 
                     if (_seasoning.ThrottleFastBodyLoops)
                     { await Task.Delay(Rand.Next(0, 2)); }
                 }
             }
-
-            _rcp.ReturnChannelToPool(channelPair);
         }
 
         #endregion
@@ -1017,7 +1025,7 @@ namespace CookedRabbit.Library.Services
             var consumer = new EventingBasicConsumer(channel);
             channel.BasicQos(_seasoning.QosPrefetchSize, _seasoning.QosPrefetchCount, false);
 
-            consumer.Received += (model, ea) => ActionWork(model, ea);
+            consumer.Received += (_channel, ea) => ActionWork(_channel, ea);
             channel.BasicConsume(queue: queueName,
                                  autoAck: autoAck,
                                  consumer: consumer);
@@ -1068,7 +1076,7 @@ namespace CookedRabbit.Library.Services
             var consumer = new AsyncEventingBasicConsumer(channel);
             channel.BasicQos(_seasoning.QosPrefetchSize, _seasoning.QosPrefetchCount, false);
 
-            consumer.Received += (model, ea) => AsyncWork(model, ea);
+            consumer.Received += (_channel, ea) => AsyncWork(_channel, ea);
             channel.BasicConsume(queue: queueName,
                                  autoAck: autoAck,
                                  consumer: consumer);

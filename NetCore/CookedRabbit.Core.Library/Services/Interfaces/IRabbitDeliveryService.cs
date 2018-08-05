@@ -115,6 +115,25 @@ namespace CookedRabbit.Core.Library.Services
         Task PublishManyAsBatchesInParallelAsync(List<Envelope> envelopes, int batchSize = 100,
             IBasicProperties messageProperties = null);
 
+        /// <summary>
+        /// Publish using BasicPublishBatch built-in to RabbitMQ 5.1.0+.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="routingKey"></param>
+        /// <param name="payloads"></param>
+        /// <param name="mandatory"></param>
+        /// <param name="messageProperties"></param>
+        /// <returns>A bool indicating success or failure.</returns>
+        Task<bool> PublishBasicBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
+            bool mandatory = false, IBasicProperties messageProperties = null);
+
+        /// <summary>
+        /// Publish using BasicPublishBatch built-in to RabbitMQ 5.1.0+.
+        /// </summary>
+        /// <param name="letters"></param>
+        /// <returns>A bool indicating success or failure.</returns>
+        Task<bool> PublishBasicBatchAsync(List<Envelope> letters);
+
 
         /// <summary>
         /// Get a BasicGetResult from a queue asynchronously.
