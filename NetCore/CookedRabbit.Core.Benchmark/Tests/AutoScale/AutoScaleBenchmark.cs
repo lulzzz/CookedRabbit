@@ -1,6 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Exporters;
-using BenchmarkDotNet.Attributes.Jobs;
 using CookedRabbit.Core.Library.Models;
 using CookedRabbit.Core.Library.Pools;
 using CookedRabbit.Core.Library.Services;
@@ -10,7 +8,6 @@ using static CookedRabbit.Core.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Core.Benchmark.Tests
 {
-    [MarkdownExporter, CoreJob]
     public class AutoScaleBenchmark
     {
         RabbitTopologyService _topologyService;

@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Jobs;
 using CookedRabbit.Core.Library.Models;
 using CookedRabbit.Core.Library.Services;
 using CookedRabbit.Core.Library.Utilities;
@@ -9,7 +8,6 @@ using static CookedRabbit.Core.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Core.Benchmark.Tests
 {
-    [CoreJob]
     public class Publish
     {
         private RabbitTopologyService _topologyService;
