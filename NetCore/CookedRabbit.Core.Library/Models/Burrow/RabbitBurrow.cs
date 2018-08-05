@@ -54,7 +54,8 @@ namespace CookedRabbit.Core.Library.Models
         /// CookedRabbit RabbitBurrow constructor.
         /// </summary>
         /// <param name="rabbitSeasoning"></param>
-        /// <param name="rcp"></param>
+        /// <param name="rchanp"></param>
+        /// <param name="rconp"></param>
         /// <param name="logger"></param>
         public RabbitBurrow(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rchanp, IRabbitConnectionPool rconp, ILogger logger = null)
         {

@@ -28,7 +28,7 @@ namespace CookedRabbit.Core.Library.Pools
         Task Initialize(RabbitSeasoning rabbitSeasoning);
 
         /// <summary>
-        /// Primarily used for testing purposes, manually closes the connections in the underneath ConnectionPool.
+        /// Allows for connections to be manually closed.
         /// </summary>
         void CloseConnections();
 

@@ -166,7 +166,7 @@ namespace CookedRabbit.Core.Library.Pools
         }
 
         /// <summary>
-        /// Primarily used for testing purposes, manually closes the connections in the underneath ConnectionPool.
+        /// Allows for connections to be manually closed.
         /// </summary>
         public void CloseConnections()
         {
