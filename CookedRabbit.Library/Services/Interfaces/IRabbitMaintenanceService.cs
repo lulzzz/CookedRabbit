@@ -41,6 +41,12 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         Task<bool> TransferAllMessagesAsync(string originQueueName, string targetQueueName);
 
-        Task<T> Api_GetAsync<T>(RabbitApiTarget rabbitApiTarget);
+        /// <summary>
+        /// Performs API Get calls based on the API target.
+        /// </summary>
+        /// <typeparam name="TResult">Internal model to be mapped to the specific API call result.</typeparam>
+        /// <param name="rabbitApiTarget">Sepcific API endpoint.</param>
+        /// <returns>TResult deserialized from JSON.</returns>
+        Task<TResult> Api_GetAsync<TResult>(RabbitApiTarget rabbitApiTarget);
     }
 }

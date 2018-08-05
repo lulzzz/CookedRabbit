@@ -49,5 +49,20 @@ namespace CookedRabbit.Library.Models
             Transmission = new RabbitSerializeService(_seasoning, rcp, logger);
             Maintenance = new RabbitMaintenanceService(_seasoning, rcp, logger);
         }
+
+        /// <summary>
+        /// CookedRabbit RabbitBurrow constructor.
+        /// </summary>
+        /// <param name="rabbitSeasoning"></param>
+        /// <param name="rchanp"></param>
+        /// <param name="rconp"></param>
+        /// <param name="logger"></param>
+        public RabbitBurrow(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rchanp, IRabbitConnectionPool rconp, ILogger logger = null)
+        {
+            _seasoning = rabbitSeasoning;
+
+            Transmission = new RabbitSerializeService(_seasoning, rchanp, rconp, logger);
+            Maintenance = new RabbitMaintenanceService(_seasoning, rchanp, rconp, logger);
+        }
     }
 }

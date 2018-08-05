@@ -87,6 +87,9 @@ namespace CookedRabbit.Core.Library.Services
 
         #region Connection Section
 
+        /// <summary>
+        /// Allows for connections to be manually closed.
+        /// </summary>
         public void CloseConnections()
         {
             _rcp.CloseConnections();

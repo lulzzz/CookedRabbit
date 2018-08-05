@@ -7,10 +7,8 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Utf8Json.Resolvers;
 using static CookedRabbit.Library.Utilities.ApiHelpers;
 using static CookedRabbit.Library.Utilities.Enums;
 using static CookedRabbit.Library.Utilities.RandomData;
@@ -40,10 +38,16 @@ namespace CookedRabbit.Library.Services
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
 
             if (_seasoning.MaintenanceSettings.EnablePingPong)
-            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5,10)}", _cancellationTokenSource.Token); }
+            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
 
             if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
-            { _httpClient = CreateHttpClient(); }
+            {
+                var credentials = new NetworkCredential(
+                    _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserName,
+                    _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserPassword);
+
+                _httpClient = CreateHttpClient(credentials, TimeSpan.FromSeconds(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiTimeout));
+            }
         }
 
         /// <summary>
@@ -65,7 +69,13 @@ namespace CookedRabbit.Library.Services
             { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
 
             if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
-            { _httpClient = CreateHttpClient(); }
+            {
+                var credentials = new NetworkCredential(
+                    _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserName,
+                    _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserPassword);
+
+                _httpClient = CreateHttpClient(credentials, TimeSpan.FromSeconds(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiTimeout));
+            }
         }
 
         /// <summary>
@@ -90,7 +100,13 @@ namespace CookedRabbit.Library.Services
             { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
 
             if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
-            { _httpClient = CreateHttpClient(); }
+            {
+                var credentials = new NetworkCredential(
+                    _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserName,
+                    _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserPassword);
+
+                _httpClient = CreateHttpClient(credentials, TimeSpan.FromSeconds(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiTimeout));
+            }
         }
 
         #endregion
@@ -237,11 +253,13 @@ namespace CookedRabbit.Library.Services
         #region PingPong Section
 
         private readonly byte[] _testPayload = new byte[] { 0x00b, 0x0Fb, 0x00b, 0x0Fb };
-        private readonly long?[] _times = new long?[5];
-        private long _currentIndex = 0;
+        private readonly long?[] _times = new long?[_timesLength];
+        private const ushort _timesLength = 10;
+        private int _currentIndex = 0;
 
         private readonly object _timesLock = new object();
         private readonly int _timeout = 5; // seconds
+        private readonly int _delayForServerSideRouting = 50;
 
         private async Task<bool> PublishTestMessageAsync(string queueName)
         {
@@ -300,7 +318,7 @@ namespace CookedRabbit.Library.Services
                 var testSuccess = await PublishTestMessageAsync(queueName);
 
                 sw.Stop();
-                await Task.Delay(10); // Allow Server Side Routing.
+                await Task.Delay(_delayForServerSideRouting); // Allow time for server side Routing.
                 sw.Start();
 
                 if (testSuccess)
@@ -328,7 +346,7 @@ namespace CookedRabbit.Library.Services
                     }
 
                     // Adjust index.
-                    if (_currentIndex == 4) { _currentIndex = 0; }
+                    if (_currentIndex == _timesLength - 1) { _currentIndex = 0; }
                     else { _currentIndex++; }
                 }
             }
@@ -367,9 +385,24 @@ namespace CookedRabbit.Library.Services
 
         #region Api Section
 
-        public async Task<T> Api_GetAsync<T>(RabbitApiTarget rabbitApiTarget)
+        private string _createApiBasePath = string.Empty;
+
+        /// <summary>
+        /// Performs API Get calls based on the API target.
+        /// </summary>
+        /// <typeparam name="TResult">Internal model to be mapped to the specific API call result.</typeparam>
+        /// <param name="rabbitApiTarget">Sepcific API endpoint.</param>
+        /// <returns>TResult deserialized from JSON.</returns>
+        public async Task<TResult> Api_GetAsync<TResult>(RabbitApiTarget rabbitApiTarget)
         {
-            var path = CreateApiBasePath();
+            if (string.IsNullOrEmpty(_createApiBasePath))
+            {
+                _createApiBasePath = CreateApiBasePath(_seasoning.MaintenanceSettings.ApiSettings.UseSsl,
+                _seasoning.MaintenanceSettings.ApiSettings.RabbitApiHostName,
+                _seasoning.MaintenanceSettings.ApiSettings.RabbitApiPort);
+            }
+
+            var path = _createApiBasePath;
             var request = CreateRequest(path, rabbitApiTarget.Description(), HttpMethod.Get);
             var response = await _httpClient.SendAsync(request);
 
@@ -377,49 +410,11 @@ namespace CookedRabbit.Library.Services
             if (response.IsSuccessStatusCode)
             { content = await response.Content.ReadAsStringAsync(); }
 
-            T result = default;
+            TResult result = default;
             if (content != null)
-            { result = Utf8Json.JsonSerializer.Deserialize<T>(content); }
+            { result = Utf8Json.JsonSerializer.Deserialize<TResult>(content); }
 
             return result;
-        }
-
-        #endregion
-
-        #region Helpers
-
-        private HttpClient CreateHttpClient()
-        {
-            var httpClient = new HttpClient(
-                new HttpClientHandler { Credentials =
-                    new NetworkCredential(
-                        _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserName,
-                        _seasoning.MaintenanceSettings.ApiSettings.RabbitApiUserPassword)
-                })
-            {
-                Timeout = TimeSpan.FromSeconds(60)
-            };
-
-            return httpClient;
-        }
-
-        private string CreateApiBasePath()
-        {
-            var sb = new StringBuilder();
-            if (_seasoning.MaintenanceSettings.ApiSettings.UseSsl)
-            {
-                sb.Append("https://");
-            }
-            else
-            {
-                sb.Append("http://");
-            }
-
-            sb.Append(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiHostName);
-            sb.Append(':');
-            sb.Append(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiPort);
-            sb.Append("/api");
-            return sb.ToString();
         }
 
         #endregion

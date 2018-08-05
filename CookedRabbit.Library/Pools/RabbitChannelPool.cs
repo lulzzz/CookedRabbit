@@ -413,6 +413,9 @@ namespace CookedRabbit.Library.Pools
             return success;
         }
 
+        /// <summary>
+        /// Allows for connections to be manually closed.
+        /// </summary>
         public void CloseConnections()
         {
             _rcp.CloseConnections();
