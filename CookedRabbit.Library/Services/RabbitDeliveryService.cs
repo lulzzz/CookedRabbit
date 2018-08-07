@@ -26,6 +26,8 @@ namespace CookedRabbit.Library.Services
         /// <param name="logger"></param>
         public RabbitDeliveryService(RabbitSeasoning rabbitSeasoning, ILogger logger = null)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
@@ -39,6 +41,9 @@ namespace CookedRabbit.Library.Services
         /// <param name="logger"></param>
         public RabbitDeliveryService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rcp, ILogger logger = null)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+            Guard.AgainstNull(rcp, nameof(rcp));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
             _rcp = rcp;
@@ -56,6 +61,10 @@ namespace CookedRabbit.Library.Services
         /// <param name="logger"></param>
         public RabbitDeliveryService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rchanp, IRabbitConnectionPool rconp, ILogger logger = null)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+            Guard.AgainstNull(rchanp, nameof(rchanp));
+            Guard.AgainstNull(rconp, nameof(rconp));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
 
@@ -80,6 +89,8 @@ namespace CookedRabbit.Library.Services
         public async Task<bool> PublishAsync(string exchangeName, string routingKey, byte[] payload,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
+            Guard.AgainstNullOrEmpty(routingKey, nameof(routingKey));
+
             if (payload is null) throw new ArgumentNullException(nameof(payload));
 
             var success = false;
@@ -114,8 +125,9 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PublishAsync(Envelope envelope, IBasicProperties messageProperties = null)
         {
-            if (envelope is null) throw new ArgumentNullException(nameof(envelope));
-            if (envelope.MessageBody is null) throw new ArgumentNullException(nameof(envelope.MessageBody));
+            Guard.AgainstNull(envelope, nameof(envelope));
+            Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
+            Guard.AgainstNullOrEmpty(envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -148,8 +160,9 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PublishAsync(Envelope envelope)
         {
-            if (envelope is null) throw new ArgumentNullException(nameof(envelope));
-            if (envelope.MessageBody is null) throw new ArgumentNullException(nameof(envelope.MessageBody));
+            Guard.AgainstNull(envelope, nameof(envelope));
+            Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
+            Guard.AgainstNullOrEmpty(envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -191,7 +204,8 @@ namespace CookedRabbit.Library.Services
         public async Task<bool> PublishBasicBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
-            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+            Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
+            Guard.AgainstNullOrEmpty(routingKey, nameof(routingKey));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);

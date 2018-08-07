@@ -167,6 +167,7 @@
     <Compile Include="Services\RabbitDeliveryService.cs" />
     <Compile Include="Utilities\ApiHelpers.cs" />
     <Compile Include="Utilities\Extensions.cs" />
+    <Compile Include="Utilities\Guard.cs" />
     <Compile Include="Utilities\Lambdas.cs" />
     <Compile Include="Utilities\Serialization.cs" />
     <Compile Include="Utilities\Compression.cs" />
