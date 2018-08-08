@@ -89,7 +89,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> PublishAsync(string exchangeName, string routingKey, byte[] payload,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
-            Guard.AgainstNullOrEmpty(routingKey, nameof(routingKey));
+            Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
+            Guard.AgainstNull(payload, nameof(payload));
 
             if (payload is null) throw new ArgumentNullException(nameof(payload));
 
@@ -127,7 +128,7 @@ namespace CookedRabbit.Core.Library.Services
         {
             Guard.AgainstNull(envelope, nameof(envelope));
             Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
-            Guard.AgainstNullOrEmpty(envelope.RoutingKey, nameof(envelope.RoutingKey));
+            Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -162,7 +163,7 @@ namespace CookedRabbit.Core.Library.Services
         {
             Guard.AgainstNull(envelope, nameof(envelope));
             Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
-            Guard.AgainstNullOrEmpty(envelope.RoutingKey, nameof(envelope.RoutingKey));
+            Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -204,8 +205,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> PublishBasicBatchAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
+            Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
             Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
-            Guard.AgainstNullOrEmpty(routingKey, nameof(routingKey));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -244,7 +245,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PublishBasicBatchAsync(List<Envelope> letters)
         {
-            if (letters is null) throw new ArgumentNullException(nameof(letters));
+            Guard.AgainstNullOrEmpty(letters, nameof(letters));
 
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -294,8 +295,9 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>Returns a BasicGetResult (RabbitMQ).</returns>
         public async Task<BasicGetResult> GetAsync(string queueName)
         {
-            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
+            var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             BasicGetResult result = null;
 
             try
@@ -320,6 +322,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A List of <see cref="RabbitMQ.Client.BasicGetResult"/>.</returns>
         public async Task<List<BasicGetResult>> GetManyAsync(string queueName, int batchCount)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
             var queueCount = 0U;
 
@@ -426,6 +430,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A ValueTuple(IModel, BasicGetResult) (RabbitMQ objects).</returns>
         public async Task<(IModel Channel, BasicGetResult Result)> GetWithManualAckAsync(string queueName)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
 
             BasicGetResult result = null;
@@ -464,6 +470,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>An AckableResult (CookedRabbit object).</returns>
         public async Task<AckableResult> GetAckableAsync(string queueName)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
 
             BasicGetResult result = null;
@@ -511,7 +519,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<List<int>> PublishManyAsync(string exchangeName, string routingKey, List<byte[]> payloads,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
-            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+            Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
+            Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -554,7 +563,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsync(List<Envelope> letters, IBasicProperties messageProperties = null)
         {
-            if (letters is null) throw new ArgumentNullException(nameof(letters));
+            Guard.AgainstNullOrEmpty(letters, nameof(letters));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -595,7 +604,7 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A List of the indices that failed to publish for calling service/methods to retry.</returns>
         public async Task<List<int>> PublishManyAsync(List<Envelope> letters)
         {
-            if (letters is null) throw new ArgumentNullException(nameof(letters));
+            Guard.AgainstNullOrEmpty(letters, nameof(letters));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -650,7 +659,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<List<int>> PublishManyAsBatchesAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
-            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+            Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
+            Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -701,7 +711,7 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<List<int>> PublishManyAsBatchesAsync(List<Envelope> letters, int batchSize = 100,
             IBasicProperties messageProperties = null)
         {
-            if (letters is null) throw new ArgumentNullException(nameof(letters));
+            Guard.AgainstNullOrEmpty(letters, nameof(letters));
 
             var failures = new List<int>();
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
@@ -759,7 +769,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task PublishManyAsBatchesInParallelAsync(string exchangeName, string routingKey, List<byte[]> payloads, int batchSize = 100,
             bool mandatory = false, IBasicProperties messageProperties = null)
         {
-            if (payloads is null) throw new ArgumentNullException(nameof(payloads));
+            Guard.AgainstBothNullOrEmpty(exchangeName, nameof(exchangeName), routingKey, nameof(routingKey));
+            Guard.AgainstNullOrEmpty(payloads, nameof(payloads));
 
             while (payloads.Any())
             {
@@ -829,7 +840,7 @@ namespace CookedRabbit.Core.Library.Services
         public async Task PublishManyAsBatchesInParallelAsync(List<Envelope> envelopes, int batchSize = 100,
             IBasicProperties messageProperties = null)
         {
-            if (envelopes is null) throw new ArgumentNullException(nameof(envelopes));
+            Guard.AgainstNullOrEmpty(envelopes, nameof(envelopes));
 
             var failures = new ConcurrentBag<int>();
 
@@ -902,6 +913,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>An AckableResult (CookedRabbit object).</returns>
         public async Task<AckableResult> GetManyAckableAsync(string queueName, int batchCount)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false); ;
             var queueCount = 0U;
             var resultCount = 0;
@@ -962,6 +975,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A ValueTuple(IModel, List&lt;BasicGetResult&gt;) (RabbitMQ objects).</returns>
         public async Task<(IModel Channel, List<BasicGetResult> Results)> GetManyWithManualAckAsync(string queueName, int batchCount)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var channelPair = await _rcp.GetPooledChannelPairAckableAsync().ConfigureAwait(false);
             var queueCount = 0U;
             var resultCount = 0;
@@ -1030,11 +1045,11 @@ namespace CookedRabbit.Core.Library.Services
             ushort prefetchCount = 120,
             bool autoAck = false)
         {
-            if (_seasoning.FactorySettings.EnableDispatchConsumersAsync)
-            { throw new ArgumentException("EnableDispatchConsumerAsync is set to true, set it to false to get an regular Consumer."); }
+            Guard.AgainstTrue(_seasoning.FactorySettings.EnableDispatchConsumersAsync, nameof(_seasoning.FactorySettings.EnableDispatchConsumersAsync));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var channel = await _rcp.GetTransientChannelAsync(enableAck: autoAck);
-            if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
+            Guard.AgainstNull(channel, nameof(channel));
 
             var consumer = new EventingBasicConsumer(channel);
             channel.BasicQos(_seasoning.QosPrefetchSize, _seasoning.QosPrefetchCount, false);
@@ -1055,11 +1070,10 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A RabbitMQ EventingBasicConsumer.</returns>
         public async Task<(EventingBasicConsumer Consumer, IModel Channel)> CreateConsumerAsync(bool autoAck = false)
         {
-            if (_seasoning.FactorySettings.EnableDispatchConsumersAsync)
-            { throw new ArgumentException("EnableDispatchConsumerAsync is set to true, set it to false to get an regular Consumer."); }
+            Guard.AgainstTrue(_seasoning.FactorySettings.EnableDispatchConsumersAsync, nameof(_seasoning.FactorySettings.EnableDispatchConsumersAsync));
 
             var channel = await _rcp.GetTransientChannelAsync(enableAck: autoAck);
-            if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
+            Guard.AgainstNull(channel, nameof(channel));
 
             var consumer = new EventingBasicConsumer(channel);
             channel.BasicQos(_seasoning.QosPrefetchSize, _seasoning.QosPrefetchCount, false);
@@ -1081,11 +1095,11 @@ namespace CookedRabbit.Core.Library.Services
             ushort prefetchCount = 120,
             bool autoAck = false)
         {
-            if (!_seasoning.FactorySettings.EnableDispatchConsumersAsync)
-            { throw new ArgumentException("EnableDispatchConsumerAsync is set to false, set it to true to get an AsyncConsumer."); }
+            Guard.AgainstFalse(_seasoning.FactorySettings.EnableDispatchConsumersAsync, nameof(_seasoning.FactorySettings.EnableDispatchConsumersAsync));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var channel = await _rcp.GetTransientChannelAsync(enableAck: autoAck);
-            if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
+            Guard.AgainstNull(channel, nameof(channel));
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             channel.BasicQos(_seasoning.QosPrefetchSize, _seasoning.QosPrefetchCount, false);
@@ -1106,11 +1120,10 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A RabbitMQ AsyncEventingBasicConsumer.</returns>
         public async Task<(AsyncEventingBasicConsumer Consumer, IModel Channel)> CreateAsynchronousConsumerAsync(bool autoAck = false)
         {
-            if (!_seasoning.FactorySettings.EnableDispatchConsumersAsync)
-            { throw new ArgumentException("EnableDispatchConsumerAsync is set to false, set it to true to get an AsyncConsumer."); }
+            Guard.AgainstFalse(_seasoning.FactorySettings.EnableDispatchConsumersAsync, nameof(_seasoning.FactorySettings.EnableDispatchConsumersAsync));
 
             var channel = await _rcp.GetTransientChannelAsync(enableAck: autoAck);
-            if (channel is null) throw new Exception("Channel was unable to be created for this consumer.");
+            Guard.AgainstNull(channel, nameof(channel));
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             channel.BasicQos(_seasoning.QosPrefetchSize, _seasoning.QosPrefetchCount, false);
@@ -1129,24 +1142,14 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A uint of the total messages in the queue.</returns>
         public async Task<uint> GetMessageCountAsync(string queueName)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
             uint messageCount = 0;
 
             try
             { messageCount = channelPair.Channel.MessageCount(queueName); }
-            catch (RabbitMQ.Client.Exceptions.AlreadyClosedException ace)
-            {
-                await HandleError(ace, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
-            catch (RabbitMQ.Client.Exceptions.RabbitMQClientException rabbies)
-            {
-                await HandleError(rabbies, channelPair.ChannelId, new { channelPair.ChannelId });
-
-                if (_seasoning.ThrowExceptions) { throw; }
-            }
             catch (Exception e)
             {
                 await HandleError(e, channelPair.ChannelId, new { channelPair.ChannelId });

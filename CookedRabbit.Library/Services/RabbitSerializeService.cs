@@ -87,6 +87,8 @@ namespace CookedRabbit.Library.Services
         {
             Guard.AgainstNull(message, nameof(message));
             Guard.AgainstNull(envelope, nameof(envelope));
+            Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
+            Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             envelope.MessageBody = await SerializeAsync(message, _seasoning.SerializeSettings.SerializationMethod);
 
@@ -107,6 +109,7 @@ namespace CookedRabbit.Library.Services
         {
             Guard.AgainstNull(messages, nameof(messages));
             Guard.AgainstNull(envelopeTemplate, nameof(envelopeTemplate));
+            Guard.AgainstBothNullOrEmpty(envelopeTemplate.ExchangeName, nameof(envelopeTemplate.ExchangeName), envelopeTemplate.RoutingKey, nameof(envelopeTemplate.RoutingKey));
 
             var letters = new List<Envelope>();
 
@@ -133,6 +136,7 @@ namespace CookedRabbit.Library.Services
         {
             Guard.AgainstNull(envelope, nameof(envelope));
             Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
+            Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             if (_seasoning.SerializeSettings.CompressionEnabled)
             { envelope.MessageBody = await CompressAsync(envelope.MessageBody, _seasoning.SerializeSettings.CompressionMethod); }
@@ -148,7 +152,7 @@ namespace CookedRabbit.Library.Services
         /// <returns>An object of type T.</returns>
         public async Task<T> GetAndDeserializeAsync<T>(string queueName)
         {
-            Guard.AgainstNull(queueName, nameof(queueName));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var result = (await GetAsync(queueName));
             if (result is null) { return default; }
@@ -170,7 +174,7 @@ namespace CookedRabbit.Library.Services
         /// <returns>An object of type T.</returns>
         public async Task<List<T>> GetAndDeserializeManyAsync<T>(string queueName, int batchCount)
         {
-            Guard.AgainstNull(queueName, nameof(queueName));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var deserializedMessages = new List<T>();
             var results = await GetManyAsync(queueName, batchCount);
@@ -199,7 +203,7 @@ namespace CookedRabbit.Library.Services
         /// <returns></returns>
         public async Task<byte[]> GetAndDecompressAsync(string queueName)
         {
-            Guard.AgainstNull(queueName, nameof(queueName));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
 
             var result = (await GetAsync(queueName));
             if (result is null) { return null; }

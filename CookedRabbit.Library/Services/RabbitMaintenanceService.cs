@@ -33,6 +33,7 @@ namespace CookedRabbit.Library.Services
         /// <param name="logger"></param>
         public RabbitMaintenanceService(RabbitSeasoning rabbitSeasoning, ILogger logger = null) : base(rabbitSeasoning, logger)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
             _logger = logger;
             _seasoning = rabbitSeasoning;
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
@@ -58,6 +59,9 @@ namespace CookedRabbit.Library.Services
         /// <param name="logger"></param>
         public RabbitMaintenanceService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rcp, ILogger logger = null) : base(rabbitSeasoning, rcp, logger)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+            Guard.AgainstNull(rcp, nameof(rcp));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
             _rcp = rcp;
@@ -90,6 +94,10 @@ namespace CookedRabbit.Library.Services
             IRabbitConnectionPool rconp,
             ILogger logger = null) : base(rabbitSeasoning, rchanp, rconp, logger)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+            Guard.AgainstNull(rchanp, nameof(rchanp));
+            Guard.AgainstNull(rconp, nameof(rconp));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
 
@@ -121,6 +129,8 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> PurgeQueueAsync(string queueName, bool deleteQueueAfter = false)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -154,6 +164,9 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> TransferMessageAsync(string originQueueName, string targetQueueName)
         {
+            Guard.AgainstNullOrEmpty(originQueueName, nameof(originQueueName));
+            Guard.AgainstNullOrEmpty(targetQueueName, nameof(targetQueueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -186,6 +199,9 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> TransferMessagesAsync(string originQueueName, string targetQueueName, ushort count)
         {
+            Guard.AgainstNullOrEmpty(originQueueName, nameof(originQueueName));
+            Guard.AgainstNullOrEmpty(targetQueueName, nameof(targetQueueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -220,6 +236,9 @@ namespace CookedRabbit.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> TransferAllMessagesAsync(string originQueueName, string targetQueueName)
         {
+            Guard.AgainstNullOrEmpty(originQueueName, nameof(originQueueName));
+            Guard.AgainstNullOrEmpty(targetQueueName, nameof(targetQueueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -395,6 +414,8 @@ namespace CookedRabbit.Library.Services
         /// <returns>TResult deserialized from JSON.</returns>
         public async Task<TResult> Api_GetAsync<TResult>(RabbitApiTarget rabbitApiTarget)
         {
+            Guard.AgainstNullOrEmpty(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiHostName, nameof(_seasoning.MaintenanceSettings.ApiSettings.RabbitApiHostName));
+
             if (string.IsNullOrEmpty(_createApiBasePath))
             {
                 _createApiBasePath = CreateApiBasePath(_seasoning.MaintenanceSettings.ApiSettings.UseSsl,

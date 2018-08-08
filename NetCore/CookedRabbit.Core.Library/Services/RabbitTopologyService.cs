@@ -22,6 +22,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="logger"></param>
         public RabbitTopologyService(RabbitSeasoning rabbitSeasoning, ILogger logger = null)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
@@ -35,6 +37,9 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="logger"></param>
         public RabbitTopologyService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rcp, ILogger logger = null)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+            Guard.AgainstNull(rcp, nameof(rcp));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
             _rcp = rcp;
@@ -52,6 +57,10 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="logger"></param>
         public RabbitTopologyService(RabbitSeasoning rabbitSeasoning, IRabbitChannelPool rchanp, IRabbitConnectionPool rconp, ILogger logger = null)
         {
+            Guard.AgainstNull(rabbitSeasoning, nameof(rabbitSeasoning));
+            Guard.AgainstNull(rchanp, nameof(rchanp));
+            Guard.AgainstNull(rconp, nameof(rconp));
+
             _logger = logger;
             _seasoning = rabbitSeasoning;
 
@@ -77,6 +86,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> QueueDeclareAsync(string queueName, bool durable = true, bool exclusive = false,
                                                   bool autoDelete = false, IDictionary<string, object> args = null)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -112,6 +123,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> QueueDeleteAsync(string queueName, bool onlyIfUnused = false, bool onlyIfEmpty = false)
         {
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -144,8 +157,11 @@ namespace CookedRabbit.Core.Library.Services
         /// <param name="args"></param>
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> QueueBindToExchangeAsync(string queueName, string exchangeName, string routingKey = "",
-                                                         IDictionary<string, object> args = null)
+            IDictionary<string, object> args = null)
         {
+            Guard.AgainstNullOrEmpty(exchangeName, nameof(exchangeName));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -181,6 +197,9 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> QueueUnbindFromExchangeAsync(string queueName, string exchangeName, string routingKey = "",
                                                              IDictionary<string, object> args = null)
         {
+            Guard.AgainstNullOrEmpty(exchangeName, nameof(exchangeName));
+            Guard.AgainstNullOrEmpty(queueName, nameof(queueName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -221,6 +240,8 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> ExchangeDeclareAsync(string exchangeName, string exchangeType, bool durable = true,
                                                      bool autoDelete = false, IDictionary<string, object> args = null)
         {
+            Guard.AgainstNullOrEmpty(exchangeName, nameof(exchangeName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -254,6 +275,8 @@ namespace CookedRabbit.Core.Library.Services
         /// <returns>A bool indicating success or failure.</returns>
         public async Task<bool> ExchangeDeleteAsync(string exchangeName, bool onlyIfUnused = false)
         {
+            Guard.AgainstNullOrEmpty(exchangeName, nameof(exchangeName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -287,6 +310,9 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> ExchangeBindToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "",
                                                             IDictionary<string, object> args = null)
         {
+            Guard.AgainstNullOrEmpty(parentExchangeName, nameof(parentExchangeName));
+            Guard.AgainstNullOrEmpty(childExchangeName, nameof(childExchangeName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
@@ -322,6 +348,9 @@ namespace CookedRabbit.Core.Library.Services
         public async Task<bool> ExchangeUnbindToExchangeAsync(string childExchangeName, string parentExchangeName, string routingKey = "",
                                                               IDictionary<string, object> args = null)
         {
+            Guard.AgainstNullOrEmpty(parentExchangeName, nameof(parentExchangeName));
+            Guard.AgainstNullOrEmpty(childExchangeName, nameof(childExchangeName));
+
             var success = false;
             var channelPair = await _rcp.GetPooledChannelPairAsync().ConfigureAwait(false);
 
