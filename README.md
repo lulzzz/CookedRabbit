@@ -37,18 +37,17 @@ Changes from Official Release
    Client compiled as x64.
 ```
 
-CookedRabbit is in active rapid development.  
-CookedRabbit supports SSL/TLS.
-CookedRabbit supports LZ4 compression.  
-CookedRabbit supports Utf8Json and ZeroFormat serialization.  
+CookedRabbit is in active development.  
+CookedRabbit supports SSL/TLS.  
+CookedRabbit supports Gzip, Deflate, and LZ4 compression.  
+CookedRabbit supports Utf8Json, ZeroFormat, and JSON string serialization.  
 CookedRabbit provides async/await around RabbitMQ calls.  
-CookedRabbit will be Dependency Injection friendly.  
+CookedRabbit is Dependency Injection friendly.  
 CookedRabbit services support an optional ILogger from Microsoft.Extensions.Logger.  
 CookedRabbit supports logic based customizations.  
-CookedRabbit has fairly decent commenting.  
-CookedRabbit has a generated Wiki.  
+CookedRabbit has fairly decent commenting and Wiki being filled out.  
 CookedRabbit has a plethora of examples on how to use in the Demo project, Tests project, and Benchmark project.  
-CookedRabbit has throughput benchmarks.  
+CookedRabbit has a benchmark project.  
 
 
 </p>
@@ -96,6 +95,19 @@ Checkout the RabbitSeasoning to configure your RabbitService/RabbitTopologyServi
  * NetCore 2.1.0 SDK installed.
 
 *Note: (NetCore runtime 2.1.1 seems buggy at this time)*
+
+</p>
+</details>
+
+#### Documentation
+
+<details><summary>Click to show!</summary>
+<p>
+
+ * Visit the Wiki!
+    * Check out the changelog for detailed changes made via commit.
+    * Check out the Library Documentation for class/variable/service descriptions and comments.
+    * Check out the Library Tutorial section for basic how-tos.
 
 </p>
 </details>
