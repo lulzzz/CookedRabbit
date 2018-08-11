@@ -5,12 +5,12 @@ using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Tests.Integration
 {
-    [Collection("IntegrationTests_Zero")]
+    [Collection("IntegrationTests_NoCompression_Utf8")]
     public class Topology_02_ExchangeTests
     {
-        private readonly IntegrationFixture_Zero _fixture;
+        private readonly ZeroFormat_NoCompression _fixture;
 
-        public Topology_02_ExchangeTests(IntegrationFixture_Zero fixture)
+        public Topology_02_ExchangeTests(ZeroFormat_NoCompression fixture)
         {
             _fixture = fixture;
         }

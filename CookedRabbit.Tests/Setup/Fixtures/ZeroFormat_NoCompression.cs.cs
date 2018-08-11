@@ -7,11 +7,11 @@ using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Tests.Fixtures
 {
-    [CollectionDefinition("IntegrationTests_Utf8")]
-    public class IntegrationCollection_Utf8 : ICollectionFixture<IntegrationFixture_Utf8>
+    [CollectionDefinition("IntegrationTests_NoCompression_ZeroFormat")]
+    public class IntegrationCollection_NoCompression_ZeroFormat : ICollectionFixture<ZeroFormat_NoCompression>
     { }
 
-    public class IntegrationFixture_Utf8 : IDisposable
+    public class ZeroFormat_NoCompression : IDisposable
     {
         public RabbitDeliveryService RabbitDeliveryService { get; private set; }
         public RabbitTopologyService RabbitTopologyService { get; private set; }
@@ -23,7 +23,7 @@ namespace CookedRabbit.Tests.Fixtures
         public string TestQueueName4 { get; private set; } = "CookedRabbit.TestQueue4";
         public string TestExchangeName { get; private set; } = "CookedRabbit.TestExchange";
 
-        public IntegrationFixture_Utf8()
+        public ZeroFormat_NoCompression()
         {
             Seasoning = new RabbitSeasoning
             {
@@ -31,7 +31,7 @@ namespace CookedRabbit.Tests.Fixtures
                 ThrowExceptions = false
             };
 
-            Seasoning.SerializeSettings.SerializationMethod = SerializationMethod.Utf8Json;
+            Seasoning.SerializeSettings.SerializationMethod = SerializationMethod.ZeroFormat;
             Seasoning.FactorySettings.RabbitHostName = "localhost";
             Seasoning.PoolSettings.EnableAutoScaling = true;
             Seasoning.PoolSettings.ConnectionName = "RabbitServiceTest";

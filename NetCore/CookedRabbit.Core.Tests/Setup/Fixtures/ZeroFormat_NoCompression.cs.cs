@@ -1,17 +1,17 @@
-﻿using CookedRabbit.Library.Models;
-using CookedRabbit.Library.Pools;
-using CookedRabbit.Library.Services;
+﻿using CookedRabbit.Core.Library.Models;
+using CookedRabbit.Core.Library.Pools;
+using CookedRabbit.Core.Library.Services;
 using System;
 using Xunit;
-using static CookedRabbit.Library.Utilities.Enums;
+using static CookedRabbit.Core.Library.Utilities.Enums;
 
-namespace CookedRabbit.Tests.Fixtures
+namespace CookedRabbit.Core.Tests.Fixtures
 {
-    [CollectionDefinition("IntegrationTests_Zero")]
-    public class IntegrationCollection_Zero : ICollectionFixture<IntegrationFixture_Zero>
+    [CollectionDefinition("IntegrationTests_NoCompression_ZeroFormat")]
+    public class IntegrationCollection_NoCompression_ZeroFormat : ICollectionFixture<ZeroFormat_NoCompression>
     { }
 
-    public class IntegrationFixture_Zero : IDisposable
+    public class ZeroFormat_NoCompression : IDisposable
     {
         public RabbitDeliveryService RabbitDeliveryService { get; private set; }
         public RabbitTopologyService RabbitTopologyService { get; private set; }
@@ -23,7 +23,7 @@ namespace CookedRabbit.Tests.Fixtures
         public string TestQueueName4 { get; private set; } = "CookedRabbit.TestQueue4";
         public string TestExchangeName { get; private set; } = "CookedRabbit.TestExchange";
 
-        public IntegrationFixture_Zero()
+        public ZeroFormat_NoCompression()
         {
             Seasoning = new RabbitSeasoning
             {

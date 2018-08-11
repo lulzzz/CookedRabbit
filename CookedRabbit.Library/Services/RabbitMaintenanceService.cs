@@ -43,7 +43,7 @@ namespace CookedRabbit.Library.Services
             _rcp = Factories.CreateRabbitChannelPoolAsync(rabbitSeasoning).GetAwaiter().GetResult();
 
             if (_seasoning.MaintenanceSettings.EnablePingPong)
-            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}.{RandomString(5, 10)}", _cancellationTokenSource.Token); }
+            { _pingPong = PingPongAsync($"{_seasoning.MaintenanceSettings.PingPongQueueName}", _cancellationTokenSource.Token); }
 
             if (_seasoning.MaintenanceSettings.ApiSettings.RabbitApiAccessEnabled)
             {

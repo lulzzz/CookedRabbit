@@ -5,12 +5,12 @@ using static CookedRabbit.Core.Library.Utilities.RandomData;
 
 namespace CookedRabbit.Core.Tests.Integration
 {
-    [Collection("IntegrationTests_Zero")]
+    [Collection("IntegrationTests_NoCompression_ZeroFormat")]
     public class Delivery_02_PublishGetTests
     {
-        private readonly IntegrationFixture_Zero _fixture;
+        private readonly ZeroFormat_NoCompression _fixture;
 
-        public Delivery_02_PublishGetTests(IntegrationFixture_Zero fixture)
+        public Delivery_02_PublishGetTests(ZeroFormat_NoCompression fixture)
         {
             _fixture = fixture;
         }

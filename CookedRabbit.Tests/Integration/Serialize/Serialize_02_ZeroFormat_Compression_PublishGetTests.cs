@@ -10,18 +10,18 @@ using static CookedRabbit.Library.Utilities.Enums;
 
 namespace CookedRabbit.Tests.Integration
 {
-    [Collection("IntegrationTests_NoCompression_ZeroFormat")]
-    public class Serialize_01_ZeroFormat_PublishGetTests
+    [Collection("IntegrationTests_Compression_ZeroFormat")]
+    public class Serialize_02_ZeroFormat_Compression_PublishGetTests
     {
-        private readonly ZeroFormat_NoCompression _fixture;
+        private readonly ZeroFormat_Compression _fixture;
 
-        public Serialize_01_ZeroFormat_PublishGetTests(ZeroFormat_NoCompression fixture)
+        public Serialize_02_ZeroFormat_Compression_PublishGetTests(ZeroFormat_Compression fixture)
         {
             _fixture = fixture;
         }
 
         [Fact]
-        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("Net Serialize", "ZeroFormat Compression PublishGet")]
         public async Task PublishExceptionAsync()
         {
             // Arrange
@@ -53,7 +53,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("Net Serialize", "ZeroFormat Compression PublishGet")]
         public async Task PublishAndGetAsync()
         {
             // Arrange
@@ -90,7 +90,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("Net Serialize", "ZeroFormat Compression PublishGet")]
         public async Task PublishManyAndGetManyAsync()
         {
             var fixture = new Fixture();

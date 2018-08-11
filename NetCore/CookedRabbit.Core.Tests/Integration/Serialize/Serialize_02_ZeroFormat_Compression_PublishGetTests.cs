@@ -1,27 +1,27 @@
 ﻿using AutoFixture;
-using CookedRabbit.Library.Models;
-using CookedRabbit.Tests.Fixtures;
-using CookedRabbit.Tests.Models;
+using CookedRabbit.Core.Library.Models;
+using CookedRabbit.Core.Tests.Fixtures;
+using CookedRabbit.Core.Tests.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using static CookedRabbit.Library.Utilities.Enums;
+using static CookedRabbit.Core.Library.Utilities.Enums;
 
-namespace CookedRabbit.Tests.Integration
+namespace CookedRabbit.Core.Tests.Integration
 {
-    [Collection("IntegrationTests_NoCompression_ZeroFormat")]
-    public class Serialize_01_ZeroFormat_PublishGetTests
+    [Collection("IntegrationTests_Compression_ZeroFormat")]
+    public class Serialize_02_ZeroFormat_Compression_PublishGetTests
     {
-        private readonly ZeroFormat_NoCompression _fixture;
+        private readonly ZeroFormat_Compression _fixture;
 
-        public Serialize_01_ZeroFormat_PublishGetTests(ZeroFormat_NoCompression fixture)
+        public Serialize_02_ZeroFormat_Compression_PublishGetTests(ZeroFormat_Compression fixture)
         {
             _fixture = fixture;
         }
 
         [Fact]
-        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("NetCore Serialize", "ZeroFormat Compression PublishGet")]
         public async Task PublishExceptionAsync()
         {
             // Arrange
@@ -53,7 +53,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("NetCore Serialize", "ZeroFormat Compression PublishGet")]
         public async Task PublishAndGetAsync()
         {
             // Arrange
@@ -90,7 +90,7 @@ namespace CookedRabbit.Tests.Integration
         }
 
         [Fact]
-        [Trait("Net Serialize", "ZeroFormat NoCompression PublishGet")]
+        [Trait("NetCore Serialize", "ZeroFormat Compression PublishGet")]
         public async Task PublishManyAndGetManyAsync()
         {
             var fixture = new Fixture();

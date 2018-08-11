@@ -155,9 +155,11 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Fixtures\BenchmarkFixture.cs" />
-    <Compile Include="Fixtures\StandardFixture.cs" />
-    <Compile Include="Fixtures\IntegrationFixture_Utf8.cs" />
+    <Compile Include="Setup\Fixtures\BenchmarkFixture.cs" />
+    <Compile Include="Setup\Fixtures\StandardFixture.cs" />
+    <Compile Include="Setup\Fixtures\Utf8_Compression.cs" />
+    <Compile Include="Setup\Fixtures\Utf8_NoCompression.cs" />
+    <Compile Include="Setup\Fixtures\ZeroFormat_Compression.cs" />
     <Compile Include="Integration\Api\Api_01_Gets.cs" />
     <Compile Include="Integration\AutoScaling\Scaling_01_ChannelPool.cs" />
     <Compile Include="Functional\Compression\Compress_01_GZip_CompressDecompress.cs" />
@@ -166,13 +168,15 @@
     <Compile Include="Functional\Serialization\Serialize_01_Utf8Json_SerializeDeserializeTests.cs" />
     <Compile Include="Functional\Serialization\Serialize_02_Utf8Json_SerializeDeserializeTests.cs" />
     <Compile Include="Functional\Serialization\Serialize_02_ZeroFormat_SerializeDeserializeTests.cs" />
-    <Compile Include="Fixtures\IntegrationFixture_Zero.cs" />
+    <Compile Include="Setup\Fixtures\ZeroFormat_NoCompression.cs.cs" />
     <Compile Include="Integration\Benchmark\Benchmark_01_Publish.cs" />
     <Compile Include="Integration\Maintenance\Maintenance_01_PingPongTest.cs" />
     <Compile Include="Integration\Robustness\Network_01_ConnectionTerminated.cs" />
+    <Compile Include="Integration\Serialize\Serialize_02_ZeroFormat_Compression_PublishGetTests.cs" />
+    <Compile Include="Integration\Serialize\Serialize_02_Utf8Json_Compression_PublishGetTests.cs" />
+    <Compile Include="Integration\Serialize\Serialize_01_Utf8Json_PublishGetTests.cs" />
     <Compile Include="Models\ZeroTestHelperObject.cs" />
     <Compile Include="Functional\Serialization\Serialize_01_ZeroFormat_SerializeDeserializeTests.cs" />
-    <Compile Include="Integration\Serialize\Serialize_02_ZeroFormat_PublishGetTests.cs" />
     <Compile Include="Integration\Serialize\Serialize_01_ZeroFormat_PublishGetTests.cs" />
     <Compile Include="Integration\Delivery\Delivery_02_PublishGetTests.cs" />
     <Compile Include="Integration\Topology\Topology_01_QueueTests.cs" />
@@ -181,6 +185,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\TestHelperObject.cs" />
     <Compile Include="Integration\Delivery\Delivery_01_PublishTests.cs" />
+    <Compile Include="Setup\GlobalVariables.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
