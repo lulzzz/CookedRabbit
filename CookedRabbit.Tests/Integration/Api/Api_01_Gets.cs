@@ -22,7 +22,7 @@ namespace CookedRabbit.Tests.Integration.Api
         public async Task GetConnectionsFromApiAsync()
         {
             // Arrange
-            await Task.Delay(500);
+            await Task.Delay(3000);
 
             // Act
             var connections = await _fixture.Burrow.Maintenance.Api_GetAsync<List<Connection>>(RabbitApiTarget.Connections);

@@ -14,6 +14,8 @@ namespace CookedRabbit.Core.Library.Pools
     /// </summary>
     public class RabbitChannelPool : IRabbitChannelPool
     {
+        #region Local Variables
+
         private readonly object _channeAddLock = new object();
 
         private ulong _currentChannelId = 0;
@@ -27,6 +29,13 @@ namespace CookedRabbit.Core.Library.Pools
         private ConcurrentBag<ulong> _flaggedAsDeadChannels = new ConcurrentBag<ulong>();
         private RabbitSeasoning _seasoning = null; // Used if channels go null later.
 
+        /// <summary>
+        /// Check to see if the channel pool has already been initialized.
+        /// </summary>
+        public bool IsInitialized { get; private set; } = false;
+
+        #endregion
+
         #region AutoScaling Variables
 
         private long _maxAutoScaleChannels = 0;
@@ -39,11 +48,6 @@ namespace CookedRabbit.Core.Library.Pools
         private long _scalingIncrementAckChannelPool = 0;
 
         #endregion
-
-        /// <summary>
-        /// Check to see if the channel pool has already been initialized.
-        /// </summary>
-        public bool IsInitialized { get; private set; } = false;
 
         #region Constructor & Setup
 
@@ -221,49 +225,46 @@ namespace CookedRabbit.Core.Library.Pools
 
                         keepLoopingUntilChannelAcquired = false;
                     }
+                    else if (_seasoning.PoolSettings.EnableAutoScaling)
+                    {
+                        var currentScaledChannelCount = Interlocked.Read(ref _scalingIncrementChannelPool);
+                        var maxScaledChannelCount = Interlocked.Read(ref _maxAutoScaleChannels);
+
+                        // MaxAutoScale & Short Circuit
+                        if (currentScaledChannelCount < maxScaledChannelCount)
+                        {
+                            // Read current hysteresis compare to threshold.
+                            var localHysteresis = Interlocked.Read(ref _hysteresisChannelPool);
+                            var localThreshold = Interlocked.Read(ref _threshold);
+
+                            // Time to add a new channel?
+                            if (localHysteresis >= localThreshold)
+                            {
+                                lock (_channeAddLock)
+                                {
+                                    try
+                                    {
+                                        _channelPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
+                                        Interlocked.Increment(ref _scalingIncrementChannelPool);
+
+                                        // Reset hysteresis back to zero.
+                                        Interlocked.Add(ref _hysteresisChannelPool, _hysteresisChannelPool * -1);
+                                    }
+                                    catch { }
+                                }
+                            }
+                            else // No.
+                            { Interlocked.Increment(ref _hysteresisChannelPool); }
+                        }
+
+                        await Task.Delay(_emptyPoolWaitTime); // Always wait.
+                    }
                     else
                     {
-                        if (_seasoning.PoolSettings.EnableAutoScaling)
-                        {
-                            var currentScaledChannelCount = Interlocked.Read(ref _scalingIncrementChannelPool);
-                            var maxScaledChannelCount = Interlocked.Read(ref _maxAutoScaleChannels);
+                        if (_seasoning.PoolSettings.WriteSleepNoticeToConsole)
+                        { await Console.Out.WriteLineAsync($"No channels available sleeping for {_emptyPoolWaitTime}ms."); }
 
-                            // MaxAutoScale & Short Circuit
-                            if (currentScaledChannelCount < maxScaledChannelCount)
-                            {
-                                // Read current hysteresis compare to threshold.
-                                var localHysteresis = Interlocked.Read(ref _hysteresisChannelPool);
-                                var localThreshold = Interlocked.Read(ref _threshold);
-
-                                // Time to add a new channel?
-                                if (localHysteresis >= localThreshold)
-                                {
-                                    lock (_channeAddLock)
-                                    {
-                                        try
-                                        {
-                                            _channelPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
-                                            Interlocked.Increment(ref _scalingIncrementChannelPool);
-
-                                            // Reset hysteresis back to zero.
-                                            Interlocked.Add(ref _hysteresisChannelPool, _hysteresisChannelPool * -1);
-                                        }
-                                        catch { }
-                                    }
-                                }
-                                else // No.
-                                { Interlocked.Increment(ref _hysteresisChannelPool); }
-                            }
-
-                            await Task.Delay(_emptyPoolWaitTime); // Always wait.
-                        }
-                        else
-                        {
-                            if (_seasoning.PoolSettings.WriteSleepNoticeToConsole)
-                            { await Console.Out.WriteLineAsync($"No channels available sleeping for {_emptyPoolWaitTime}ms."); }
-
-                            await Task.Delay(_emptyPoolWaitTime);
-                        }
+                        await Task.Delay(_emptyPoolWaitTime);
                     }
                 }
 
@@ -311,47 +312,44 @@ namespace CookedRabbit.Core.Library.Pools
 
                         keepLoopingUntilChannelAcquired = false;
                     }
+                    else if (_seasoning.PoolSettings.EnableAutoScaling)
+                    {
+                        var currentScaledChannelCount = Interlocked.Read(ref _scalingIncrementAckChannelPool);
+                        var maxScaledChannelCount = Interlocked.Read(ref _maxAutoScaleChannels);
+
+                        // MaxAutoScale & Short Circuit
+                        if (currentScaledChannelCount < maxScaledChannelCount)
+                        {
+                            // Read current hysteresis compare to threshold.
+                            var localHysteresis = Interlocked.Read(ref _hysteresisAckChannelPool);
+                            var localThreshold = Interlocked.Read(ref _threshold);
+
+                            // Time to add a new channel?
+                            if (localHysteresis >= localThreshold)
+                            {
+                                lock (_channeAddLock)
+                                {
+                                    var channelId = (long)_currentChannelId;
+
+                                    _channelWithManualAckPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
+                                    Interlocked.Increment(ref _scalingIncrementAckChannelPool);
+
+                                    // Reset hysteresis back to zero.
+                                    Interlocked.Add(ref _hysteresisAckChannelPool, _hysteresisAckChannelPool * -1);
+                                }
+                            }
+                            else // No.
+                            { Interlocked.Increment(ref _hysteresisAckChannelPool); }
+                        }
+
+                        await Task.Delay(_emptyPoolWaitTime);
+                    }
                     else
                     {
-                        if (_seasoning.PoolSettings.EnableAutoScaling)
-                        {
-                            var currentScaledChannelCount = Interlocked.Read(ref _scalingIncrementAckChannelPool);
-                            var maxScaledChannelCount = Interlocked.Read(ref _maxAutoScaleChannels);
+                        if (_seasoning.PoolSettings.WriteSleepNoticeToConsole)
+                        { await Console.Out.WriteLineAsync($"No ackable channels available sleeping for {_emptyPoolWaitTime}ms."); }
 
-                            // MaxAutoScale & Short Circuit
-                            if (currentScaledChannelCount < maxScaledChannelCount)
-                            {
-                                // Read current hysteresis compare to threshold.
-                                var localHysteresis = Interlocked.Read(ref _hysteresisAckChannelPool);
-                                var localThreshold = Interlocked.Read(ref _threshold);
-
-                                // Time to add a new channel?
-                                if (localHysteresis >= localThreshold)
-                                {
-                                    lock (_channeAddLock)
-                                    {
-                                        var channelId = (long)_currentChannelId;
-
-                                        _channelWithManualAckPool.Enqueue((_currentChannelId++, _rcp.GetConnection().CreateModel()));
-                                        Interlocked.Increment(ref _scalingIncrementAckChannelPool);
-
-                                        // Reset hysteresis back to zero.
-                                        Interlocked.Add(ref _hysteresisAckChannelPool, _hysteresisAckChannelPool * -1);
-                                    }
-                                }
-                                else // No.
-                                { Interlocked.Increment(ref _hysteresisAckChannelPool); }
-                            }
-
-                            await Task.Delay(_emptyPoolWaitTime);
-                        }
-                        else
-                        {
-                            if (_seasoning.PoolSettings.WriteSleepNoticeToConsole)
-                            { await Console.Out.WriteLineAsync($"No ackable channels available sleeping for {_emptyPoolWaitTime}ms."); }
-
-                            await Task.Delay(_emptyPoolWaitTime);
-                        }
+                        await Task.Delay(_emptyPoolWaitTime);
                     }
                 }
 

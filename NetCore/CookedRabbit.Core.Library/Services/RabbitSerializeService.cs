@@ -87,6 +87,7 @@ namespace CookedRabbit.Core.Library.Services
         {
             Guard.AgainstNull(message, nameof(message));
             Guard.AgainstNull(envelope, nameof(envelope));
+            Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             envelope.MessageBody = await SerializeAsync(message, _seasoning.SerializeSettings.SerializationMethod);
 
@@ -107,6 +108,7 @@ namespace CookedRabbit.Core.Library.Services
         {
             Guard.AgainstNull(messages, nameof(messages));
             Guard.AgainstNull(envelopeTemplate, nameof(envelopeTemplate));
+            Guard.AgainstBothNullOrEmpty(envelopeTemplate.ExchangeName, nameof(envelopeTemplate.ExchangeName), envelopeTemplate.RoutingKey, nameof(envelopeTemplate.RoutingKey));
 
             var letters = new List<Envelope>();
 
@@ -133,7 +135,7 @@ namespace CookedRabbit.Core.Library.Services
         {
             Guard.AgainstNull(envelope, nameof(envelope));
             Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
-            Guard.AgainstNullOrEmpty(envelope.RoutingKey, nameof(envelope.RoutingKey));
+            Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             if (_seasoning.SerializeSettings.CompressionEnabled)
             { envelope.MessageBody = await CompressAsync(envelope.MessageBody, _seasoning.SerializeSettings.CompressionMethod); }

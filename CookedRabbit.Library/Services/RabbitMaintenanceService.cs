@@ -20,9 +20,13 @@ namespace CookedRabbit.Library.Services
     /// </summary>
     public class RabbitMaintenanceService : RabbitTopologyService, IRabbitMaintenanceService, IDisposable
     {
+        #region Local Variables
+
         private readonly Task _pingPong = Task.CompletedTask;
         private readonly HttpClient _httpClient = null;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        #endregion
 
         #region Constructor Section
 
@@ -278,7 +282,7 @@ namespace CookedRabbit.Library.Services
 
         private readonly object _timesLock = new object();
         private readonly int _timeout = 5; // seconds
-        private readonly int _delayForServerSideRouting = 50;
+        private readonly int _delayForServerSideRouting = 100;
 
         private async Task<bool> PublishTestMessageAsync(string queueName)
         {

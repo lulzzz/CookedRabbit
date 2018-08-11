@@ -87,7 +87,6 @@ namespace CookedRabbit.Library.Services
         {
             Guard.AgainstNull(message, nameof(message));
             Guard.AgainstNull(envelope, nameof(envelope));
-            Guard.AgainstNull(envelope.MessageBody, nameof(envelope.MessageBody));
             Guard.AgainstBothNullOrEmpty(envelope.ExchangeName, nameof(envelope.ExchangeName), envelope.RoutingKey, nameof(envelope.RoutingKey));
 
             envelope.MessageBody = await SerializeAsync(message, _seasoning.SerializeSettings.SerializationMethod);

@@ -14,6 +14,8 @@ namespace CookedRabbit.Library.Services
     /// </summary>
     public class RabbitBaseService
     {
+        #region Local Variables
+
         /// <summary>
         /// Base ILogger for derived services.
         /// </summary>
@@ -33,6 +35,8 @@ namespace CookedRabbit.Library.Services
         /// Used for throttling.
         /// </summary>
         protected Random Rand = new Random();
+
+        #endregion
 
         #region Error Handling Section
 

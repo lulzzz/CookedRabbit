@@ -20,7 +20,7 @@ namespace CookedRabbit.Core.Tests.Integration.Maintenance
         {
             // Arrange
             await _fixture.Burrow.Maintenance.PurgeQueueAsync("CookedRabbit.Maintenance.PingPong");
-            await Task.Delay(8000);
+            await Task.Delay(15000);
 
             // Act
             var (Misses, AverageResponseTime) = _fixture.Burrow.Maintenance.GetAverageResponseTimes();
