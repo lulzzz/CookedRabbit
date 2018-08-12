@@ -78,7 +78,9 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var publishSuccess = await _fixture.RabbitSerializeService.SerializeAndPublishAsync(testObject, envelope);
+
             await Task.Delay(200); // Allow Server Side Routing
+
             var result = await _fixture.RabbitSerializeService.GetAndDeserializeAsync<ZeroTestHelperObject>(queueName);
             var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 
@@ -111,7 +113,9 @@ namespace CookedRabbit.Tests.Integration
             // Act
             var createSuccess = await _fixture.RabbitTopologyService.QueueDeclareAsync(queueName);
             var failures = await _fixture.RabbitSerializeService.SerializeAndPublishManyAsync(messages, envelope);
+
             await Task.Delay(200); // Allow Server Side Routing
+
             var results = await _fixture.RabbitSerializeService.GetAndDeserializeManyAsync<ZeroTestHelperObject>(queueName, messageCount);
             var deleteSuccess = await _fixture.RabbitTopologyService.QueueDeleteAsync(queueName);
 

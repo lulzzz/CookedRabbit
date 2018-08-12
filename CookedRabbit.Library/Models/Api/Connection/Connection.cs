@@ -28,6 +28,12 @@ namespace CookedRabbit.Library.Models
         /// </summary>
         [DataMember(Name = "vhost")]
         public string Vhost { get; set; }
+        /// <summary>
+        /// Garbage Collection Details
+        /// </summary>
+        [DataMember(Name = "garbage_collection")]
+        public GarbageCollection GarbageCollection { get; set; }
+
 
         // Client Properties
         /// <summary>
@@ -36,12 +42,14 @@ namespace CookedRabbit.Library.Models
         [DataMember(Name = "client_properties")]
         public ClientProperties ClientProperties { get; set; }
 
+
         // Timestamps
         /// <summary>
         /// ConnectedAt
         /// </summary>
         [DataMember(Name = "connected_at")]
         public long ConnectedAt { get; set; }
+
 
         // Connection Properties
         /// <summary>
@@ -74,6 +82,7 @@ namespace CookedRabbit.Library.Models
         /// </summary>
         [DataMember(Name = "protocol")]
         public string Protocol { get; set; }
+
 
         // Connection Network Properties
         /// <summary>
@@ -152,12 +161,18 @@ namespace CookedRabbit.Library.Models
         [DataMember(Name = "peer_cert_subject")]
         public string PeerCertSubject { get; set; }
 
+
         // Connection Stats
         /// <summary>
         /// Connection State
         /// </summary>
         [DataMember(Name = "state")]
         public string ConnectionState { get; set; }
+        /// <summary>
+        /// ReductionsDetails
+        /// </summary>
+        [DataMember(Name = "reductions_details")]
+        public RateObject ReductionsDetails { get; set; }
         /// <summary>
         /// Reductions
         /// </summary>
@@ -174,6 +189,11 @@ namespace CookedRabbit.Library.Models
         [DataMember(Name = "send_cnt")]
         public long SendCount { get; set; }
         /// <summary>
+        /// SendOctDetails
+        /// </summary>
+        [DataMember(Name = "send_oct_details")]
+        public RateObject SendOctDetails { get; set; }
+        /// <summary>
         /// Send Oct
         /// </summary>
         [DataMember(Name = "send_oct")]
@@ -183,6 +203,11 @@ namespace CookedRabbit.Library.Models
         /// </summary>
         [DataMember(Name = "recv_cnt")]
         public long ReceiveCount { get; set; }
+        /// <summary>
+        /// Receive Oct
+        /// </summary>
+        [DataMember(Name = "recv_oct_details")]
+        public RateObject ReceiveOctDetails { get; set; }
         /// <summary>
         /// Receive Oct
         /// </summary>

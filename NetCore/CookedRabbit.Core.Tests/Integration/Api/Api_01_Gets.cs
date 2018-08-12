@@ -30,5 +30,19 @@ namespace CookedRabbit.Core.Tests.Integration.Api
             // Assert
             Assert.NotEmpty(connections);
         }
+
+        [Fact]
+        [Trait("NetCore Api", "GetChannels")]
+        public async Task GetChannelsFromApiAsync()
+        {
+            // Arrange
+            await Task.Delay(5000);
+
+            // Act
+            var connections = await _fixture.Burrow.Maintenance.Api_GetAsync<List<Channel>>(RabbitApiTarget.Channels);
+
+            // Assert
+            Assert.NotEmpty(connections);
+        }
     }
 }

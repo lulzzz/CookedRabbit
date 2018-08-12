@@ -296,7 +296,12 @@ namespace CookedRabbit.Core.Library.Utilities
             /// Connections Endpoint
             /// </summary>
             [Description("connections")]
-            Connections
+            Connections,
+            /// <summary>
+            /// Channels Endpoint
+            /// </summary>
+            [Description("channels")]
+            Channels
         }
     }
 }

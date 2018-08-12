@@ -138,6 +138,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Api\Shared\RateObject.cs" />
+    <Compile Include="Models\Api\Channel\MessageStats.cs" />
+    <Compile Include="Models\Api\Shared\GarbageCollection.cs" />
+    <Compile Include="Models\Api\Channel\ConnectionDetails.cs" />
+    <Compile Include="Models\Api\Channel\Channel.cs" />
     <Compile Include="Models\Api\Connection\ClientProperties.cs" />
     <Compile Include="Models\Api\Connection\Capabilities.cs" />
     <Compile Include="Models\Api\Connection\Connection.cs" />
