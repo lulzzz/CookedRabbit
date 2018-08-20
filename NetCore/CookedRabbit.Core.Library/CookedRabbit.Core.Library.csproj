@@ -32,6 +32,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LangVersion>latest</LangVersion>
+    <DefineConstants>TRACE;CORECLR</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,9 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RabbitMQ.Client">
-      <HintPath>..\..\RabbitMQ\netstandard2.0\RabbitMQ.Client.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\RabbitMQ.Core\RabbitMQ.Core.csproj" />
   </ItemGroup>
 
 </Project>

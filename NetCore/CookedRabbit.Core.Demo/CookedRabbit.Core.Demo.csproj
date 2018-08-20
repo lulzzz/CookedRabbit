@@ -29,12 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="RabbitMQ.Client">
-      <HintPath>..\..\RabbitMQ\netstandard2.0\RabbitMQ.Client.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\RabbitMQ.Core\RabbitMQ.Core.csproj" />
   </ItemGroup>
 
 </Project>
