@@ -36,7 +36,7 @@ Changes from Official Release
    ApiGen re-compiled.
    Client compiled as x64.
 ```
-
+CookedRabbit.Core has RabbitMQ.Core included for debugging ease and pure NetCore deployment.  
 CookedRabbit is in active development.  
 CookedRabbit supports SSL/TLS.  
 CookedRabbit supports Gzip, Deflate, and LZ4 compression.  

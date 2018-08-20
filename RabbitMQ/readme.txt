@@ -8,3 +8,11 @@ NetCore 2.0 -> 2.1
 C# 7.3 (latest version)
 ApiGen re-compiled.
 Client compiled as x64.
+
+RabbitMQ.Core Library/Dotnet Client 5.1.0 (6/23/2018)
+
+Changes from Official Release
+NetCore 2.1
+C# 7.3 (latest version)
+ApiGen re-compiled.
+Client compiled as x64.
