@@ -1,6 +1,3 @@
-using System;
-using System.Net;
-
 namespace RabbitMQ.Client.Exceptions
 {
     ///<summary>Thrown to indicate that the peer does not support the
@@ -13,7 +10,7 @@ namespace RabbitMQ.Client.Exceptions
             int clientMinor,
             int serverMajor,
             int serverMinor)
-            : base($"AMQP server protocol negotiation failure: server version {positiveOrUnknown(serverMajor)}-{positiveOrUnknown(serverMinor)}, client version {positiveOrUnknown(clientMajor)}-{positiveOrUnknown(clientMinor)}")
+            : base($"AMQP server protocol negotiation failure: server version {PositiveOrUnknown(serverMajor)}-{PositiveOrUnknown(serverMinor)}, client version {PositiveOrUnknown(clientMajor)}-{PositiveOrUnknown(clientMinor)}")
         {
             ClientMajor = clientMajor;
             ClientMinor = clientMinor;
@@ -33,7 +30,7 @@ namespace RabbitMQ.Client.Exceptions
         ///<summary>The peer's AMQP specification minor version.</summary>
         public int ServerMinor { get; private set; }
 
-        private static String positiveOrUnknown(int version)
+        private static string PositiveOrUnknown(int version)
         {
             return version >= 0 ? version.ToString() : "unknown";
         }

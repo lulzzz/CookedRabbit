@@ -1,7 +1,6 @@
-using System;
-using System.Diagnostics;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
+using System;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -20,11 +19,6 @@ namespace RabbitMQ.Client.Impl
                     throw new OperationInterruptedException((ShutdownEventArgs)result.Value);
                 default:
                     string error = "Illegal EitherAlternative " + result.Alternative;
-#if !(NETFX_CORE)
-                   // Trace.Fail(error);
-#else
-                    MetroEventSource.Log.Error(error);
-#endif
                     return null;
             }
         }
@@ -47,11 +41,6 @@ namespace RabbitMQ.Client.Impl
         private static void ReportInvalidInvariant(Either result)
         {
             string error = "Illegal EitherAlternative " + result.Alternative;
-#if !(NETFX_CORE)
-            //Trace.Fail(error);
-#else
-            MetroEventSource.Log.Error(error);
-#endif
         }
 
         public virtual void HandleCommand(Command cmd)

@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using System.Net;
 using RabbitMQ.Util;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Content
 {

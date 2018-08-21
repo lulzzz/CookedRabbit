@@ -1,4 +1,3 @@
-using System;
 using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
@@ -30,8 +29,8 @@ namespace RabbitMQ.Client.Impl
         public override string ToString()
         {
             return MethodId == 0
-                ? $"{base.ToString()}<{this.ClassId}>"
-                : $"{base.ToString()}<{this.ClassId}.{this.MethodId}>";
+                ? $"{base.ToString()}<{ClassId}>"
+                : $"{base.ToString()}<{ClassId}.{MethodId}>";
         }
     }
 }

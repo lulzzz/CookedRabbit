@@ -1,14 +1,12 @@
-#if !NETFX_CORE
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Util;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -39,7 +37,7 @@ namespace RabbitMQ.Client.Impl
         private readonly object _semaphore = new object();
         private readonly object _sslStreamLock = new object();
         private bool _closed;
-        private bool _ssl = false;
+        private readonly bool _ssl = false;
         public SocketFrameHandler(AmqpTcpEndpoint endpoint,
             Func<AddressFamily, ITcpClient> socketFactory,
             int connectionTimeout, int readTimeout, int writeTimeout)
@@ -48,9 +46,11 @@ namespace RabbitMQ.Client.Impl
 
             if (ShouldTryIPv6(endpoint))
             {
-                try {
+                try
+                {
                     m_socket = ConnectUsingIPv6(endpoint, socketFactory, connectionTimeout);
-                } catch (ConnectFailureException)
+                }
+                catch (ConnectFailureException)
                 {
                     m_socket = null;
                 }
@@ -62,7 +62,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             Stream netstream = m_socket.GetStream();
-            netstream.ReadTimeout  = readTimeout;
+            netstream.ReadTimeout = readTimeout;
             netstream.WriteTimeout = writeTimeout;
 
             if (endpoint.Ssl.Enabled)
@@ -165,7 +165,7 @@ namespace RabbitMQ.Client.Impl
             var ms = new MemoryStream();
             var nbw = new NetworkBinaryWriter(ms);
             nbw.Write(amqp);
-            byte one = (byte)1;
+            byte one = 1;
             if (Endpoint.Protocol.Revision != 0)
             {
                 nbw.Write((byte)0);
@@ -201,9 +201,9 @@ namespace RabbitMQ.Client.Impl
             Write(ms.ToArray());
         }
 
-        private void Write(byte [] buffer)
+        private void Write(byte[] buffer)
         {
-            if(_ssl)
+            if (_ssl)
             {
                 lock (_sslStreamLock)
                 {
@@ -240,10 +240,13 @@ namespace RabbitMQ.Client.Impl
                                                     int timeout, AddressFamily family)
         {
             ITcpClient socket = socketFactory(family);
-            try {
+            try
+            {
                 ConnectOrFail(socket, endpoint, timeout);
                 return socket;
-            } catch (ConnectFailureException e) {
+            }
+            catch (ConnectFailureException e)
+            {
                 socket.Dispose();
                 throw e;
             }
@@ -279,4 +282,3 @@ namespace RabbitMQ.Client.Impl
         }
     }
 }
-#endif

@@ -1,6 +1,6 @@
+using RabbitMQ.Util;
 using System;
 using System.Text;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -39,7 +39,7 @@ namespace RabbitMQ.Client.Impl
 
         public void WriteTo(NetworkBinaryWriter writer, ulong bodySize)
         {
-            writer.Write((ushort) 0); // weight - not currently used
+            writer.Write((ushort)0); // weight - not currently used
             writer.Write(bodySize);
             WritePropertiesTo(new ContentHeaderPropertyWriter(writer));
         }

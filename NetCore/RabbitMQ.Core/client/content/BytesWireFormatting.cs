@@ -1,5 +1,5 @@
-using System.Text;
 using RabbitMQ.Util;
+using System.Text;
 
 namespace RabbitMQ.Client.Content
 {
@@ -26,7 +26,7 @@ namespace RabbitMQ.Client.Content
 
         public static char ReadChar(NetworkBinaryReader reader)
         {
-            return (char) reader.ReadUInt16();
+            return (char)reader.ReadUInt16();
         }
 
         public static double ReadDouble(NetworkBinaryReader reader)
@@ -78,7 +78,7 @@ namespace RabbitMQ.Client.Content
 
         public static void WriteChar(NetworkBinaryWriter writer, char value)
         {
-            writer.Write((ushort) value);
+            writer.Write((ushort)value);
         }
 
         public static void WriteDouble(NetworkBinaryWriter writer, double value)
@@ -109,7 +109,7 @@ namespace RabbitMQ.Client.Content
         public static void WriteString(NetworkBinaryWriter writer, string value)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(value);
-            writer.Write((ushort) bytes.Length);
+            writer.Write((ushort)bytes.Length);
             writer.Write(bytes);
         }
     }

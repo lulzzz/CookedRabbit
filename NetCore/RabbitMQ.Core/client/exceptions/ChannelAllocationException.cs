@@ -1,5 +1,3 @@
-using System;
-
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when a SessionManager cannot allocate a new

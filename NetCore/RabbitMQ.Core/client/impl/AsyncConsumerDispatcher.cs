@@ -8,8 +8,8 @@
         public AsyncConsumerDispatcher(ModelBase model, AsyncConsumerWorkService ws)
         {
             this.model = model;
-            this.workService = ws;
-            this.IsShutdown = false;
+            workService = ws;
+            IsShutdown = false;
         }
 
         public void Quiesce()
@@ -20,13 +20,13 @@
         public void Shutdown()
         {
             // necessary evil
-            this.workService.Stop().GetAwaiter().GetResult();
+            workService.Stop().GetAwaiter().GetResult();
         }
 
         public void Shutdown(IModel model)
         {
             // necessary evil
-            this.workService.Stop(model).GetAwaiter().GetResult();
+            workService.Stop(model).GetAwaiter().GetResult();
         }
 
         public bool IsShutdown
@@ -66,13 +66,13 @@
         public void HandleModelShutdown(IBasicConsumer consumer, ShutdownEventArgs reason)
         {
             // the only case where we ignore the shutdown flag.
-            new ModelShutdown(consumer,reason).Execute(model).GetAwaiter().GetResult();
+            new ModelShutdown(consumer, reason).Execute(model).GetAwaiter().GetResult();
         }
 
-        private void ScheduleUnlessShuttingDown<TWork>(TWork work) 
+        private void ScheduleUnlessShuttingDown<TWork>(TWork work)
             where TWork : Work
         {
-            if (!this.IsShutdown)
+            if (!IsShutdown)
             {
                 Schedule(work);
             }
@@ -81,7 +81,7 @@
         private void Schedule<TWork>(TWork work)
             where TWork : Work
         {
-            this.workService.Schedule(this.model, work);
+            workService.Schedule(model, work);
         }
     }
 }

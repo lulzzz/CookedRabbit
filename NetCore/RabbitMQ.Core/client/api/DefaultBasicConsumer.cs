@@ -1,6 +1,5 @@
-using System;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Util;
+using System;
 
 namespace RabbitMQ.Client
 {

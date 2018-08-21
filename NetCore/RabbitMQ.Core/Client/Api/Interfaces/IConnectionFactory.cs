@@ -1,7 +1,7 @@
+using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
 {
@@ -10,7 +10,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
-        IDictionary<String, object> ClientProperties { get; set; }
+        IDictionary<string, object> ClientProperties { get; set; }
 
         /// <summary>
         /// Password to use when authenticating to the server.
@@ -56,7 +56,7 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         /// or null if we have none in common.
         /// </summary>
-        AuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames);
+        IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames);
 
         /// <summary>
         /// Create a connection to the specified endpoint.
@@ -73,7 +73,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(String clientProvidedName);
+        IConnection CreateConnection(string clientProvidedName);
 
         /// <summary>
         /// Connects to the first reachable hostname from the list.
@@ -93,7 +93,7 @@ namespace RabbitMQ.Client
         /// This value is supposed to be human-readable.
         /// </param>
         /// <returns></returns>
-        IConnection CreateConnection(IList<string> hostnames, String clientProvidedName);
+        IConnection CreateConnection(IList<string> hostnames, string clientProvidedName);
 
         /// <summary>
         /// Create a connection using a list of endpoints.

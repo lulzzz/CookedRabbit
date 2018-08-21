@@ -1,5 +1,3 @@
-using System;
-
 namespace RabbitMQ.Client.Impl
 {
     ///<summary>Subclass of ProtocolException representing problems

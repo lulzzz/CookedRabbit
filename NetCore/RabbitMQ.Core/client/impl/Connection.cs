@@ -5,21 +5,11 @@ using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
-
-#if NETFX_CORE
-
-using System.Threading.Tasks;
-using Windows.Networking.Sockets;
-using Windows.ApplicationModel;
-
-#else
 using System.Net;
 using System.Net.Sockets;
-#endif
-
+using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Reflection;
 
 namespace RabbitMQ.Client.Framing.Impl
 {
@@ -34,9 +24,6 @@ namespace RabbitMQ.Client.Framing.Impl
         private EventHandler<CallbackExceptionEventArgs> m_callbackException;
         private EventHandler<EventArgs> m_recoverySucceeded;
         private EventHandler<ConnectionRecoveryErrorEventArgs> connectionRecoveryFailure;
-
-        private IDictionary<string, object> m_clientProperties;
-
         private volatile ShutdownEventArgs m_closeReason = null;
         private volatile bool m_closed = false;
 
@@ -46,14 +33,10 @@ namespace RabbitMQ.Client.Framing.Impl
 
         private IConnectionFactory m_factory;
         private IFrameHandler m_frameHandler;
-
-        private Guid m_id = Guid.NewGuid();
         private ModelBase m_model0;
         private volatile bool m_running = true;
         private MainSession m_session0;
         private SessionManager m_sessionManager;
-
-        private IList<ShutdownReportEntry> m_shutdownReport = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         //
         // Heartbeats
@@ -72,15 +55,9 @@ namespace RabbitMQ.Client.Framing.Impl
         private bool m_hasDisposedHeartBeatReadTimer;
         private bool m_hasDisposedHeartBeatWriteTimer;
 
-#if CORECLR
-        private static string version = typeof(Connection).GetTypeInfo().Assembly
+        private static readonly string version = typeof(Connection).GetTypeInfo().Assembly
                                                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                                                 .InformationalVersion;
-#else
-        private static string version = typeof(Connection).Assembly
-                                            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                                            .InformationalVersion;
-#endif
 
         // true if we haven't finished connection negotiation.
         // In this state socket exceptions are treated as fatal connection
@@ -112,7 +89,7 @@ namespace RabbitMQ.Client.Framing.Impl
             Open(insist);
         }
 
-        public Guid Id { get { return m_id; } }
+        public Guid Id { get; } = Guid.NewGuid();
 
         public event EventHandler<EventArgs> RecoverySucceeded
         {
@@ -232,23 +209,12 @@ namespace RabbitMQ.Client.Framing.Impl
         }
         public string ClientProvidedName { get; private set; }
 
-        [Obsolete("Please explicitly close connections instead.")]
-        public bool AutoClose
-        {
-            get { return m_sessionManager.AutoClose; }
-            set { m_sessionManager.AutoClose = value; }
-        }
-
         public ushort ChannelMax
         {
             get { return m_sessionManager.ChannelMax; }
         }
 
-        public IDictionary<string, object> ClientProperties
-        {
-            get { return m_clientProperties; }
-            set { m_clientProperties = value; }
-        }
+        public IDictionary<string, object> ClientProperties { get; set; }
 
         public ShutdownEventArgs CloseReason
         {
@@ -315,10 +281,7 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public IDictionary<string, object> ServerProperties { get; set; }
 
-        public IList<ShutdownReportEntry> ShutdownReport
-        {
-            get { return m_shutdownReport; }
-        }
+        public IList<ShutdownReportEntry> ShutdownReport { get; } = new SynchronizedList<ShutdownReportEntry>(new List<ShutdownReportEntry>());
 
         ///<summary>Explicit implementation of IConnection.Protocol.</summary>
         IProtocol IConnection.Protocol
@@ -328,13 +291,15 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public static IDictionary<string, object> DefaultClientProperties()
         {
-            IDictionary<string, object> table = new Dictionary<string, object>();
-            table["product"] = Encoding.UTF8.GetBytes("RabbitMQ");
-            //table["version"] = Encoding.UTF8.GetBytes(version);
-            table["platform"] = Encoding.UTF8.GetBytes("NetCore");
-            table["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2016 Pivotal Software, Inc.");
-            table["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
-                                                          "See http://www.rabbitmq.com/");
+            IDictionary<string, object> table = new Dictionary<string, object>
+            {
+                ["product"] = Encoding.UTF8.GetBytes("RabbitMQ"),
+                //table["version"] = Encoding.UTF8.GetBytes(version);
+                ["platform"] = Encoding.UTF8.GetBytes("NetCore"),
+                ["copyright"] = Encoding.UTF8.GetBytes("Copyright (c) 2007-2016 Pivotal Software, Inc."),
+                ["information"] = Encoding.UTF8.GetBytes("Licensed under the MPL.  " +
+                                                          "See http://www.rabbitmq.com/")
+            };
             return table;
         }
 
@@ -424,7 +389,7 @@ namespace RabbitMQ.Client.Framing.Impl
 #if NETFX_CORE
             var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
 #else
-            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.validatedTimeout(timeout));
+            var receivedSignal = m_appContinuation.WaitOne(BlockingCell.ValidatedTimeout(timeout));
 #endif
 
             if (!receivedSignal)
@@ -475,13 +440,11 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public Command ConnectionCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Command request;
-            int replyClassId, replyMethodId;
             Protocol.CreateConnectionClose(reasonCode,
                 reasonText,
-                out request,
-                out replyClassId,
-                out replyMethodId);
+                out Command request,
+                out int replyClassId,
+                out int replyMethodId);
             return request;
         }
 
@@ -593,10 +556,10 @@ namespace RabbitMQ.Client.Framing.Impl
             TerminateMainloop();
         }
 
-        public void LogCloseError(String error, Exception ex)
+        public void LogCloseError(string error, Exception ex)
         {
             ESLog.Error(error, ex);
-            m_shutdownReport.Add(new ShutdownReportEntry(error, ex));
+            ShutdownReport.Add(new ShutdownReportEntry(error, ex));
         }
 
         public void MainLoop()
@@ -865,7 +828,7 @@ namespace RabbitMQ.Client.Framing.Impl
         public void Open(bool insist)
         {
             StartAndTune();
-            m_model0.ConnectionOpen(m_factory.VirtualHost, String.Empty, false);
+            m_model0.ConnectionOpen(m_factory.VirtualHost, string.Empty, false);
         }
 
         public void PrettyPrintShutdownReport()
@@ -1037,10 +1000,10 @@ entry.ToString());
                         // of the heartbeat setting in setHeartbeat above.
                         if (m_missedHeartbeats > 2 * 4)
                         {
-                            String description = String.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
+                            string description = string.Format("Heartbeat missing with heartbeat == {0} seconds", m_heartbeat);
                             var eose = new EndOfStreamException(description);
                             ESLog.Error(description, eose);
-                            m_shutdownReport.Add(new ShutdownReportEntry(description, eose));
+                            ShutdownReport.Add(new ShutdownReportEntry(description, eose));
                             HandleMainLoopException(
                                 new ShutdownEventArgs(ShutdownInitiator.Library, 0, "End of stream", eose));
                             shouldTerminate = true;
@@ -1161,7 +1124,7 @@ entry.ToString());
 
         public override string ToString()
         {
-            return string.Format("Connection({0},{1})", m_id, Endpoint);
+            return string.Format("Connection({0},{1})", Id, Endpoint);
         }
 
         public void WriteFrame(OutboundFrame f)
@@ -1226,7 +1189,7 @@ entry.ToString());
         {
             EnsureIsOpen();
             ISession session = CreateSession();
-            var model = (IFullModel)Protocol.CreateModel(session, this.ConsumerWorkService);
+            var model = (IFullModel)Protocol.CreateModel(session, ConsumerWorkService);
             model.ContinuationTimeout = m_factory.ContinuationTimeout;
             model._Private_ChannelOpen("");
             return model;
@@ -1258,13 +1221,11 @@ entry.ToString());
 
         protected Command ChannelCloseWrapper(ushort reasonCode, string reasonText)
         {
-            Command request;
-            int replyClassId, replyMethodId;
             Protocol.CreateChannelClose(reasonCode,
                 reasonText,
-                out request,
-                out replyClassId,
-                out replyMethodId);
+                out Command request,
+                out int replyClassId,
+                out int replyMethodId);
             return request;
         }
 
@@ -1298,32 +1259,34 @@ entry.ToString());
                     serverVersion.Minor);
             }
 
-            m_clientProperties = new Dictionary<string, object>(m_factory.ClientProperties);
-            m_clientProperties["capabilities"] = Protocol.Capabilities;
-            m_clientProperties["connection_name"] = this.ClientProvidedName;
+            ClientProperties = new Dictionary<string, object>(m_factory.ClientProperties)
+            {
+                ["capabilities"] = Protocol.Capabilities,
+                ["connection_name"] = ClientProvidedName
+            };
 
             // FIXME: parse out locales properly!
-            ConnectionTuneDetails connectionTune = default(ConnectionTuneDetails);
+            ConnectionTuneDetails connectionTune = default;
             bool tuned = false;
             try
             {
                 string mechanismsString = Encoding.UTF8.GetString(connectionStart.m_mechanisms, 0, connectionStart.m_mechanisms.Length);
                 string[] mechanisms = mechanismsString.Split(' ');
-                AuthMechanismFactory mechanismFactory = m_factory.AuthMechanismFactory(mechanisms);
+                IAuthMechanismFactory mechanismFactory = m_factory.AuthMechanismFactory(mechanisms);
                 if (mechanismFactory == null)
                 {
                     throw new IOException("No compatible authentication mechanism found - " +
                                           "server offered [" + mechanismsString + "]");
                 }
-                AuthMechanism mechanism = mechanismFactory.GetInstance();
+                IAuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[] challenge = null;
                 do
                 {
-                    byte[] response = mechanism.handleChallenge(challenge, m_factory);
+                    byte[] response = mechanism.HandleChallenge(challenge, m_factory);
                     ConnectionSecureOrTune res;
                     if (challenge == null)
                     {
-                        res = m_model0.ConnectionStartOk(m_clientProperties,
+                        res = m_model0.ConnectionStartOk(ClientProperties,
                             mechanismFactory.Name,
                             response,
                             "en_US");

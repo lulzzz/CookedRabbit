@@ -12,8 +12,8 @@ namespace RabbitMQ.Client.Impl
         public ConcurrentConsumerDispatcher(ModelBase model, ConsumerWorkService ws)
         {
             this.model = model;
-            this.workService = ws;
-            this.IsShutdown = false;
+            workService = ws;
+            IsShutdown = false;
         }
 
         public void Quiesce()
@@ -23,12 +23,12 @@ namespace RabbitMQ.Client.Impl
 
         public void Shutdown()
         {
-            this.workService.StopWork();
+            workService.StopWork();
         }
 
         public void Shutdown(IModel model)
         {
-            this.workService.StopWork(model);
+            workService.StopWork(model);
         }
 
         public bool IsShutdown
@@ -151,7 +151,7 @@ namespace RabbitMQ.Client.Impl
 
         private void UnlessShuttingDown(Action fn)
         {
-            if (!this.IsShutdown)
+            if (!IsShutdown)
             {
                 Execute(fn);
             }
@@ -159,7 +159,7 @@ namespace RabbitMQ.Client.Impl
 
         private void Execute(Action fn)
         {
-            this.workService.AddWork(this.model, fn);
+            workService.AddWork(model, fn);
         }
     }
 }

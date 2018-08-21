@@ -1,5 +1,5 @@
-using System;
 using RabbitMQ.Client.Exceptions;
+using System;
 
 namespace RabbitMQ.Client
 {

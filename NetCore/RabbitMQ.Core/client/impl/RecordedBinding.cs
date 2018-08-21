@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Impl
@@ -13,10 +12,10 @@ namespace RabbitMQ.Client.Impl
         public string Destination { get; set; }
         public string RoutingKey { get; protected set; }
         public string Source { get; protected set; }
-		
+
         public bool Equals(RecordedBinding other)
         {
-            return other != null && 
+            return other != null &&
                 (Source.Equals(other.Source)) &&
                 (Destination.Equals(other.Destination)) &&
                 (RoutingKey.Equals(other.RoutingKey)) &&
@@ -25,19 +24,17 @@ namespace RabbitMQ.Client.Impl
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(obj, null))
-            {
-                return false;
-            }
+            if (obj is null)
+            { return false; }
 
             if (ReferenceEquals(this, obj))
             {
                 return true;
             }
 
-			var other = obj as RecordedBinding;
-			
-			return Equals(other);
+            var other = obj as RecordedBinding;
+
+            return Equals(other);
         }
 
         public override int GetHashCode()
@@ -54,7 +51,7 @@ namespace RabbitMQ.Client.Impl
 
         public override string ToString()
         {
-            return String.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
+            return string.Format("{0}: source = '{1}', destination = '{2}', routingKey = '{3}', arguments = '{4}'",
                 GetType().Name, Source, Destination, RoutingKey, Arguments);
         }
 

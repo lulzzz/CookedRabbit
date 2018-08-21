@@ -1,5 +1,5 @@
-using System;
 using RabbitMQ.Util;
+using System;
 
 namespace RabbitMQ.Client.Impl
 {

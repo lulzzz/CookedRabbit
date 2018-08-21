@@ -55,7 +55,7 @@ namespace RabbitMQ.Util
         ///<summary>Return valid timeout value</summary>
         ///<remarks>If value of the parameter is less then zero, return 0
         ///to mean infinity</remarks>
-        public static int validatedTimeout(int timeout)
+        public static int ValidatedTimeout(int timeout)
         {
             return (timeout != Timeout.Infinite)
                    && (timeout < 0) ? 0 : timeout;
@@ -111,7 +111,7 @@ namespace RabbitMQ.Util
             {
                 if (!m_valueSet)
                 {
-                    Monitor.Wait(_lock, validatedTimeout(timeout));
+                    Monitor.Wait(_lock, ValidatedTimeout(timeout));
                     if (!m_valueSet)
                     {
                         throw new TimeoutException();

@@ -1,16 +1,8 @@
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Util;
-using System;
 using System.IO;
-
-#if NETFX_CORE
-using Windows.Networking.Sockets;
-#else
-
 using System.Net.Sockets;
-
-#endif
 
 namespace RabbitMQ.Client.Impl
 {
@@ -258,19 +250,19 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsMethod()
         {
-            return this.Type == FrameType.FrameMethod;
+            return Type == FrameType.FrameMethod;
         }
         public bool IsHeader()
         {
-            return this.Type == FrameType.FrameHeader;
+            return Type == FrameType.FrameHeader;
         }
         public bool IsBody()
         {
-            return this.Type == FrameType.FrameBody;
+            return Type == FrameType.FrameBody;
         }
         public bool IsHeartbeat()
         {
-            return this.Type == FrameType.FrameHeartbeat;
+            return Type == FrameType.FrameHeartbeat;
         }
     }
 

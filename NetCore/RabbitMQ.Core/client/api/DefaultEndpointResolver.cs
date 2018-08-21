@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RabbitMQ.Client
 {
@@ -9,9 +9,9 @@ namespace RabbitMQ.Client
         private List<AmqpTcpEndpoint> endpoints;
         private Random rnd = new Random();
 
-        public DefaultEndpointResolver (IEnumerable<AmqpTcpEndpoint> tcpEndpoints)
+        public DefaultEndpointResolver(IEnumerable<AmqpTcpEndpoint> tcpEndpoints)
         {
-           this.endpoints = tcpEndpoints.ToList();
+            endpoints = tcpEndpoints.ToList();
         }
 
         public IEnumerable<AmqpTcpEndpoint> All()

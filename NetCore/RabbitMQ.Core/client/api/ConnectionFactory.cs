@@ -3,15 +3,10 @@ using RabbitMQ.Client.Framing.Impl;
 using RabbitMQ.Client.Impl;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
-using System.Security.Authentication;
-
-#if !NETFX_CORE
-
 using System.Net.Security;
-
-#endif
+using System.Security.Authentication;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {
@@ -117,13 +112,13 @@ namespace RabbitMQ.Client
         /// <summary>
         ///  Default SASL auth mechanisms to use.
         /// </summary>
-        public static readonly IList<AuthMechanismFactory> DefaultAuthMechanisms =
-            new List<AuthMechanismFactory>() { new PlainMechanismFactory() };
+        public static readonly IList<IAuthMechanismFactory> DefaultAuthMechanisms =
+            new List<IAuthMechanismFactory>() { new PlainMechanismFactory() };
 
         /// <summary>
         ///  SASL auth mechanisms to use.
         /// </summary>
-        public IList<AuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
+        public IList<IAuthMechanismFactory> AuthMechanisms { get; set; } = DefaultAuthMechanisms;
 
         /// <summary>
         /// Set to false to disable automatic connection recovery.
@@ -144,7 +139,7 @@ namespace RabbitMQ.Client
         /// Amount of time client will wait for before re-trying  to recover connection.
         /// </summary>
         public TimeSpan NetworkRecoveryInterval { get; set; } = TimeSpan.FromSeconds(5);
-        private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
+
         private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
 
         // just here to hold the value that was set through the setter
@@ -154,11 +149,7 @@ namespace RabbitMQ.Client
         /// Amount of time protocol handshake operations are allowed to take before
         /// timing out.
         /// </summary>
-        public TimeSpan HandshakeContinuationTimeout
-        {
-            get { return m_handshakeContinuationTimeout; }
-            set { m_handshakeContinuationTimeout = value; }
-        }
+        public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
@@ -300,10 +291,10 @@ namespace RabbitMQ.Client
         /// Given a list of mechanism names supported by the server, select a preferred mechanism,
         ///  or null if we have none in common.
         /// </summary>
-        public AuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
+        public IAuthMechanismFactory AuthMechanismFactory(IList<string> mechanismNames)
         {
             // Our list is in order of preference, the server one is not.
-            foreach (AuthMechanismFactory factory in AuthMechanisms)
+            foreach (IAuthMechanismFactory factory in AuthMechanisms)
             {
                 var factoryName = factory.Name;
                 if (mechanismNames.Any(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
@@ -324,7 +315,7 @@ namespace RabbitMQ.Client
         /// </exception>
         public virtual IConnection CreateConnection()
         {
-            return CreateConnection(this.EndpointResolverFactory(LocalEndpoints()), null);
+            return CreateConnection(EndpointResolverFactory(LocalEndpoints()), null);
         }
 
         /// <summary>
@@ -341,7 +332,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When the configured hostname was not reachable.
         /// </exception>
-        public IConnection CreateConnection(String clientProvidedName)
+        public IConnection CreateConnection(string clientProvidedName)
         {
             return CreateConnection(EndpointResolverFactory(LocalEndpoints()), clientProvidedName);
         }
@@ -385,9 +376,9 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IList<string> hostnames, String clientProvidedName)
+        public IConnection CreateConnection(IList<string> hostnames, string clientProvidedName)
         {
-            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, this.Port, this.Ssl));
+            var endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl));
             return CreateConnection(new DefaultEndpointResolver(endpoints), clientProvidedName);
         }
 
@@ -425,7 +416,7 @@ namespace RabbitMQ.Client
         /// <exception cref="BrokerUnreachableException">
         /// When no hostname was reachable.
         /// </exception>
-        public IConnection CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+        public IConnection CreateConnection(IEndpointResolver endpointResolver, string clientProvidedName)
         {
             IConnection conn;
             try
@@ -439,7 +430,7 @@ namespace RabbitMQ.Client
                 else
                 {
                     IProtocol protocol = Protocols.DefaultProtocol;
-                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(this.CreateFrameHandler), clientProvidedName);
+                    conn = protocol.CreateConnection(this, false, endpointResolver.SelectOne(CreateFrameHandler), clientProvidedName);
                 }
             }
             catch (Exception e)
@@ -466,7 +457,7 @@ namespace RabbitMQ.Client
 
         public IFrameHandler CreateFrameHandlerForHostname(string hostname)
         {
-            return CreateFrameHandler(this.Endpoint.CloneWithHostname(hostname));
+            return CreateFrameHandler(Endpoint.CloneWithHostname(hostname));
         }
 
 
@@ -554,7 +545,7 @@ namespace RabbitMQ.Client
 
         private List<AmqpTcpEndpoint> LocalEndpoints()
         {
-            return new List<AmqpTcpEndpoint> { this.Endpoint };
+            return new List<AmqpTcpEndpoint> { Endpoint };
         }
     }
 }

@@ -1,15 +1,10 @@
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Framing.Impl;
+using RabbitMQ.Util;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-
-#if NETFX_CORE
-using System.Threading.Tasks;
-#endif
-
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.Impl;
-using RabbitMQ.Util;
-using RabbitMQ.Client.Framing;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -19,24 +14,13 @@ namespace RabbitMQ.Client.Impl
         private readonly IntAllocator Ints;
         private readonly Connection m_connection;
         private readonly IDictionary<int, ISession> m_sessionMap = new Dictionary<int, ISession>();
-        private bool m_autoClose = false;
+        private readonly bool m_autoClose = false;
 
         public SessionManager(Connection connection, ushort channelMax)
         {
             m_connection = connection;
             ChannelMax = (channelMax == 0) ? ushort.MaxValue : channelMax;
             Ints = new IntAllocator(1, ChannelMax);
-        }
-
-        [Obsolete("Please explicitly close connections instead.")]
-        public bool AutoClose
-        {
-            get { return m_autoClose; }
-            set
-            {
-                m_autoClose = value;
-                CheckAutoClose();
-            }
         }
 
         public int Count
@@ -127,7 +111,7 @@ namespace RabbitMQ.Client.Impl
         {
             lock (m_sessionMap)
             {
-                var session = (ISession) sender;
+                var session = (ISession)sender;
                 m_sessionMap.Remove(session.ChannelNumber);
                 Ints.Free(session.ChannelNumber);
                 CheckAutoClose();

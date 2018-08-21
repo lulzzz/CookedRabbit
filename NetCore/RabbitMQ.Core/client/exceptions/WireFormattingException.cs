@@ -1,6 +1,3 @@
-using System;
-using System.Net;
-
 namespace RabbitMQ.Client.Exceptions
 {
     /// <summary> Thrown when the wire-formatting code cannot encode a

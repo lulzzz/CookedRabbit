@@ -459,8 +459,10 @@ namespace CookedRabbit.Core.Library.Services
                 if (disposing)
                 {
                     _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
                     _rcp.Shutdown();
                 }
+
                 _disposedValue = true;
             }
         }

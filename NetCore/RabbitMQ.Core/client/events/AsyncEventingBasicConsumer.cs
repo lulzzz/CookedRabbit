@@ -70,7 +70,7 @@ namespace RabbitMQ.Client.Events
             await Raise(Shutdown, reason).ConfigureAwait(false);
         }
 
-        private Task Raise<TEvent>(AsyncEventHandler<TEvent> eventHandler, TEvent evt) 
+        private Task Raise<TEvent>(AsyncEventHandler<TEvent> eventHandler, TEvent evt)
             where TEvent : EventArgs
         {
             var handler = eventHandler;

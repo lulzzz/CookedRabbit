@@ -1,6 +1,5 @@
 using RabbitMQ.Client.Apigen.Attributes;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 

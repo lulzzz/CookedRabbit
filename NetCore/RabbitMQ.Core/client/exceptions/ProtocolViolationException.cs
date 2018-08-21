@@ -1,5 +1,5 @@
-using System;
 using RabbitMQ.Client.Exceptions;
+using System;
 
 namespace RabbitMQ.Client
 {
@@ -11,9 +11,9 @@ namespace RabbitMQ.Client
         public ProtocolViolationException(string message, Exception inner) : base(message, inner)
         {
         }
-        public ProtocolViolationException() 
+        public ProtocolViolationException()
         {
         }
 
-    } 
+    }
 }

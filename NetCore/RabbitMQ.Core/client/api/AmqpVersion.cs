@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
         /// </summary>
         public override int GetHashCode()
         {
-            return 31*Major.GetHashCode() + Minor.GetHashCode();
+            return 31 * Major.GetHashCode() + Minor.GetHashCode();
         }
 
         /// <summary>

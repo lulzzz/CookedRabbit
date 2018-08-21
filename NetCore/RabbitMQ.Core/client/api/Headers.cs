@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace RabbitMQ.Client
 {
     /// <summary>
@@ -27,12 +25,12 @@ namespace RabbitMQ.Client
         /// x-max-length-bytes header
         /// </summary>
         public const string XMaxLengthInBytes = "x-max-length-bytes";
-        
+
         /// <summary>
         /// x-dead-letter-exchange header
         /// </summary>
         public const string XDeadLetterExchange = "x-dead-letter-exchange";
-        
+
         /// <summary>
         /// x-dead-letter-routing-key header
         /// </summary>

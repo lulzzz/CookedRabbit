@@ -1,14 +1,6 @@
-using System;
-using System.Collections.Generic;
-
-#if !NETFX_CORE
-using System.Net.Sockets;
-#else
-using Windows.Networking.Sockets;
-#endif
-
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
+using System.Collections.Generic;
 
 namespace RabbitMQ.Client.Framing.Impl
 {

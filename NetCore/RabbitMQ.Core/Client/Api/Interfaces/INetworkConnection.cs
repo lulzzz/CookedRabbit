@@ -1,11 +1,9 @@
-using System.Net;
-
 namespace RabbitMQ.Client
 {
     /// <summary>
     /// Common interface for network (TCP/IP) connection classes.
     /// </summary>
-    public interface NetworkConnection
+    public interface INetworkConnection
     {
         /// <summary>
         /// Local port.

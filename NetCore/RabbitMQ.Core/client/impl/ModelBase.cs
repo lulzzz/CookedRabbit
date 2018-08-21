@@ -9,10 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
-#if (NETFX_CORE)
-using Trace = System.Diagnostics.Debug;
-#endif
-
 namespace RabbitMQ.Client.Impl
 {
     public abstract class ModelBase : IFullModel, IRecoverable
@@ -22,10 +18,6 @@ namespace RabbitMQ.Client.Impl
         ///<summary>Only used to kick-start a connection open
         ///sequence. See <see cref="Connection.Open"/> </summary>
         public BlockingCell m_connectionStartCell = null;
-
-        private TimeSpan m_handshakeContinuationTimeout = TimeSpan.FromSeconds(10);
-        private TimeSpan m_continuationTimeout = TimeSpan.FromSeconds(20);
-
         private RpcContinuationQueue m_continuationQueue = new RpcContinuationQueue();
         private ManualResetEvent m_flowControlBlock = new ManualResetEvent(true);
 
@@ -77,17 +69,9 @@ namespace RabbitMQ.Client.Impl
             Session.SessionShutdown += OnSessionShutdown;
         }
 
-        public TimeSpan HandshakeContinuationTimeout
-        {
-            get { return m_handshakeContinuationTimeout; }
-            set { m_handshakeContinuationTimeout = value; }
-        }
+        public TimeSpan HandshakeContinuationTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
-        public TimeSpan ContinuationTimeout
-        {
-            get { return m_continuationTimeout; }
-            set { m_continuationTimeout = value; }
-        }
+        public TimeSpan ContinuationTimeout { get; set; } = TimeSpan.FromSeconds(20);
 
         public event EventHandler<BasicAckEventArgs> BasicAcks
         {
@@ -286,7 +270,7 @@ namespace RabbitMQ.Client.Impl
                 if (SetCloseReason(reason))
                 {
                     _Private_ChannelClose(reason.ReplyCode, reason.ReplyText, 0, 0);
-                }                
+                }
                 k.Wait(TimeSpan.FromMilliseconds(10000));
                 ConsumerDispatcher.Shutdown(this);
             }
@@ -318,7 +302,7 @@ namespace RabbitMQ.Client.Impl
             bool insist)
         {
             var k = new ConnectionOpenContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -340,7 +324,7 @@ namespace RabbitMQ.Client.Impl
         public ConnectionSecureOrTune ConnectionSecureOk(byte[] response)
         {
             var k = new ConnectionStartRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -364,7 +348,7 @@ namespace RabbitMQ.Client.Impl
             string locale)
         {
             var k = new ConnectionStartRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 try
@@ -426,10 +410,10 @@ namespace RabbitMQ.Client.Impl
         public MethodBase ModelRpc(MethodBase method, ContentHeaderBase header, byte[] body)
         {
             var k = new SimpleBlockingRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 TransmitAndEnqueue(new Command(method, header, body), k);
-                return k.GetReply(this.ContinuationTimeout).Method;
+                return k.GetReply(ContinuationTimeout).Method;
             }
         }
 
@@ -468,7 +452,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            handleAckNack(args.DeliveryTag, args.Multiple, false);
+            HandleAckNack(args.DeliveryTag, args.Multiple, false);
         }
 
         public virtual void OnBasicNack(BasicNackEventArgs args)
@@ -493,7 +477,7 @@ namespace RabbitMQ.Client.Impl
                 }
             }
 
-            handleAckNack(args.DeliveryTag, args.Multiple, true);
+            HandleAckNack(args.DeliveryTag, args.Multiple, true);
         }
 
         public virtual void OnBasicRecoverOk(EventArgs args)
@@ -633,18 +617,18 @@ namespace RabbitMQ.Client.Impl
 
         public void OnSessionShutdown(object sender, ShutdownEventArgs reason)
         {
-            this.ConsumerDispatcher.Quiesce();
+            ConsumerDispatcher.Quiesce();
             SetCloseReason(reason);
             OnModelShutdown(reason);
             BroadcastShutdownToConsumers(m_consumers, reason);
-            this.ConsumerDispatcher.Shutdown(this);
+            ConsumerDispatcher.Shutdown(this);
         }
 
         protected void BroadcastShutdownToConsumers(IDictionary<string, IBasicConsumer> cs, ShutdownEventArgs reason)
         {
             foreach (var c in cs)
             {
-                this.ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
+                ConsumerDispatcher.HandleModelShutdown(c.Value, reason);
             }
         }
 
@@ -719,13 +703,13 @@ namespace RabbitMQ.Client.Impl
         {
             var k =
                 (BasicConsumerRpcContinuation)m_continuationQueue.Next();
-/*
-            Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
-                "Consumer tag mismatch during cancel: {0} != {1}",
-                k.m_consumerTag,
-                consumerTag
-                ));
-*/
+            /*
+                        Trace.Assert(k.m_consumerTag == consumerTag, string.Format(
+                            "Consumer tag mismatch during cancel: {0} != {1}",
+                            k.m_consumerTag,
+                            consumerTag
+                            ));
+            */
             lock (m_consumers)
             {
                 k.m_consumer = m_consumers[consumerTag];
@@ -1123,11 +1107,11 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new BasicConsumerRpcContinuation { m_consumerTag = consumerTag };
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicCancel(consumerTag, false);
-                k.GetReply(this.ContinuationTimeout);
+                k.GetReply(ContinuationTimeout);
             }
             lock (m_consumers)
             {
@@ -1157,14 +1141,14 @@ namespace RabbitMQ.Client.Impl
 
             var k = new BasicConsumerRpcContinuation { m_consumer = consumer };
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 // Non-nowait. We have an unconventional means of getting
                 // the RPC response, but a response is still expected.
                 _Private_BasicConsume(queue, consumerTag, noLocal, autoAck, exclusive,
                     /*nowait:*/ false, arguments);
-                k.GetReply(this.ContinuationTimeout);
+                k.GetReply(ContinuationTimeout);
             }
             string actualConsumerTag = k.m_consumerTag;
 
@@ -1175,11 +1159,11 @@ namespace RabbitMQ.Client.Impl
             bool autoAck)
         {
             var k = new BasicGetRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicGet(queue, autoAck);
-                k.GetReply(this.ContinuationTimeout);
+                k.GetReply(ContinuationTimeout);
             }
 
             return k.m_result;
@@ -1194,15 +1178,15 @@ namespace RabbitMQ.Client.Impl
             var c = 0;
             lock (m_unconfirmedSet.SyncRoot)
             {
-                while(c < count)
+                while (c < count)
                 {
                     if (NextPublishSeqNo > 0)
                     {
-                            if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
-                            {
-                                m_unconfirmedSet.Add(NextPublishSeqNo);
-                            }
-                            NextPublishSeqNo++;
+                        if (!m_unconfirmedSet.Contains(NextPublishSeqNo))
+                        {
+                            m_unconfirmedSet.Add(NextPublishSeqNo);
+                        }
+                        NextPublishSeqNo++;
                     }
                     c++;
                 }
@@ -1245,11 +1229,11 @@ namespace RabbitMQ.Client.Impl
         {
             var k = new SimpleBlockingRpcContinuation();
 
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_BasicRecover(requeue);
-                k.GetReply(this.ContinuationTimeout);
+                k.GetReply(ContinuationTimeout);
             }
         }
 
@@ -1469,14 +1453,12 @@ namespace RabbitMQ.Client.Impl
 
         public bool WaitForConfirms()
         {
-            bool timedOut;
-            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out timedOut);
+            return WaitForConfirms(TimeSpan.FromMilliseconds(Timeout.Infinite), out bool timedOut);
         }
 
         public bool WaitForConfirms(TimeSpan timeout)
         {
-            bool timedOut;
-            return WaitForConfirms(timeout, out timedOut);
+            return WaitForConfirms(timeout, out bool timedOut);
         }
 
         public void WaitForConfirmsOrDie()
@@ -1486,8 +1468,7 @@ namespace RabbitMQ.Client.Impl
 
         public void WaitForConfirmsOrDie(TimeSpan timeout)
         {
-            bool timedOut;
-            bool onlyAcksReceived = WaitForConfirms(timeout, out timedOut);
+            bool onlyAcksReceived = WaitForConfirms(timeout, out bool timedOut);
             if (!onlyAcksReceived)
             {
                 Close(new ShutdownEventArgs(ShutdownInitiator.Application,
@@ -1514,7 +1495,7 @@ namespace RabbitMQ.Client.Impl
             Session.Transmit(commands);
         }
 
-        protected virtual void handleAckNack(ulong deliveryTag, bool multiple, bool isNack)
+        protected virtual void HandleAckNack(ulong deliveryTag, bool multiple, bool isNack)
         {
             lock (m_unconfirmedSet.SyncRoot)
             {
@@ -1546,11 +1527,11 @@ namespace RabbitMQ.Client.Impl
             bool autoDelete, IDictionary<string, object> arguments)
         {
             var k = new QueueDeclareRpcContinuation();
-            lock(_rpcLock)
+            lock (_rpcLock)
             {
                 Enqueue(k);
                 _Private_QueueDeclare(queue, passive, durable, exclusive, autoDelete, false, arguments);
-                k.GetReply(this.ContinuationTimeout);
+                k.GetReply(ContinuationTimeout);
             }
             return k.m_result;
         }

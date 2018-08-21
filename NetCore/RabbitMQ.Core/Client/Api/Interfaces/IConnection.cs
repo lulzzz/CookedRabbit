@@ -1,9 +1,9 @@
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
 {
@@ -24,19 +24,8 @@ namespace RabbitMQ.Client
     /// appropriate.
     /// </para>
     /// </remarks>
-    public interface IConnection : NetworkConnection, IDisposable
+    public interface IConnection : INetworkConnection, IDisposable
     {
-        /// <summary>
-        /// If true, will close the whole connection as soon as there are no channels open on it;
-        /// if false, manual connection closure will be required.
-        /// </summary>
-        /// <remarks>
-        /// DON'T set AutoClose to true before opening the first
-        /// channel, because the connection will be immediately closed if you do!
-        /// </remarks>
-        [Obsolete("Please explicitly close connections instead.")]
-        bool AutoClose { get; set; }
-
         /// <summary>
         /// The maximum channel number this connection supports (0 if unlimited).
         /// Usable channel numbers range from 1 to this number, inclusive.

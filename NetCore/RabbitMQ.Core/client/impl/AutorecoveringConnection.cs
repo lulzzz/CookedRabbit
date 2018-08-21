@@ -1,9 +1,8 @@
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,24 +62,25 @@ namespace RabbitMQ.Client.Framing.Impl
         public AutorecoveringConnection(ConnectionFactory factory, string clientProvidedName = null)
         {
             m_factory = factory;
-            this.ClientProvidedName = clientProvidedName;
+            ClientProvidedName = clientProvidedName;
         }
 
         private bool ManuallyClosed
         {
             get
             {
-                lock(manuallyClosedLock)
+                lock (manuallyClosedLock)
                 {
                     return manuallyClosed;
                 }
             }
             set
             {
-                lock(manuallyClosedLock)
+                lock (manuallyClosedLock)
                 {
-                    manuallyClosed = value; }
+                    manuallyClosed = value;
                 }
+            }
         }
 
         public event EventHandler<EventArgs> RecoverySucceeded
@@ -253,13 +253,6 @@ namespace RabbitMQ.Client.Framing.Impl
         }
 
         public string ClientProvidedName { get; private set; }
-
-        [Obsolete("Please explicitly close connections instead.")]
-        public bool AutoClose
-        {
-            get { return m_delegate.AutoClose; }
-            set { m_delegate.AutoClose = value; }
-        }
 
         public ushort ChannelMax
         {
@@ -494,8 +487,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreDestinationsBoundToExchange(m_recordedBindings.Keys, exchange))
                 {
-                    RecordedExchange rx;
-                    m_recordedExchanges.TryGetValue(exchange, out rx);
+                    m_recordedExchanges.TryGetValue(exchange, out RecordedExchange rx);
                     // last binding where this exchange is the source is gone,
                     // remove recorded exchange
                     // if it is auto-deleted. See bug 26364.
@@ -513,8 +505,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 if (!HasMoreConsumersOnQueue(m_recordedConsumers.Values, queue))
                 {
-                    RecordedQueue rq;
-                    m_recordedQueues.TryGetValue(queue, out rq);
+                    m_recordedQueues.TryGetValue(queue, out RecordedQueue rq);
                     // last consumer on this connection is gone, remove recorded queue
                     // if it is auto-deleted. See bug 26364.
                     if ((rq != null) && rq.IsAutoDelete)
@@ -575,23 +566,23 @@ namespace RabbitMQ.Client.Framing.Impl
 
         public void Init()
         {
-            this.Init(m_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { m_factory.Endpoint }));
+            Init(m_factory.EndpointResolverFactory(new List<AmqpTcpEndpoint> { m_factory.Endpoint }));
         }
 
         public void Init(IEndpointResolver endpoints)
         {
             this.endpoints = endpoints;
             var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-            this.Init(fh);
+            Init(fh);
         }
 
         private void Init(IFrameHandler fh)
         {
             m_delegate = new Connection(m_factory, false,
-                fh, this.ClientProvidedName);
+                fh, ClientProvidedName);
 
             AutorecoveringConnection self = this;
-            EventHandler<ShutdownEventArgs> recoveryListener = (_, args) =>
+            void recoveryListener(object _, ShutdownEventArgs args)
             {
                 lock (recoveryLockTarget)
                 {
@@ -607,7 +598,8 @@ namespace RabbitMQ.Client.Framing.Impl
                         }
                     }
                 }
-            };
+            }
+
             lock (m_eventLock)
             {
                 ConnectionShutdown += recoveryListener;
@@ -621,15 +613,15 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort()
         {
-            this.ManuallyClosed = true;
-            if(m_delegate.IsOpen)
+            ManuallyClosed = true;
+            if (m_delegate.IsOpen)
                 m_delegate.Abort();
         }
 
         ///<summary>API-side invocation of connection abort.</summary>
         public void Abort(ushort reasonCode, string reasonText)
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Abort(reasonCode, reasonText);
         }
@@ -637,7 +629,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(int timeout)
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Abort(timeout);
         }
@@ -645,7 +637,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection abort with timeout.</summary>
         public void Abort(ushort reasonCode, string reasonText, int timeout)
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Abort(reasonCode, reasonText, timeout);
         }
@@ -653,7 +645,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close()
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Close();
         }
@@ -661,7 +653,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close.</summary>
         public void Close(ushort reasonCode, string reasonText)
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText);
         }
@@ -669,7 +661,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(int timeout)
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Close(timeout);
         }
@@ -677,7 +669,7 @@ namespace RabbitMQ.Client.Framing.Impl
         ///<summary>API-side invocation of connection.close with timeout.</summary>
         public void Close(ushort reasonCode, string reasonText, int timeout)
         {
-            this.ManuallyClosed = true;
+            ManuallyClosed = true;
             if (m_delegate.IsOpen)
                 m_delegate.Close(reasonCode, reasonText, timeout);
         }
@@ -711,7 +703,7 @@ namespace RabbitMQ.Client.Framing.Impl
             {
                 Abort();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // TODO: log
             }
@@ -766,7 +758,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
+                    string s = string.Format("Caught an exception while recovering binding between {0} and {1}: {2}",
                         b.Source, b.Destination, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -792,7 +784,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 try
                 {
                     var fh = endpoints.SelectOne(m_factory.CreateFrameHandler);
-                    m_delegate = new Connection(m_factory, false, fh, this.ClientProvidedName);
+                    m_delegate = new Connection(m_factory, false, fh, ClientProvidedName);
                     return true;
                 }
                 catch (Exception e)
@@ -886,7 +878,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
+                    string s = string.Format("Caught an exception while recovering consumer {0} on queue {1}: {2}",
                         tag, cons.Queue, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -916,7 +908,7 @@ namespace RabbitMQ.Client.Framing.Impl
                 }
                 catch (Exception cause)
                 {
-                    string s = String.Format("Caught an exception while recovering exchange {0}: {1}",
+                    string s = string.Format("Caught an exception while recovering exchange {0}: {1}",
                         rx.Name, cause.Message);
                     HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                 }
@@ -982,7 +974,7 @@ namespace RabbitMQ.Client.Framing.Impl
                     }
                     catch (Exception cause)
                     {
-                        string s = String.Format("Caught an exception while recovering queue {0}: {1}",
+                        string s = string.Format("Caught an exception while recovering queue {0}: {1}",
                             oldName, cause.Message);
                         HandleTopologyRecoveryException(new TopologyRecoveryException(s, cause));
                     }
@@ -1014,8 +1006,8 @@ namespace RabbitMQ.Client.Framing.Impl
         protected bool ShouldTriggerConnectionRecovery(ShutdownEventArgs args)
         {
             return (args.Initiator == ShutdownInitiator.Peer ||
-                // happens when EOF is reached, e.g. due to RabbitMQ node
-                // connectivity loss or abrupt shutdown
+                    // happens when EOF is reached, e.g. due to RabbitMQ node
+                    // connectivity loss or abrupt shutdown
                     args.Initiator == ShutdownInitiator.Library);
         }
     }

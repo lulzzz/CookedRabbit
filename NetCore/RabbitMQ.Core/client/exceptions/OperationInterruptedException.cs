@@ -24,7 +24,7 @@ namespace RabbitMQ.Client.Exceptions
 
         ///<summary>Construct an OperationInterruptedException with
         ///the passed-in explanation and prefix, if any.</summary>
-        public OperationInterruptedException(ShutdownEventArgs reason, String prefix)
+        public OperationInterruptedException(ShutdownEventArgs reason, string prefix)
             : base(reason == null ? ($"{prefix}: The AMQP operation was interrupted") :
                 $"{prefix}: The AMQP operation was interrupted: {reason}")
         {
@@ -43,14 +43,6 @@ namespace RabbitMQ.Client.Exceptions
             : base(message, inner)
         {
         }
-/*
-#if !(NETFX_CORE)
-        protected OperationInterruptedException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
-#endif
-*/
 
         ///<summary>Retrieves the explanation for the shutdown. May
         ///return null if no explanation is available.</summary>

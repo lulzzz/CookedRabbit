@@ -1,7 +1,7 @@
-﻿using System;
+﻿using RabbitMQ.Client.Events;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -15,13 +15,13 @@ namespace RabbitMQ.Client.Impl
         readonly IBasicProperties basicProperties;
         readonly byte[] body;
 
-        public BasicDeliver(IBasicConsumer consumer, 
-            string consumerTag, 
-            ulong deliveryTag, 
-            bool redelivered, 
-            string exchange, 
-            string routingKey, 
-            IBasicProperties basicProperties, 
+        public BasicDeliver(IBasicConsumer consumer,
+            string consumerTag,
+            ulong deliveryTag,
+            bool redelivered,
+            string exchange,
+            string routingKey,
+            IBasicProperties basicProperties,
             byte[] body) : base(consumer)
         {
             this.consumerTag = consumerTag;

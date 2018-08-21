@@ -1,24 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 
 namespace RabbitMQ.Client.Logging
 {
-    using System;
-    using System.Collections.Generic;
-#if NET451
-    using Microsoft.Diagnostics.Tracing;
-#else
-    using System.Diagnostics.Tracing;
-#endif
-
     public sealed class RabbitMqConsoleEventListener : EventListener, IDisposable
     {
         public RabbitMqConsoleEventListener()
         {
-            this.EnableEvents(RabbitMqClientEventSource.Log, EventLevel.Informational, RabbitMqClientEventSource.Keywords.Log);
+            EnableEvents(RabbitMqClientEventSource.Log, EventLevel.Informational, RabbitMqClientEventSource.Keywords.Log);
         }
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            foreach(var pl in eventData.Payload)
+            foreach (var pl in eventData.Payload)
             {
                 if (pl is IDictionary<string, object> dict)
                 {
@@ -34,7 +29,7 @@ namespace RabbitMQ.Client.Logging
 
         public override void Dispose()
         {
-            this.DisableEvents(RabbitMqClientEventSource.Log);
+            DisableEvents(RabbitMqClientEventSource.Log);
         }
     }
 }

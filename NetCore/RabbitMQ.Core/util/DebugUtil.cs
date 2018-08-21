@@ -11,13 +11,11 @@ namespace RabbitMQ.Util
     ///</remarks>
     public static class DebugUtil
     {
-#if !(NETFX_CORE)
         ///<summary>Print a hex dump of the supplied bytes to stdout.</summary>
         public static void Dump(byte[] bytes)
         {
             Dump(bytes, Console.Out);
         }
-#endif
 
         ///<summary>Print a hex dump of the supplied bytes to the supplied TextWriter.</summary>
         public static void Dump(byte[] bytes, TextWriter writer)
@@ -62,7 +60,7 @@ namespace RabbitMQ.Util
         ///<remarks>Recurses into the value using DumpProperties().</remarks>
         public static void DumpKeyValue(string key, object value, TextWriter writer, int indent)
         {
-            string prefix = new String(' ', indent + 2) + key + ": ";
+            string prefix = new string(' ', indent + 2) + key + ": ";
             writer.Write(prefix);
             DumpProperties(value, writer, indent + 2);
         }

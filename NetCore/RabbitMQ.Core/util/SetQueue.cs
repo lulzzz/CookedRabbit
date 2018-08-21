@@ -1,56 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace RabbitMQ.Util
 {
     public class SetQueue<T>
     {
-        private HashSet<T> members = new HashSet<T>();
-        private LinkedList<T> queue = new LinkedList<T>();
+        private readonly HashSet<T> members = new HashSet<T>();
+        private readonly LinkedList<T> queue = new LinkedList<T>();
 
         public bool Enqueue(T item)
         {
-            if(this.members.Contains(item))
+            if (members.Contains(item))
             {
                 return false;
             }
-            this.members.Add(item);
-            this.queue.AddLast(item);
+            members.Add(item);
+            queue.AddLast(item);
             return true;
         }
 
         public T Dequeue()
         {
-            if (this.queue.Count == 0)
+            if (queue.Count == 0)
             {
-                return default(T);
+                return default;
             }
-            T item = this.queue.First.Value;
-            this.queue.RemoveFirst();
-            this.members.Remove(item);
+            T item = queue.First.Value;
+            queue.RemoveFirst();
+            members.Remove(item);
             return item;
         }
 
         public bool Contains(T item)
         {
-            return this.members.Contains(item);
+            return members.Contains(item);
         }
 
         public bool IsEmpty()
         {
-            return this.members.Count == 0;
+            return members.Count == 0;
         }
 
         public bool Remove(T item)
         {
-            this.queue.Remove(item);
-            return this.members.Remove(item);
+            queue.Remove(item);
+            return members.Remove(item);
         }
 
         public void Clear()
         {
-            this.queue.Clear();
-            this.members.Clear();
+            queue.Clear();
+            members.Clear();
         }
     }
 }

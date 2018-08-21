@@ -1,10 +1,9 @@
-using System;
+using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -224,9 +223,7 @@ namespace RabbitMQ.Client.Impl
 
         public static void WriteDecimal(NetworkBinaryWriter writer, decimal value)
         {
-            byte scale;
-            int mantissa;
-            DecimalToAmqp(value, out scale, out mantissa);
+            DecimalToAmqp(value, out byte scale, out int mantissa);
             WriteOctet(writer, scale);
             WriteLong(writer, (uint)mantissa);
         }

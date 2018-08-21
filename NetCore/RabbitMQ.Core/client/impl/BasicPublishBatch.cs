@@ -1,22 +1,21 @@
 namespace RabbitMQ.Client.Impl
 {
-    using System.Collections.Generic;
     using RabbitMQ.Client;
     using RabbitMQ.Client.Framing.Impl;
-    using RabbitMQ.Client.Impl;
+    using System.Collections.Generic;
 
     public class BasicPublishBatch : IBasicPublishBatch
     {
         private List<Command> commands = new List<Command>();
         private ModelBase model;
-        internal BasicPublishBatch (ModelBase model)
+        internal BasicPublishBatch(ModelBase model)
         {
             this.model = model;
         }
 
         public void Add(string exchange, string routingKey, bool mandatory, IBasicProperties basicProperties, byte[] body)
         {
-            var bp = basicProperties == null ? model.CreateBasicProperties() : basicProperties;
+            var bp = basicProperties ?? model.CreateBasicProperties();
             var method = new BasicPublish
             {
                 m_exchange = exchange,

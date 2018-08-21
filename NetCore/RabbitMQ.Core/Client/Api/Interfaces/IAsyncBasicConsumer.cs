@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
+using System.Threading.Tasks;
 
 namespace RabbitMQ.Client
 {

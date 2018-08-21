@@ -1,5 +1,3 @@
-using System;
-using System.Net;
 using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client.Impl

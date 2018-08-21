@@ -134,7 +134,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Used to force the address family of the endpoint
         /// </summary>
-        public System.Net.Sockets.AddressFamily AddressFamily {get; set;}
+        public System.Net.Sockets.AddressFamily AddressFamily { get; set; }
 
         /// <summary>
         /// Retrieve the SSL options for this AmqpTcpEndpoint. If not set, null is returned.
@@ -188,7 +188,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         public static AmqpTcpEndpoint[] ParseMultiple(string addresses)
         {
-            string[] partsArr = addresses.Split(new[] {','});
+            string[] partsArr = addresses.Split(new[] { ',' });
             var results = new List<AmqpTcpEndpoint>();
             foreach (string partRaw in partsArr)
             {
