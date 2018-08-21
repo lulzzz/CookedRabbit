@@ -1,8 +1,8 @@
 <p align="center"><img src="https://s33.postimg.cc/g8pyewwm7/COOKEDRABBIT_1.jpg"></p>
 
 ## CookedRabbit [![AppVeyor](https://img.shields.io/appveyor/ci/houseofcat/cookedrabbit.svg?logo=appveyor)](https://ci.appveyor.com/project/houseofcat/cookedrabbit)
-#### CookedRabbit.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
-#### CookedRabbit.Core.Library [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
+#### .NET 4.7.2 [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Library/)
+#### NetCore 2.1 [![NuGet](https://img.shields.io/nuget/dt/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/) [![NuGet](https://img.shields.io/nuget/v/CookedRabbit.Core.Library.svg)](https://www.nuget.org/packages/CookedRabbit.Core.Library/)
 
 
 CookedRabbit is a simple RabbitMQ wrapper for dealing with channels and connection headaches. It also shows you the natural evolution to common everyday problems with RabbitMQ implementations and how to avoid them. This solution is more orientated to services.  
@@ -22,22 +22,29 @@ Do or do not, I am not really bothered either way :).
 
 CookedRabbit benefits are simplicity. It will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft releases.
 
-Which leads me to the custom compiled RabbitMQ CookedRabbit uses and includes in this solution:
+Which leads me to the built-in RabbitMQ DotNetClient Options!
 
 ```
 RabbitMQ Dotnet Client 5.1.0 (6/23/2018)
-
 Changes from Official Release
+
    All NuGets updated.
    NetFramework 4.5/4.5.1 -> 4.7.2
    NetStandard 1.5 -> 2.0
-   NetCore 2.0 -> 2.1
    C# 7.3 (latest version)
    ApiGen re-compiled.
    Client compiled as x64.
+
+RabbitMQ.Core Project Based off of the official DotNetClient 5.1.0 (6/23/2018)
+Changes from Official Release
+
+   NetCore 2.1
+   Compiled as C# 7.3 (latest version) and API re-generated.
+   Code converted to C# 6+ based on IDE Message / Format recommendations.
+   License consolidated to a single file.
 ```
 
-CookedRabbit.Core has RabbitMQ.Core included for debugging ease and pure NetCore deployment.  
+CookedRabbit.Core.Library integrates directly with RabbitMQ.Core for debugging ease.
 CookedRabbit is in active development.  
 CookedRabbit supports SSL/TLS.  
 CookedRabbit supports Gzip, Deflate, and LZ4 compression.  
@@ -49,7 +56,6 @@ CookedRabbit supports logic based customizations.
 CookedRabbit has fairly decent commenting and Wiki being filled out.  
 CookedRabbit has a plethora of examples on how to use in the Demo project, Tests project, and Benchmark project.  
 CookedRabbit has a benchmark project.  
-
 
 </p>
 </details>
