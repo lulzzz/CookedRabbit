@@ -1189,7 +1189,7 @@ namespace CookedRabbit.Library.Services
         /// RabbitService dispose method.
         /// </summary>
         /// <param name="disposing"></param>
-        public virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
@@ -1198,7 +1198,11 @@ namespace CookedRabbit.Library.Services
             }
         }
 
-        void IDisposable.Dispose() { Dispose(true); }
+        /// <summary>
+        /// RabbitService dispose method.
+        /// </summary>
+        public void Dispose()
+        { Dispose(true); }
 
         #endregion
     }

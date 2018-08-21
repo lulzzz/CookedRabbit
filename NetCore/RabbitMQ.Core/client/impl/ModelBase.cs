@@ -56,8 +56,7 @@ namespace RabbitMQ.Client.Impl
 
         public ModelBase(ISession session, ConsumerWorkService workService)
         {
-            var asyncConsumerWorkService = workService as AsyncConsumerWorkService;
-            if (asyncConsumerWorkService != null)
+            if (workService is AsyncConsumerWorkService asyncConsumerWorkService)
             {
                 ConsumerDispatcher = new AsyncConsumerDispatcher(this, asyncConsumerWorkService);
             }
@@ -816,10 +815,12 @@ namespace RabbitMQ.Client.Impl
             bool multiple,
             bool requeue)
         {
-            var e = new BasicNackEventArgs();
-            e.DeliveryTag = deliveryTag;
-            e.Multiple = multiple;
-            e.Requeue = requeue;
+            var e = new BasicNackEventArgs
+            {
+                DeliveryTag = deliveryTag,
+                Multiple = multiple,
+                Requeue = requeue
+            };
             OnBasicNack(e);
         }
 
@@ -837,13 +838,15 @@ namespace RabbitMQ.Client.Impl
             IBasicProperties basicProperties,
             byte[] body)
         {
-            var e = new BasicReturnEventArgs();
-            e.ReplyCode = replyCode;
-            e.ReplyText = replyText;
-            e.Exchange = exchange;
-            e.RoutingKey = routingKey;
-            e.BasicProperties = basicProperties;
-            e.Body = body;
+            var e = new BasicReturnEventArgs
+            {
+                ReplyCode = replyCode,
+                ReplyText = replyText,
+                Exchange = exchange,
+                RoutingKey = routingKey,
+                BasicProperties = basicProperties,
+                Body = body
+            };
             OnBasicReturn(e);
         }
 
@@ -1143,11 +1146,9 @@ namespace RabbitMQ.Client.Impl
             IBasicConsumer consumer)
         {
             // TODO: Replace with flag
-            var asyncDispatcher = ConsumerDispatcher as AsyncConsumerDispatcher;
-            if (asyncDispatcher != null)
+            if (ConsumerDispatcher is AsyncConsumerDispatcher asyncDispatcher)
             {
-                var asyncConsumer = consumer as IAsyncBasicConsumer;
-                if (asyncConsumer == null)
+                if (!(consumer is IAsyncBasicConsumer asyncConsumer))
                 {
                     // TODO: Friendly message
                     throw new InvalidOperationException("In the async mode you have to use an async consumer");

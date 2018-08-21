@@ -21,7 +21,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             var hashCode = Math.Abs(Guid.NewGuid().GetHashCode());
-            return list.ElementAt<T>(hashCode % n);
+            return list.ElementAt(hashCode % n);
         }
     }
 }

@@ -2,13 +2,14 @@
 using CookedRabbit.Library.Services;
 using CookedRabbit.Library.Utilities;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace CookedRabbit.Library.Models
 {
     /// <summary>
     /// A RabbitBurrow contains all the pre-built paths for Rabbits to take.
     /// </summary>
-    public class RabbitBurrow
+    public class RabbitBurrow : IDisposable
     {
         private readonly RabbitSeasoning _seasoning;
 
@@ -64,5 +65,35 @@ namespace CookedRabbit.Library.Models
             Transmission = new RabbitSerializeService(_seasoning, rchanp, rconp, logger);
             Maintenance = new RabbitMaintenanceService(_seasoning, rchanp, rconp, logger);
         }
+
+        #region Dispose Section
+
+        private bool _disposedValue = false;
+
+        /// <summary>
+        /// RabbitBurrow dispose method.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    Transmission.Dispose();
+                    Maintenance.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// RabbitBurrow dispose method.
+        /// </summary>
+        public void Dispose()
+        { Dispose(true); }
+
+        #endregion
     }
 }

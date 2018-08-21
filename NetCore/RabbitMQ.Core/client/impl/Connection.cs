@@ -95,8 +95,7 @@ namespace RabbitMQ.Client.Framing.Impl
             m_factory = factory;
             m_frameHandler = frameHandler;
 
-            var asyncConnectionFactory = factory as IAsyncConnectionFactory;
-            if (asyncConnectionFactory != null && asyncConnectionFactory.DispatchConsumersAsync)
+            if (factory is IAsyncConnectionFactory asyncConnectionFactory && asyncConnectionFactory.DispatchConsumersAsync)
             {
                 ConsumerWorkService = new AsyncConsumerWorkService();
             }
@@ -1001,9 +1000,11 @@ entry.ToString());
 #if NETFX_CORE
             Task.Factory.StartNew(this.MainLoop, TaskCreationOptions.LongRunning);
 #else
-            var mainLoopThread = new Thread(MainLoop);
-            mainLoopThread.Name = taskName;
-            mainLoopThread.IsBackground = useBackgroundThread;
+            var mainLoopThread = new Thread(MainLoop)
+            {
+                Name = taskName,
+                IsBackground = useBackgroundThread
+            };
             mainLoopThread.Start();
 #endif
         }

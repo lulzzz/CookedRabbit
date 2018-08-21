@@ -306,7 +306,7 @@ namespace RabbitMQ.Client
             foreach (AuthMechanismFactory factory in AuthMechanisms)
             {
                 var factoryName = factory.Name;
-                if (mechanismNames.Any<string>(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
+                if (mechanismNames.Any(x => string.Equals(x, factoryName, StringComparison.OrdinalIgnoreCase)))
                 {
                     return factory;
                 }

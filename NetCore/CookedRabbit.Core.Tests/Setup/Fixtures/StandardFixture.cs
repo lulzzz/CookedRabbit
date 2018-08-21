@@ -68,8 +68,8 @@ namespace CookedRabbit.Core.Tests.Fixtures
                     }
                     catch { }
 
-                    Burrow.Transmission.Dispose(true);
-                    Burrow.Maintenance.Dispose(true);
+                    Burrow.Transmission.Dispose();
+                    Burrow.Maintenance.Dispose();
                 }
 
                 disposedValue = true;

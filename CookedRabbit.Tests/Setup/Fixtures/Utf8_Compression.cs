@@ -81,8 +81,8 @@ namespace CookedRabbit.Tests.Fixtures
                     }
                     catch { }
 
-                    RabbitDeliveryService.Dispose(true);
-                    RabbitTopologyService.Dispose(true);
+                    RabbitDeliveryService.Dispose();
+                    RabbitTopologyService.Dispose();
                 }
 
                 disposedValue = true;

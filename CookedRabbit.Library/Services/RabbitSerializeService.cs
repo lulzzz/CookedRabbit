@@ -225,7 +225,7 @@ namespace CookedRabbit.Library.Services
         /// RabbitService dispose method.
         /// </summary>
         /// <param name="disposing"></param>
-        public override void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
@@ -234,7 +234,11 @@ namespace CookedRabbit.Library.Services
             }
         }
 
-        void IDisposable.Dispose() { Dispose(true); }
+        /// <summary>
+        /// RabbitService dispose method.
+        /// </summary>
+        public new void Dispose()
+        { Dispose(true); }
 
         #endregion
     }

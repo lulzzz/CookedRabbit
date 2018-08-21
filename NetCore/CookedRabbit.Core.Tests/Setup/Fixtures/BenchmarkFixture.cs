@@ -75,9 +75,9 @@ namespace CookedRabbit.Core.Tests.Fixtures
                     }
                     catch { }
 
-                    TopologyService.Dispose(true);
-                    DeliveryService.Dispose(true);
-                    MaintenanceService.Dispose(true);
+                    TopologyService.Dispose();
+                    DeliveryService.Dispose();
+                    MaintenanceService.Dispose();
                 }
 
                 disposedValue = true;

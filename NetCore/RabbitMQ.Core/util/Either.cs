@@ -1,5 +1,3 @@
-using System;
-
 namespace RabbitMQ.Util
 {
     ///<summary>Used internally by class Either.</summary>
