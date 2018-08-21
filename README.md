@@ -44,7 +44,7 @@ Changes from Official Release
    License consolidated to a single file.
 ```
 
-CookedRabbit.Core.Library integrates directly with RabbitMQ.Core for debugging ease.
+CookedRabbit.Core.Library integrates directly with RabbitMQ.Core for debugging ease.  
 CookedRabbit is in active development.  
 CookedRabbit supports SSL/TLS.  
 CookedRabbit supports Gzip, Deflate, and LZ4 compression.  
