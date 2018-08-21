@@ -24,7 +24,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LangVersion>latest</LangVersion>
-    <DefineConstants>TRACE;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
