@@ -3,22 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
     <Company>HouseofCat.io</Company>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  </PropertyGroup>  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -29,12 +18,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="RabbitMQ.Client">
-      <HintPath>..\..\RabbitMQ\netstandard2.0\RabbitMQ.Client.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-</Project>
+    <ProjectReference Include="..\RabbitMQ.Core\RabbitMQ.Core.csproj" />
+  </ItemGroup></Project>

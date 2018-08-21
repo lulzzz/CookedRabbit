@@ -1,22 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
-    <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
+    <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
@@ -47,12 +37,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="RabbitMQ.Client">
-      <HintPath>..\..\RabbitMQ\netstandard2.0\RabbitMQ.Client.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\RabbitMQ.Core\RabbitMQ.Core.csproj" />
   </ItemGroup>
 
 </Project>
