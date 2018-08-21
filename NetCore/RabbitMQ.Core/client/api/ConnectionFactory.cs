@@ -482,9 +482,8 @@ namespace RabbitMQ.Client
             {
                 Ssl.Enabled = true;
                 Ssl.Version = AmqpUriSslProtocols;
-#if !(NETFX_CORE)
                 Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-#endif
+
                 Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
             }
             else
