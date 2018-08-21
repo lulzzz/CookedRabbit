@@ -19,5 +19,4 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CookedRabbit.Core.Library\CookedRabbit.Core.Library.csproj" />
-    <ProjectReference Include="..\RabbitMQ.Core\RabbitMQ.Core.csproj" />
   </ItemGroup></Project>
