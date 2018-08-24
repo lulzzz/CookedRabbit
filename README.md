@@ -13,6 +13,8 @@ Everything starts in the Demo client. Biggest problem I have observed so far is 
 
 Inspired by the likes of RawRabbit (https://github.com/pardahlman/RawRabbit), I needed a simpler RabbitMQ solution at times for specific situations. The longterm goal is to be modern, lightweight, and KISS. If you need a more thorough/advanced solution, I highly recommend checking out RawRabbit or EastyNetQ.
 
+For more details visit the [Wiki](https://github.com/thyams/CookedRabbit/wiki)!
+
 ### Why use CookedRabbit?
 
 <details><summary>Click to show!</summary>
