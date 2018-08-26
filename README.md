@@ -20,9 +20,7 @@ For more details visit the [Wiki](https://github.com/thyams/CookedRabbit/wiki)!
 <details><summary>Click to show!</summary>
 <p>
 
-Do or do not, I am not really bothered either way :).  
-
-CookedRabbit benefits are simplicity. It will also stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft releases.
+I personally would use CookedRabbit because it is simple. Once you are setup you just have to Publish and/or Get. Obviously its capable of much more but suffice to say - it is simple. Another benefit, at least from my perspective, is that I will stay current with .Net Framework, NetCore, C#7.x+, and the RabbitMQ client. It is not my intention to let things lag behind Pivotal RabbitMQ or Microsoft releases. It currently supports NET472, NetCore 2.1, and C# 7.3.
 
 Which leads me to the built-in RabbitMQ DotNetClient Options!
 
